@@ -1,0 +1,127 @@
+{
+    "name": "tts_kokoro",
+    "version": "1.0.0",
+    "contract": "tts",
+    "entry_point": "__init__",
+    "display_name": "Kokoro TTS",
+    "description": "High-quality neural TTS using Kokoro-82M model with GPU acceleration. Supports multiple languages and voices.",
+    "author": "Piovis Development",
+    "license": "Apache-2.0",
+    "repository": "https://github.com/hexgrad/kokoro",
+    "dependencies": [
+        "kokoro>=0.9.4",
+        "soundfile>=0.12.0",
+        "torch>=2.0.0",
+        "misaki[en]"
+    ],
+    "system_dependencies": [
+        {
+            "name": "espeak-ng",
+            "platform": "windows",
+            "install_url": "https://github.com/espeak-ng/espeak-ng/releases",
+            "note": "Download and run the .msi installer"
+        }
+    ],
+    "config_schema": {
+        "type": "object",
+        "properties": {
+            "default_voice": {
+                "type": "string",
+                "default": "af_heart",
+                "description": "Default voice ID to use for synthesis"
+            },
+            "default_lang_code": {
+                "type": "string",
+                "enum": [
+                    "a",
+                    "b",
+                    "e",
+                    "f",
+                    "h",
+                    "i",
+                    "j",
+                    "p",
+                    "z"
+                ],
+                "default": "a",
+                "description": "Default language code: a=American English, b=British English, e=Spanish, f=French, h=Hindi, i=Italian, j=Japanese, p=Portuguese, z=Chinese"
+            },
+            "device": {
+                "type": "string",
+                "enum": [
+                    "cuda",
+                    "cpu",
+                    "auto"
+                ],
+                "default": "auto",
+                "description": "Compute device for inference. 'auto' selects CUDA if available."
+            },
+            "speed": {
+                "type": "number",
+                "default": 1.0,
+                "minimum": 0.5,
+                "maximum": 2.0,
+                "description": "Default speech speed multiplier"
+            }
+        }
+    },
+    "default_config": {
+        "default_voice": "af_heart",
+        "default_lang_code": "a",
+        "device": "auto",
+        "speed": 1.0
+    },
+    "capabilities": {
+        "streaming": false,
+        "ssml": false,
+        "multi_language": true,
+        "voice_cloning": false
+    },
+    "supported_languages": [
+        {
+            "code": "en-US",
+            "name": "American English",
+            "lang_code": "a"
+        },
+        {
+            "code": "en-GB",
+            "name": "British English",
+            "lang_code": "b"
+        },
+        {
+            "code": "es",
+            "name": "Spanish",
+            "lang_code": "e"
+        },
+        {
+            "code": "fr-FR",
+            "name": "French",
+            "lang_code": "f"
+        },
+        {
+            "code": "hi",
+            "name": "Hindi",
+            "lang_code": "h"
+        },
+        {
+            "code": "it",
+            "name": "Italian",
+            "lang_code": "i"
+        },
+        {
+            "code": "ja",
+            "name": "Japanese",
+            "lang_code": "j"
+        },
+        {
+            "code": "pt-BR",
+            "name": "Brazilian Portuguese",
+            "lang_code": "p"
+        },
+        {
+            "code": "zh",
+            "name": "Mandarin Chinese",
+            "lang_code": "z"
+        }
+    ]
+}

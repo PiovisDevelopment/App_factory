@@ -1,0 +1,61 @@
+{
+    "name": "llm_ollama_v2",
+    "version": "2.0.0",
+    "contract": "llm",
+    "entry_point": "__init__",
+    "display_name": "Ollama LLM",
+    "description": "Local LLM inference via Ollama. Connects to locally installed models including Llama, Mistral, Gemma, Phi, and more. Supports streaming, chat, and completion.",
+    "author": "Piovis Development",
+    "license": "MIT",
+    "repository": "https://ollama.com",
+    "dependencies": [],
+    "system_dependencies": [
+        {
+            "name": "Ollama",
+            "platform": "all",
+            "install_url": "https://ollama.com/download",
+            "note": "Download and install Ollama, then pull models with 'ollama pull llama3.2'"
+        }
+    ],
+    "config_schema": {
+        "type": "object",
+        "properties": {
+            "base_url": {
+                "type": "string",
+                "default": "http://localhost:11434",
+                "description": "Ollama API base URL"
+            },
+            "default_model": {
+                "type": "string",
+                "default": null,
+                "description": "Default model ID. If null, uses first available model."
+            },
+            "timeout": {
+                "type": "integer",
+                "default": 60,
+                "minimum": 5,
+                "maximum": 300,
+                "description": "Request timeout in seconds"
+            },
+            "keep_alive": {
+                "type": "string",
+                "default": "5m",
+                "description": "How long to keep model loaded in memory"
+            }
+        }
+    },
+    "default_config": {
+        "base_url": "http://localhost:11434",
+        "default_model": null,
+        "timeout": 60,
+        "keep_alive": "5m"
+    },
+    "capabilities": {
+        "streaming": true,
+        "chat": true,
+        "completion": true,
+        "tools": false,
+        "vision": false,
+        "embeddings": true
+    }
+}

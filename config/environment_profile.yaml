@@ -1,0 +1,95 @@
+# ============================================================================
+# Environment Profile Configuration
+# ============================================================================
+# This file stores the user's hardware and software environment for 
+# AI-assisted optimization. Referenced by agents to build optimal solutions.
+#
+# Last Updated: 2025-12-30
+# ============================================================================
+
+profile:
+  name: "anujd-workstation"
+  description: "Primary development workstation"
+
+# Hardware Specifications
+hardware:
+  os:
+    name: "Windows 11"
+    type: "windows"
+    shell: "pwsh"  # PowerShell
+    path_separator: "\\"
+  
+  gpu:
+    vendor: "NVIDIA"
+    model: "GeForce RTX 4080"
+    vram_gb: 12
+    cuda_compute_capability: "8.9"  # Ada Lovelace
+    tensor_cores: true
+    features:
+      - "CUDA"
+      - "cuDNN"
+      - "TensorRT"
+  
+  memory:
+    ram_gb: 32
+  
+  cpu:
+    # Add CPU info if needed
+    cores: null
+    model: null
+
+# Software Stack
+software:
+  cuda:
+    driver_version: "13.0"
+    toolkit_version: "12.9"
+    cudnn_version: "9.x"
+  
+  python:
+    version: "3.11"
+    virtual_environments:
+      - "UX"
+      - "CUDA" 
+      - "NPM"
+  
+  node:
+    version: "22.12.0"
+    npm_version: "10.9.0"
+  
+  pytorch:
+    version: "2.9.1"
+    torchvision: "0.24.1"
+    torchaudio: "2.9.1"
+    cuda_build: "cu129"  # PyTorch CUDA target
+
+# Optimization Preferences
+optimization:
+  prefer_gpu: true
+  prefer_cuda: true
+  prefer_async: true
+  max_concurrent_models: 1  # VRAM constraint
+  
+  # Package installation preferences
+  package_manager: "pip"
+  prefer_prebuilt_wheels: true
+  
+  # Model preferences
+  model_precision: "fp16"  # RTX 4080 excels at FP16
+  batch_size_hint: "auto"
+
+# Constraints & Warnings
+constraints:
+  forbidden_commands:
+    - "wsl"
+    - "bash"
+    - "apt-get"
+    - "brew"
+  
+  path_format: "windows_backslash"
+  
+  heavy_libraries_warning:
+    - "torch"
+    - "tensorflow"
+    - "opencv-python"
+    - "pandas"
+    - "transformers"

@@ -1,0 +1,146 @@
+{
+    "name": "stt_whisper",
+    "version": "1.0.0",
+    "contract": "stt",
+    "entry_point": "__init__",
+    "display_name": "Whisper STT (Faster)",
+    "description": "High-performance speech-to-text using faster-whisper (CTranslate2). 4x faster than OpenAI Whisper with lower VRAM usage. Optimized for RTX GPUs.",
+    "author": "Piovis Development",
+    "license": "MIT",
+    "repository": "https://github.com/SYSTRAN/faster-whisper",
+    "dependencies": [
+        "faster-whisper>=1.0.0",
+        "soundfile>=0.12.0"
+    ],
+    "system_dependencies": [
+        {
+            "name": "cuDNN",
+            "platform": "windows",
+            "note": "Required for GPU acceleration. Should be installed with CUDA Toolkit."
+        }
+    ],
+    "config_schema": {
+        "type": "object",
+        "properties": {
+            "model_size": {
+                "type": "string",
+                "enum": [
+                    "tiny",
+                    "base",
+                    "small",
+                    "medium",
+                    "large-v2",
+                    "large-v3",
+                    "turbo",
+                    "distil-large-v3"
+                ],
+                "default": "large-v3",
+                "description": "Whisper model size. 'turbo' and 'distil-large-v3' are fastest for RTX GPUs."
+            },
+            "device": {
+                "type": "string",
+                "enum": [
+                    "cuda",
+                    "cpu",
+                    "auto"
+                ],
+                "default": "auto",
+                "description": "Compute device for inference. 'auto' selects CUDA if available."
+            },
+            "compute_type": {
+                "type": "string",
+                "enum": [
+                    "float16",
+                    "int8_float16",
+                    "int8",
+                    "float32"
+                ],
+                "default": "float16",
+                "description": "Compute precision. 'float16' is fastest on RTX GPUs. 'int8_float16' uses less VRAM."
+            },
+            "language": {
+                "type": "string",
+                "default": null,
+                "description": "Default language code (e.g., 'en'). Null for auto-detection."
+            },
+            "beam_size": {
+                "type": "integer",
+                "default": 5,
+                "minimum": 1,
+                "maximum": 10,
+                "description": "Beam size for decoding. Higher = better quality but slower."
+            },
+            "vad_filter": {
+                "type": "boolean",
+                "default": true,
+                "description": "Enable Silero VAD to filter out silence."
+            }
+        }
+    },
+    "default_config": {
+        "model_size": "large-v3",
+        "device": "auto",
+        "compute_type": "float16",
+        "language": null,
+        "beam_size": 5,
+        "vad_filter": true
+    },
+    "capabilities": {
+        "streaming": false,
+        "word_timestamps": true,
+        "speaker_diarization": false,
+        "translation": true,
+        "multi_language": true,
+        "vad": true
+    },
+    "supported_models": [
+        {
+            "id": "tiny",
+            "params": "39M",
+            "vram_gb": 1,
+            "description": "Fastest, lowest quality"
+        },
+        {
+            "id": "base",
+            "params": "74M",
+            "vram_gb": 1,
+            "description": "Fast, low quality"
+        },
+        {
+            "id": "small",
+            "params": "244M",
+            "vram_gb": 2,
+            "description": "Good balance"
+        },
+        {
+            "id": "medium",
+            "params": "769M",
+            "vram_gb": 5,
+            "description": "High quality"
+        },
+        {
+            "id": "large-v2",
+            "params": "1550M",
+            "vram_gb": 10,
+            "description": "Best quality (older)"
+        },
+        {
+            "id": "large-v3",
+            "params": "1550M",
+            "vram_gb": 10,
+            "description": "Best quality (latest)"
+        },
+        {
+            "id": "turbo",
+            "params": "809M",
+            "vram_gb": 6,
+            "description": "Fast, optimized for batching"
+        },
+        {
+            "id": "distil-large-v3",
+            "params": "756M",
+            "vram_gb": 5,
+            "description": "Fastest high-quality model"
+        }
+    ]
+}
