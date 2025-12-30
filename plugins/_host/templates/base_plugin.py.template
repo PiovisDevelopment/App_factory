@@ -1,0 +1,88 @@
+"""
+${plugin_name}
+${"=" * len(plugin_name)}
+${description}
+
+Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+Protocol: JSON-RPC 2.0 over stdin/stdout
+
+Contract: ${contract_upper}
+Author: ${author}
+License: ${license}
+"""
+
+import logging
+from typing import Any
+
+from contracts.base import PluginBase, PluginStatus, HealthStatus
+from contracts.${contract}_contract import ${contract_class}
+
+
+class ${class_name}(PluginBase, ${contract_class}):
+    """
+    ${display_name} plugin implementation.
+
+    Implements the ${contract_upper} contract.
+    """
+
+    def __init__(self):
+        """Initialize plugin."""
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self._config: dict = {}
+        self._status = PluginStatus.CREATED
+
+    def initialize(self, config: dict | None = None) -> bool:
+        """
+        Initialize plugin with configuration.
+
+        Args:
+            config: Plugin configuration dictionary
+
+        Returns:
+            True if initialization succeeded
+        """
+        self.logger.info(f"Initializing ${display_name}...")
+
+        self._config = config or {}
+
+        # TODO: Add initialization logic here
+        # - Load models
+        # - Set up connections
+        # - Validate configuration
+
+        self._status = PluginStatus.READY
+        self.logger.info("${display_name} initialized successfully")
+        return True
+
+    def shutdown(self) -> None:
+        """
+        Shutdown plugin and release resources.
+        """
+        self.logger.info("Shutting down ${display_name}...")
+
+        # TODO: Add cleanup logic here
+        # - Release models
+        # - Close connections
+        # - Save state if needed
+
+        self._status = PluginStatus.STOPPED
+        self.logger.info("${display_name} shutdown complete")
+
+    def health_check(self) -> HealthStatus:
+        """
+        Perform health check.
+
+        Returns:
+            HealthStatus with current status and message
+        """
+        return HealthStatus(
+            status=self._status,
+            message="Plugin is healthy" if self._status == PluginStatus.READY else "Plugin not ready",
+        )
+
+${method_implementations}
+
+
+# Plugin instance for registration
+plugin = ${class_name}()

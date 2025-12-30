@@ -1,0 +1,160 @@
+# D005 - config/contract_prefixes.yaml
+# =====================================
+# Static registry of valid plugin category prefixes.
+# Plugin folder names MUST start with one of these prefixes.
+#
+# Format: <prefix>_<plugin_name>
+# Example: tts_kokoro_plugin, llm_ollama_plugin
+#
+# This file is read by:
+#   - Discovery system (D020) for plugin validation
+#   - Scaffold generator (D053) for new plugin creation
+#   - Contract wizard (D072) for registering new categories
+#
+# DO NOT add prefixes here without also creating the corresponding
+# contract file in contracts/ directory.
+
+# ============================================
+# CORE PREFIXES (Built-in contracts)
+# ============================================
+
+prefixes:
+  # Text-to-Speech plugins
+  # Contract: contracts/tts_contract.py (D002)
+  # Methods: synthesize(), get_voices(), set_voice()
+  tts:
+    contract: tts_contract
+    description: "Text-to-Speech synthesis plugins"
+    examples:
+      - tts_kokoro_plugin
+      - tts_piper_plugin
+      - tts_coqui_plugin
+    smoke_test:
+      method: "tts/synthesize"
+      params:
+        text: "Hello, world!"
+        voice_id: null  # Use default voice
+      expected: "audio_data"  # Response must contain this key
+
+  # Speech-to-Text plugins
+  # Contract: contracts/stt_contract.py (D003)
+  # Methods: transcribe(), start_streaming(), stop_streaming()
+  stt:
+    contract: stt_contract
+    description: "Speech-to-Text transcription plugins"
+    examples:
+      - stt_moonshine_plugin
+      - stt_whisper_plugin
+      - stt_vosk_plugin
+    smoke_test:
+      method: "stt/transcribe"
+      params:
+        audio_data: null  # Base64 encoded test audio
+      expected: "text"
+
+  # Large Language Model plugins
+  # Contract: contracts/llm_contract.py (D004)
+  # Methods: complete(), complete_stream(), get_models()
+  llm:
+    contract: llm_contract
+    description: "Large Language Model inference plugins"
+    examples:
+      - llm_ollama_plugin
+      - llm_gemini_plugin
+      - llm_openai_plugin
+    smoke_test:
+      method: "llm/complete"
+      params:
+        messages:
+          - role: "user"
+            content: "Say hello"
+      expected: "content"
+
+# ============================================
+# EXTENSION PREFIXES (Future contracts)
+# ============================================
+
+  # Model Context Protocol bridge plugins
+  # Contract: contracts/mcp_contract.py (to be created)
+  # Methods: list_tools(), call_tool(), list_resources()
+  mcp:
+    contract: mcp_contract
+    description: "MCP server bridge plugins"
+    examples:
+      - mcp_filesystem_plugin
+      - mcp_github_plugin
+    smoke_test:
+      method: "mcp/list_tools"
+      params: {}
+      expected: "tools"
+
+  # Debug/Development plugins
+  # Contract: contracts/debug_contract.py (to be created)
+  # Methods: log(), inspect(), profile()
+  debug:
+    contract: debug_contract
+    description: "Debug and development utility plugins"
+    examples:
+      - debug_logger_plugin
+      - debug_profiler_plugin
+    smoke_test:
+      method: "debug/ping"
+      params: {}
+      expected: "pong"
+
+  # Vision/Image plugins
+  # Contract: contracts/vision_contract.py (to be created)
+  # Methods: analyze(), detect(), generate()
+  vision:
+    contract: vision_contract
+    description: "Computer vision and image processing plugins"
+    examples:
+      - vision_yolo_plugin
+      - vision_clip_plugin
+    smoke_test:
+      method: "vision/analyze"
+      params:
+        image_data: null  # Base64 encoded test image
+      expected: "analysis"
+
+  # Embedding/Vector plugins
+  # Contract: contracts/embedding_contract.py (to be created)
+  # Methods: embed(), similarity(), search()
+  embedding:
+    contract: embedding_contract
+    description: "Text and image embedding plugins"
+    examples:
+      - embedding_sentence_transformer_plugin
+      - embedding_openai_plugin
+    smoke_test:
+      method: "embedding/embed"
+      params:
+        text: "Test embedding"
+      expected: "vector"
+
+# ============================================
+# VALIDATION RULES
+# ============================================
+
+validation:
+  # Plugin folder name pattern: <prefix>_<name>_plugin
+  # Example: tts_kokoro_plugin, llm_ollama_plugin
+  folder_pattern: "^({prefixes})_[a-z0-9_]+_plugin$"
+  
+  # Required files in each plugin folder
+  required_files:
+    - manifest.json
+    - plugin.py
+    - __init__.py
+  
+  # Optional but recommended files
+  recommended_files:
+    - README.md
+    - requirements.txt
+    - tests/
+  
+  # Naming conventions
+  naming:
+    # Class name must be PascalCase ending in Plugin
+    class_pattern: "^[A-Z][a-zA-Z0-9]+Plugin$"
+    # Example: KokoroTTSPlugin, OllamaLLMPlugin

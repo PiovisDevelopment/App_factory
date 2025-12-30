@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\testing\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\testing\")",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\project\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\project\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\ai\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\ai\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\gallery\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\gallery\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\stores\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\stores\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\hooks\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\hooks\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\utils\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\utils\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\templates\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\templates\")",
+      "Bash(powershell -Command:*)",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\plugins\\\\tts_example_plugin\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\plugins\\\\tts_example_plugin\")",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src-tauri\\\\icons\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src-tauri\\\\icons\")",
+      "Bash(python:*)",
+      "Bash(npm run tauri:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run build:*)",
+      "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\plugins\\\\llm_ollama\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\plugins\\\\llm_ollama\")",
+      "Bash(npm run lint:*)",
+      "Bash(cargo build:*)",
+      "Bash(cat:*)",
+      "Bash(cargo test:*)"
+    ]
+  }
+}

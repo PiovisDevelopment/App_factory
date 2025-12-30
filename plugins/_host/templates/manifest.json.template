@@ -1,0 +1,19 @@
+{
+  "name": "${plugin_name}",
+  "version": "${version}",
+  "contract": "${contract}",
+  "entry_point": "${entry_point}",
+  "display_name": "${display_name}",
+  "description": "${description}",
+  "author": "${author}",
+  "license": "${license}",
+  "dependencies": ${dependencies_json},
+  "python_requires": "${python_requires}",
+  "gpu_required": ${gpu_required},
+  "gpu_recommended": ${gpu_recommended},
+  "min_memory_mb": ${min_memory_mb},
+  "tags": ${tags_json},
+  "capabilities": ${capabilities_json},
+  "config_schema": ${config_schema_json},
+  "default_config": ${default_config_json}
+}

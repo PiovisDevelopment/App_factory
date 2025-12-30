@@ -1,0 +1,53 @@
+# ${display_name}
+
+${description}
+
+## Installation
+
+1. Copy this folder to `plugins/`
+2. Install dependencies: `pip install -r requirements.txt`
+3. Restart the Plugin Host
+
+## Contract
+
+This plugin implements the **${contract_upper}** contract.
+
+## Configuration
+
+```json
+${default_config_formatted}
+```
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+${config_options_table}
+
+## Usage
+
+```python
+# Example usage via JSON-RPC
+request = {
+    "jsonrpc": "2.0",
+    "method": "${contract}/${example_method}",
+    "params": ${example_params},
+    "id": 1
+}
+```
+
+## Methods
+
+${methods_documentation}
+
+## Requirements
+
+${requirements_list}
+
+## Author
+
+${author}
+
+## License
+
+${license}

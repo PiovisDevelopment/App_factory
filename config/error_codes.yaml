@@ -1,0 +1,242 @@
+# D009 - config/error_codes.yaml
+# ================================
+# JSON-RPC 2.0 error codes for Plugin Host communication.
+# 
+# Standard codes: -32700 to -32600 (reserved by JSON-RPC spec)
+# Custom codes: -32000 to -32099 (server errors, implementation-defined)
+# Application codes: 1000+ (plugin-specific errors)
+#
+# Usage:
+#   - Plugin Host returns these codes in JSON-RPC error responses
+#   - Rust IPC Manager (D030-D036) maps codes to appropriate handling
+#   - Frontend displays user-friendly messages based on codes
+
+# ============================================
+# JSON-RPC 2.0 STANDARD ERRORS
+# Reserved range: -32700 to -32600
+# ============================================
+
+standard_errors:
+  PARSE_ERROR:
+    code: -32700
+    message: "Parse error"
+    description: "Invalid JSON was received by the server."
+    action: "Check request format, ensure valid JSON syntax"
+    
+  INVALID_REQUEST:
+    code: -32600
+    message: "Invalid Request"
+    description: "The JSON sent is not a valid Request object."
+    action: "Ensure request has 'jsonrpc', 'method', and 'id' fields"
+    
+  METHOD_NOT_FOUND:
+    code: -32601
+    message: "Method not found"
+    description: "The method does not exist or is not available."
+    action: "Check method name, verify plugin is loaded"
+    
+  INVALID_PARAMS:
+    code: -32602
+    message: "Invalid params"
+    description: "Invalid method parameter(s)."
+    action: "Check parameter types and required fields"
+    
+  INTERNAL_ERROR:
+    code: -32603
+    message: "Internal error"
+    description: "Internal JSON-RPC error."
+    action: "Check server logs for details"
+
+# ============================================
+# SERVER ERRORS (Implementation-defined)
+# Reserved range: -32000 to -32099
+# ============================================
+
+server_errors:
+  PLUGIN_NOT_FOUND:
+    code: -32000
+    message: "Plugin not found"
+    description: "The requested plugin is not loaded or does not exist."
+    action: "Load the plugin first using plugin/load method"
+    
+  PLUGIN_NOT_READY:
+    code: -32001
+    message: "Plugin not ready"
+    description: "The plugin exists but is not in READY state."
+    action: "Wait for plugin initialization to complete"
+    
+  PLUGIN_LOAD_FAILED:
+    code: -32002
+    message: "Plugin load failed"
+    description: "Failed to load the plugin."
+    action: "Verify manifest.json, check dependencies are installed"
+    
+  PLUGIN_INITIALIZE_FAILED:
+    code: -32003
+    message: "Plugin initialization failed"
+    description: "Plugin loaded but initialize() method failed."
+    action: "Check plugin configuration and logs"
+    
+  PLUGIN_SHUTDOWN_FAILED:
+    code: -32004
+    message: "Plugin shutdown failed"
+    description: "Plugin shutdown() method failed."
+    action: "Force unload may be required"
+    
+  PLUGIN_ALREADY_LOADED:
+    code: -32005
+    message: "Plugin already loaded"
+    description: "Attempted to load a plugin that is already loaded."
+    action: "Unload first or use hot-swap"
+    
+  CONTRACT_MISMATCH:
+    code: -32010
+    message: "Contract mismatch"
+    description: "Plugin does not implement the expected contract."
+    action: "Verify plugin extends correct contract class"
+    
+  CONTRACT_NOT_FOUND:
+    code: -32011
+    message: "Contract not found"
+    description: "The specified contract type does not exist."
+    action: "Check contract_prefixes.yaml for valid types"
+    
+  MANIFEST_INVALID:
+    code: -32012
+    message: "Invalid manifest"
+    description: "Plugin manifest.json does not conform to schema."
+    action: "Validate against manifest_schema.json"
+    
+  MANIFEST_MISSING:
+    code: -32013
+    message: "Manifest missing"
+    description: "Plugin folder does not contain manifest.json."
+    action: "Add manifest.json to plugin folder"
+    
+  HOTSWAP_FAILED:
+    code: -32020
+    message: "Hot-swap failed"
+    description: "Failed to swap plugin. Original plugin restored."
+    action: "Check new plugin compatibility"
+    
+  HOTSWAP_ROLLBACK_FAILED:
+    code: -32021
+    message: "Hot-swap rollback failed"
+    description: "Hot-swap and rollback both failed."
+    action: "Restart Plugin Host"
+    
+  DISCOVERY_FAILED:
+    code: -32030
+    message: "Discovery failed"
+    description: "Plugin discovery scan failed."
+    action: "Check plugins folder permissions"
+    
+  HEALTH_CHECK_TIMEOUT:
+    code: -32040
+    message: "Health check timeout"
+    description: "Plugin health check did not respond."
+    action: "Plugin may be unresponsive"
+    
+  RESOURCE_EXHAUSTED:
+    code: -32050
+    message: "Resource exhausted"
+    description: "System resources exhausted."
+    action: "Free resources or increase limits"
+    
+  DEPENDENCY_MISSING:
+    code: -32051
+    message: "Dependency missing"
+    description: "Required Python package not installed."
+    action: "Run pip install for missing packages"
+    
+  MODEL_NOT_FOUND:
+    code: -32052
+    message: "Model not found"
+    description: "Required model file not available."
+    action: "Download or configure model path"
+
+# ============================================
+# APPLICATION ERRORS (Plugin-specific)
+# Range: 1000+
+# ============================================
+
+application_errors:
+  # TTS errors (1000-1099)
+  TTS_SYNTHESIS_FAILED:
+    code: 1000
+    message: "TTS synthesis failed"
+    contract: tts
+    
+  TTS_VOICE_NOT_FOUND:
+    code: 1001
+    message: "Voice not found"
+    contract: tts
+    
+  TTS_TEXT_TOO_LONG:
+    code: 1002
+    message: "Text too long"
+    contract: tts
+    
+  # STT errors (1100-1199)
+  STT_TRANSCRIPTION_FAILED:
+    code: 1100
+    message: "Transcription failed"
+    contract: stt
+    
+  STT_AUDIO_INVALID:
+    code: 1101
+    message: "Invalid audio"
+    contract: stt
+    
+  STT_LANGUAGE_NOT_SUPPORTED:
+    code: 1102
+    message: "Language not supported"
+    contract: stt
+    
+  # LLM errors (1200-1299)
+  LLM_COMPLETION_FAILED:
+    code: 1200
+    message: "Completion failed"
+    contract: llm
+    
+  LLM_MODEL_NOT_AVAILABLE:
+    code: 1201
+    message: "Model not available"
+    contract: llm
+    
+  LLM_CONTEXT_TOO_LONG:
+    code: 1202
+    message: "Context too long"
+    contract: llm
+    
+  LLM_RATE_LIMITED:
+    code: 1203
+    message: "Rate limited"
+    contract: llm
+    
+  # MCP errors (1300-1399)
+  MCP_CONNECTION_FAILED:
+    code: 1300
+    message: "MCP connection failed"
+    contract: mcp
+    
+  MCP_TOOL_NOT_FOUND:
+    code: 1301
+    message: "MCP tool not found"
+    contract: mcp
+
+# ============================================
+# ERROR RESPONSE FORMAT
+# ============================================
+
+response_format:
+  example:
+    jsonrpc: "2.0"
+    id: 1
+    error:
+      code: -32000
+      message: "Plugin not found"
+      data:
+        details: "Plugin 'tts_unknown_plugin' is not loaded"
+        plugin: "tts_unknown_plugin"
+        timestamp: "2025-12-23T12:00:00Z"

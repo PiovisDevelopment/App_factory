@@ -1,0 +1,295 @@
+@echo off
+REM ============================================================================
+REM D083 - Windows Launcher Template
+REM ============================================================================
+REM Application: {{project.name}}
+REM Version: {{project.version}}
+REM Generated: {{timestamp}}
+REM
+REM Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+REM Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
+REM ============================================================================
+
+setlocal EnableDelayedExpansion
+
+REM ============================================================================
+REM CONFIGURATION
+REM ============================================================================
+
+REM Application name
+set APP_NAME={{project.name}}
+
+REM Application version
+set APP_VERSION={{project.version}}
+
+REM Get the directory where this script is located
+set APP_ROOT=%~dp0
+
+REM Remove trailing backslash
+if "%APP_ROOT:~-1%"=="\" set APP_ROOT=%APP_ROOT:~0,-1%
+
+REM Application executable
+set APP_EXE=%APP_ROOT%\{{project.name}}.exe
+
+REM Log file location
+set LOG_DIR=%APP_ROOT%\logs
+set LOG_FILE=%LOG_DIR%\launcher.log
+
+REM ============================================================================
+REM FUNCTIONS
+REM ============================================================================
+
+goto :main
+
+:log
+    REM Log message to file and console
+    echo [%date% %time%] %~1
+    if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+    echo [%date% %time%] %~1 >> "%LOG_FILE%"
+    goto :eof
+
+:check_admin
+    REM Check if running as administrator (not required but logged)
+    net session >nul 2>&1
+    if %errorlevel% == 0 (
+        call :log "Running with administrator privileges"
+    ) else (
+        call :log "Running with standard user privileges"
+    )
+    goto :eof
+
+:setup_environment
+    REM Set up environment variables
+    call :log "Setting up environment..."
+
+    REM Application paths
+    set PLUGIN_DIR=%APP_ROOT%\plugins
+    set CONFIG_DIR=%APP_ROOT%\config
+    set DATA_DIR=%APP_ROOT%\data
+    set CACHE_DIR=%APP_ROOT%\cache
+
+    REM Plugin host settings
+    set PLUGIN_HOST_LOG_LEVEL=info
+    set PLUGIN_HOST_TIMEOUT=30000
+
+    REM IPC settings
+    set IPC_BUFFER_SIZE=65536
+    set IPC_HEALTH_INTERVAL=30000
+
+    REM Load custom environment from .env if exists
+    if exist "%APP_ROOT%\.env" (
+        call :log "Loading environment from .env file..."
+        for /f "usebackq tokens=1,2 delims==" %%a in ("%APP_ROOT%\.env") do (
+            REM Skip comments and empty lines
+            set "line=%%a"
+            if not "!line!"=="" (
+                if not "!line:~0,1!"=="#" (
+                    set "%%a=%%b"
+                    call :log "  Set %%a"
+                )
+            )
+        )
+    )
+
+{{#if build.includePythonRuntime}}
+    REM Set up bundled Python runtime
+    set PYTHON_HOME=%APP_ROOT%\python
+    set PYTHON_PATH=%PYTHON_HOME%\python.exe
+    set PATH=%PYTHON_HOME%;%PYTHON_HOME%\Scripts;%PATH%
+
+    if exist "%PYTHON_PATH%" (
+        call :log "Using bundled Python: %PYTHON_PATH%"
+    ) else (
+        call :log "WARNING: Bundled Python not found at %PYTHON_PATH%"
+        call :log "Falling back to system Python..."
+        set PYTHON_PATH=python
+    )
+{{else}}
+    REM Python runtime not bundled - using system Python
+    set PYTHON_PATH=python
+
+    REM Verify Python is available
+    where python >nul 2>&1
+    if %errorlevel% neq 0 (
+        call :log "ERROR: Python not found in PATH"
+        echo.
+        echo ERROR: Python is required but not found in your system PATH.
+        echo Please install Python 3.11 or later and add it to your PATH.
+        echo.
+        pause
+        exit /b 1
+    )
+    call :log "Using system Python"
+{{/if}}
+
+    REM Custom environment variables
+{{#each env}}
+    set {{@key}}={{this}}
+{{/each}}
+
+    goto :eof
+
+:verify_structure
+    REM Verify application structure
+    call :log "Verifying application structure..."
+
+    REM Check for application executable
+    if not exist "%APP_EXE%" (
+        call :log "ERROR: Application executable not found: %APP_EXE%"
+        echo.
+        echo ERROR: Application executable not found.
+        echo Expected: %APP_EXE%
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM Check for plugin directory
+    if not exist "%PLUGIN_DIR%" (
+        call :log "Creating plugin directory: %PLUGIN_DIR%"
+        mkdir "%PLUGIN_DIR%"
+    )
+
+    REM Check for config directory
+    if not exist "%CONFIG_DIR%" (
+        call :log "Creating config directory: %CONFIG_DIR%"
+        mkdir "%CONFIG_DIR%"
+    )
+
+    REM Check for data directory
+    if not exist "%DATA_DIR%" (
+        call :log "Creating data directory: %DATA_DIR%"
+        mkdir "%DATA_DIR%"
+    )
+
+    REM Check for log directory
+    if not exist "%LOG_DIR%" (
+        call :log "Creating log directory: %LOG_DIR%"
+        mkdir "%LOG_DIR%"
+    )
+
+    call :log "Application structure verified"
+    goto :eof
+
+:check_dependencies
+    REM Check for required dependencies
+    call :log "Checking dependencies..."
+
+    REM Check WebView2 (required for Tauri)
+    reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" >nul 2>&1
+    if %errorlevel% neq 0 (
+        reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" >nul 2>&1
+        if %errorlevel% neq 0 (
+            call :log "WARNING: WebView2 Runtime may not be installed"
+            echo.
+            echo WARNING: Microsoft WebView2 Runtime may not be installed.
+            echo The application requires WebView2 to run.
+            echo.
+            echo Download from: https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+            echo.
+            choice /C YN /M "Continue anyway"
+            if %errorlevel% neq 1 exit /b 1
+        )
+    )
+
+    call :log "Dependencies check completed"
+    goto :eof
+
+:launch_app
+    REM Launch the application
+    call :log "Launching %APP_NAME% v%APP_VERSION%..."
+
+    REM Set window title
+    title %APP_NAME% v%APP_VERSION%
+
+    REM Change to application directory
+    pushd "%APP_ROOT%"
+
+    REM Launch the application
+    REM Using start /B to run in background and keep console open for logs
+    if "%1"=="--console" (
+        REM Run with console output visible
+        call :log "Running in console mode..."
+        "%APP_EXE%"
+        set EXIT_CODE=%errorlevel%
+    ) else if "%1"=="--debug" (
+        REM Run in debug mode with verbose logging
+        call :log "Running in debug mode..."
+        set RUST_LOG=debug
+        set PLUGIN_HOST_LOG_LEVEL=debug
+        "%APP_EXE%"
+        set EXIT_CODE=%errorlevel%
+    ) else (
+        REM Normal launch (detached)
+        call :log "Running in normal mode..."
+        start "" "%APP_EXE%"
+        set EXIT_CODE=0
+    )
+
+    popd
+
+    if %EXIT_CODE% neq 0 (
+        call :log "Application exited with error code: %EXIT_CODE%"
+        echo.
+        echo Application exited with error code: %EXIT_CODE%
+        echo Check the logs at: %LOG_DIR%
+        echo.
+        pause
+    ) else (
+        call :log "Application launched successfully"
+    )
+
+    goto :eof
+
+REM ============================================================================
+REM MAIN
+REM ============================================================================
+
+:main
+    echo.
+    echo ============================================================
+    echo  %APP_NAME% v%APP_VERSION%
+    echo ============================================================
+    echo.
+
+    REM Initialize logging
+    call :log "=========================================="
+    call :log "Starting %APP_NAME% v%APP_VERSION%"
+    call :log "=========================================="
+
+    REM Check for admin (informational only)
+    call :check_admin
+
+    REM Set up environment
+    call :setup_environment
+
+    REM Verify application structure
+    call :verify_structure
+
+    REM Check dependencies
+    call :check_dependencies
+
+    REM Parse command line arguments
+    if "%1"=="--help" (
+        echo Usage: %~nx0 [OPTIONS]
+        echo.
+        echo Options:
+        echo   --help      Show this help message
+        echo   --version   Show version information
+        echo   --console   Run with console output visible
+        echo   --debug     Run in debug mode with verbose logging
+        echo.
+        exit /b 0
+    )
+
+    if "%1"=="--version" (
+        echo %APP_NAME% v%APP_VERSION%
+        echo Generated: {{timestamp}}
+        exit /b 0
+    )
+
+    REM Launch the application
+    call :launch_app %1
+
+    endlocal
+    exit /b %EXIT_CODE%

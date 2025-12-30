@@ -1,0 +1,151 @@
+"""
+${plugin_name}
+${"=" * len(plugin_name)}
+${description}
+
+Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+Protocol: JSON-RPC 2.0 over stdin/stdout
+
+Contract: LLM
+Author: ${author}
+License: ${license}
+"""
+
+import logging
+from typing import Any
+
+from contracts.base import PluginBase, PluginStatus, HealthStatus
+from contracts.llm_contract import LLMContract
+
+
+class ${class_name}(PluginBase, LLMContract):
+    """
+    ${display_name} LLM plugin implementation.
+
+    Implements the LLM contract for language model inference.
+    """
+
+    def __init__(self):
+        """Initialize plugin."""
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self._config: dict = {}
+        self._status = PluginStatus.CREATED
+        self._model = None
+        self._models: list[str] = []
+
+    def initialize(self, config: dict | None = None) -> bool:
+        """
+        Initialize LLM plugin with configuration.
+
+        Args:
+            config: Plugin configuration dictionary
+                - model_name: Model identifier to load
+                - api_base: API base URL (for remote models)
+                - api_key: API key (for remote models)
+                - max_tokens: Default max tokens
+                - temperature: Default temperature
+
+        Returns:
+            True if initialization succeeded
+        """
+        self.logger.info(f"Initializing ${display_name}...")
+
+        self._config = config or {}
+
+        # TODO: Initialize your LLM connection/model here
+        # model_name = self._config.get("model_name")
+        # api_base = self._config.get("api_base")
+        # self._model = connect_to_model(model_name, api_base)
+
+        # TODO: Get available models
+        self._models = ["default"]
+
+        self._status = PluginStatus.READY
+        self.logger.info("${display_name} initialized successfully")
+        return True
+
+    def shutdown(self) -> None:
+        """Shutdown LLM plugin and release resources."""
+        self.logger.info("Shutting down ${display_name}...")
+
+        # TODO: Close connections/release resources
+        # if self._model:
+        #     self._model.close()
+        #     self._model = None
+
+        self._status = PluginStatus.STOPPED
+        self.logger.info("${display_name} shutdown complete")
+
+    def health_check(self) -> HealthStatus:
+        """Perform health check."""
+        return HealthStatus(
+            status=self._status,
+            message="LLM ready" if self._status == PluginStatus.READY else "LLM not ready",
+        )
+
+    def complete(
+        self,
+        messages: list[dict],
+        options: dict | None = None,
+    ) -> dict:
+        """
+        Generate completion for chat messages.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+                - role: 'system', 'user', or 'assistant'
+                - content: Message text
+            options: Generation options
+                - model: Model to use (if multiple available)
+                - temperature: Sampling temperature (0-2)
+                - max_tokens: Maximum tokens to generate
+                - top_p: Nucleus sampling parameter
+                - stop: Stop sequences
+
+        Returns:
+            Dict containing:
+                - content: Generated text
+                - model: Model used
+                - usage: Token usage stats
+                    - prompt_tokens: Input tokens
+                    - completion_tokens: Output tokens
+                    - total_tokens: Total tokens
+        """
+        self.logger.info(f"Completing with {len(messages)} messages...")
+
+        opts = options or {}
+        model = opts.get("model", self._models[0] if self._models else "default")
+        temperature = opts.get("temperature", self._config.get("temperature", 0.7))
+        max_tokens = opts.get("max_tokens", self._config.get("max_tokens", 1024))
+
+        # TODO: Implement actual LLM completion
+        # response = self._model.chat(
+        #     messages=messages,
+        #     temperature=temperature,
+        #     max_tokens=max_tokens,
+        # )
+
+        # Placeholder response
+        return {
+            "content": "",
+            "model": model,
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            },
+        }
+
+    def get_models(self) -> list[str]:
+        """
+        Get available models.
+
+        Returns:
+            List of model identifiers
+        """
+        return self._models
+
+
+# Plugin instance for registration
+plugin = ${class_name}()

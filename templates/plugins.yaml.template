@@ -1,0 +1,286 @@
+# D082 - Plugin Configuration Template
+# =====================================
+# Configuration file for App Factory plugin system
+#
+# Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+# Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
+#
+# Generated: {{timestamp}}
+# Project: {{project.name}}
+# Version: {{project.version}}
+
+# =============================================================================
+# PLUGIN DISCOVERY
+# =============================================================================
+
+discovery:
+  # Directories to scan for plugins
+  # Paths can be absolute or relative to application root
+  paths:
+    - ./plugins
+    - $HOME/.appfactory/plugins
+    - $APPDATA/AppFactory/plugins
+
+  # File patterns to identify plugin manifests
+  manifest_patterns:
+    - manifest.json
+    - plugin.json
+
+  # Enable recursive directory scanning
+  recursive: true
+
+  # Maximum scan depth for recursive discovery
+  max_depth: 3
+
+  # Exclude patterns (glob syntax)
+  exclude:
+    - "**/node_modules/**"
+    - "**/__pycache__/**"
+    - "**/venv/**"
+    - "**/.git/**"
+
+# =============================================================================
+# REGISTERED PLUGINS
+# =============================================================================
+
+plugins:
+  # Each plugin entry contains:
+  # - id: Unique plugin identifier (required)
+  # - name: Human-readable name
+  # - version: Plugin version
+  # - category: Plugin category (tts, stt, llm, vision, audio, data, custom)
+  # - enabled: Whether plugin should be loaded on startup
+  # - config: Plugin-specific configuration
+  # - priority: Load order priority (higher = earlier)
+
+{{#each plugins}}
+  - id: {{id}}
+    name: {{name}}
+    version: {{version}}
+    category: {{category}}
+    enabled: true
+    priority: 100
+    config: {}
+{{/each}}
+{{#unless plugins}}
+  # No plugins bundled with this project
+  # Add plugins using the format above
+{{/unless}}
+
+# =============================================================================
+# CONTRACT BINDINGS
+# =============================================================================
+# Maps contract types to preferred plugin implementations
+
+contracts:
+  # Text-to-Speech contract
+  tts:
+    default: null  # Set to plugin ID to use as default
+    fallback: null
+
+  # Speech-to-Text contract
+  stt:
+    default: null
+    fallback: null
+
+  # Large Language Model contract
+  llm:
+    default: null
+    fallback: null
+
+  # Vision/Image processing contract
+  vision:
+    default: null
+    fallback: null
+
+# =============================================================================
+# HEALTH MONITORING
+# =============================================================================
+
+health:
+  # Enable health monitoring for loaded plugins
+  enabled: true
+
+  # Health check interval in milliseconds
+  interval: 30000
+
+  # Timeout for health check requests
+  timeout: 5000
+
+  # Maximum consecutive failures before marking unhealthy
+  max_failures: 3
+
+  # Action on plugin becoming unhealthy
+  # Options: log, disable, restart
+  on_unhealthy: log
+
+  # Enable automatic recovery attempts
+  auto_recover: true
+
+  # Delay between recovery attempts in milliseconds
+  recovery_delay: 10000
+
+# =============================================================================
+# PLUGIN HOST SETTINGS
+# =============================================================================
+
+host:
+  # Plugin host process settings
+  process:
+    # Python interpreter path (null = auto-detect)
+    python_path: null
+
+    # Working directory for plugin host
+    working_dir: ./plugins/_host
+
+    # Environment variables for plugin host
+    env:
+      PYTHONUNBUFFERED: "1"
+      PLUGIN_LOG_LEVEL: "{{build.mode == 'development' ? 'debug' : 'info'}}"
+
+    # Startup timeout in milliseconds
+    startup_timeout: 30000
+
+    # Shutdown timeout in milliseconds
+    shutdown_timeout: 10000
+
+    # Enable automatic restart on crash
+    auto_restart: true
+
+    # Maximum restart attempts
+    max_restarts: 3
+
+    # Restart cooldown period in milliseconds
+    restart_cooldown: 5000
+
+  # IPC settings
+  ipc:
+    # Buffer size for stdin/stdout
+    buffer_size: 65536
+
+    # Request timeout in milliseconds
+    request_timeout: 60000
+
+    # Enable request/response logging
+    log_messages: false
+
+    # Maximum concurrent requests
+    max_concurrent: 10
+
+    # Request queue size
+    queue_size: 100
+
+# =============================================================================
+# PLUGIN ISOLATION
+# =============================================================================
+
+isolation:
+  # Enable plugin isolation (each plugin in separate context)
+  enabled: true
+
+  # Isolation method: process, thread, none
+  method: thread
+
+  # Resource limits per plugin
+  limits:
+    # Maximum memory usage in MB (0 = unlimited)
+    max_memory_mb: 512
+
+    # Maximum CPU time per request in seconds
+    max_cpu_time: 30
+
+    # Maximum file handles
+    max_file_handles: 100
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+logging:
+  # Log level: debug, info, warning, error
+  level: "{{build.mode == 'development' ? 'debug' : 'info'}}"
+
+  # Log output destinations
+  outputs:
+    - type: console
+      level: info
+    - type: file
+      level: debug
+      path: ./logs/plugins.log
+      max_size_mb: 10
+      max_files: 5
+
+  # Log format
+  format: "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
+
+  # Include plugin ID in log messages
+  include_plugin_id: true
+
+# =============================================================================
+# HOT-SWAP CONFIGURATION
+# =============================================================================
+
+hot_swap:
+  # Enable hot-swapping of plugins
+  enabled: true
+
+  # Validate new plugin before swap
+  validate_before_swap: true
+
+  # Create backup of old plugin state
+  backup_state: true
+
+  # Timeout for swap operation in milliseconds
+  swap_timeout: 30000
+
+  # Rollback on swap failure
+  rollback_on_failure: true
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+
+security:
+  # Verify plugin signatures (if available)
+  verify_signatures: false
+
+  # Allowed plugin sources
+  allowed_sources:
+    - local
+    - bundled
+
+  # Sandbox plugins (restrict filesystem access)
+  sandbox: false
+
+  # Allowed filesystem paths for plugins
+  allowed_paths:
+    - ./plugins
+    - ./config
+    - ./data
+    - $TEMP
+
+# =============================================================================
+# DEVELOPMENT
+# =============================================================================
+
+development:
+  # Enable development mode features
+  enabled: "{{build.mode == 'development'}}"
+
+  # Watch for file changes and auto-reload
+  watch: true
+
+  # Directories to watch
+  watch_paths:
+    - ./plugins
+
+  # File patterns to watch
+  watch_patterns:
+    - "*.py"
+    - "manifest.json"
+
+  # Debounce time for file change detection (ms)
+  watch_debounce: 500
+
+  # Enable verbose error messages
+  verbose_errors: true

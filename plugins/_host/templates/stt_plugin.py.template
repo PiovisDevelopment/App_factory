@@ -1,0 +1,138 @@
+"""
+${plugin_name}
+${"=" * len(plugin_name)}
+${description}
+
+Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+Protocol: JSON-RPC 2.0 over stdin/stdout
+
+Contract: STT
+Author: ${author}
+License: ${license}
+"""
+
+import base64
+import logging
+from typing import Any
+
+from contracts.base import PluginBase, PluginStatus, HealthStatus
+from contracts.stt_contract import STTContract
+
+
+class ${class_name}(PluginBase, STTContract):
+    """
+    ${display_name} STT plugin implementation.
+
+    Implements the STT contract for speech-to-text transcription.
+    """
+
+    def __init__(self):
+        """Initialize plugin."""
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self._config: dict = {}
+        self._status = PluginStatus.CREATED
+        self._model = None
+        self._languages: list[str] = []
+
+    def initialize(self, config: dict | None = None) -> bool:
+        """
+        Initialize STT plugin with configuration.
+
+        Args:
+            config: Plugin configuration dictionary
+                - model_path: Path to STT model file
+                - device: Device to use ('cpu', 'cuda', 'auto')
+                - language: Default language code
+
+        Returns:
+            True if initialization succeeded
+        """
+        self.logger.info(f"Initializing ${display_name}...")
+
+        self._config = config or {}
+
+        # TODO: Load your STT model here
+        # model_path = self._config.get("model_path")
+        # device = self._config.get("device", "auto")
+        # self._model = load_model(model_path, device)
+
+        # TODO: Set supported languages
+        self._languages = ["en"]
+
+        self._status = PluginStatus.READY
+        self.logger.info("${display_name} initialized successfully")
+        return True
+
+    def shutdown(self) -> None:
+        """Shutdown STT plugin and release resources."""
+        self.logger.info("Shutting down ${display_name}...")
+
+        # TODO: Release model resources
+        # if self._model:
+        #     del self._model
+        #     self._model = None
+
+        self._status = PluginStatus.STOPPED
+        self.logger.info("${display_name} shutdown complete")
+
+    def health_check(self) -> HealthStatus:
+        """Perform health check."""
+        return HealthStatus(
+            status=self._status,
+            message="STT ready" if self._status == PluginStatus.READY else "STT not ready",
+        )
+
+    def transcribe(
+        self,
+        audio_data: str,
+        language: str | None = None,
+        options: dict | None = None,
+    ) -> dict:
+        """
+        Transcribe audio to text.
+
+        Args:
+            audio_data: Base64 encoded audio bytes
+            language: Language code for transcription (optional)
+            options: Additional options
+                - task: 'transcribe' or 'translate'
+                - word_timestamps: Include word-level timestamps
+
+        Returns:
+            Dict containing:
+                - text: Transcribed text
+                - confidence: Confidence score (0-1)
+                - language: Detected/used language
+                - segments: Optional word-level segments
+        """
+        self.logger.info("Transcribing audio...")
+
+        # Decode audio
+        audio_bytes = base64.b64decode(audio_data)
+        lang = language or self._config.get("language", "en")
+        opts = options or {}
+
+        # TODO: Implement actual STT transcription
+        # result = self._model.transcribe(audio_bytes, lang, **opts)
+
+        # Placeholder result
+        return {
+            "text": "",
+            "confidence": 0.0,
+            "language": lang,
+            "segments": [],
+        }
+
+    def get_languages(self) -> list[str]:
+        """
+        Get supported languages.
+
+        Returns:
+            List of language codes (e.g., ['en', 'ja', 'zh'])
+        """
+        return self._languages
+
+
+# Plugin instance for registration
+plugin = ${class_name}()

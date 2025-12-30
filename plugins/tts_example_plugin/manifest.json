@@ -1,0 +1,39 @@
+{
+  "name": "tts_example_plugin",
+  "version": "1.0.0",
+  "contract": "tts",
+  "entry_point": "plugin",
+  "display_name": "Example TTS",
+  "description": "Minimal example TTS plugin demonstrating contract implementation. Generates silence with timestamps for testing.",
+  "author": "Piovis Studio",
+  "license": "MIT",
+  "dependencies": [],
+  "python_requires": ">=3.11",
+  "platforms": ["all"],
+  "gpu_required": false,
+  "gpu_recommended": false,
+  "min_memory_mb": 64,
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "default_voice": {
+        "type": "string",
+        "description": "Default voice ID to use",
+        "enum": ["alice", "bob", "charlie"],
+        "default": "alice"
+      },
+      "sample_rate": {
+        "type": "integer",
+        "description": "Output sample rate in Hz",
+        "enum": [22050, 44100],
+        "default": 22050
+      }
+    }
+  },
+  "default_config": {
+    "default_voice": "alice",
+    "sample_rate": 22050
+  },
+  "capabilities": [],
+  "tags": ["example", "testing", "minimal"]
+}

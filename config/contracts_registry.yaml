@@ -1,0 +1,491 @@
+# D021 - config/contracts_registry.yaml
+# ======================================
+# Registry mapping contract names to Python module paths.
+#
+# Used by:
+#   - D022 validator.py - to verify plugin implements correct contract
+#   - D023 loader.py - to import contract base classes
+#   - D059 smoke tests - to get test definitions per contract
+#
+# Dependencies:
+#   - D001-D004: Contract base classes in contracts/ directory
+
+# ============================================
+# CONTRACT DEFINITIONS
+# ============================================
+
+contracts:
+  # Text-to-Speech contract
+  tts:
+    module: contracts.tts_contract
+    class: TTSContract
+    description: "Text-to-Speech synthesis interface"
+    methods:
+      required:
+        - name: synthesize
+          description: "Convert text to audio"
+          params:
+            - name: text
+              type: str
+              required: true
+              description: "Text to synthesize"
+            - name: voice_id
+              type: str
+              required: false
+              description: "Voice ID to use (null for default)"
+            - name: options
+              type: dict
+              required: false
+              description: "Additional synthesis options"
+          returns:
+            type: dict
+            description: "Audio data with format info"
+            schema:
+              audio_data:
+                type: str
+                description: "Base64 encoded audio bytes"
+              format:
+                type: str
+                description: "Audio format (wav, mp3, ogg)"
+              sample_rate:
+                type: int
+                description: "Sample rate in Hz"
+              duration_ms:
+                type: int
+                description: "Duration in milliseconds"
+                
+        - name: get_voices
+          description: "List available voices"
+          params: []
+          returns:
+            type: list
+            description: "List of VoiceInfo objects"
+            schema:
+              id:
+                type: str
+              name:
+                type: str
+              language:
+                type: str
+              preview_url:
+                type: str
+                required: false
+                
+      optional:
+        - name: set_voice
+          description: "Set default voice"
+          params:
+            - name: voice_id
+              type: str
+              required: true
+        - name: synthesize_stream
+          description: "Stream audio as it's generated"
+          params:
+            - name: text
+              type: str
+              required: true
+              
+    smoke_test:
+      method: tts/synthesize
+      params:
+        text: "Hello, world!"
+        voice_id: null
+      expected_keys:
+        - audio_data
+        - format
+      timeout_ms: 30000
+
+  # Speech-to-Text contract
+  stt:
+    module: contracts.stt_contract
+    class: STTContract
+    description: "Speech-to-Text transcription interface"
+    methods:
+      required:
+        - name: transcribe
+          description: "Transcribe audio to text"
+          params:
+            - name: audio_data
+              type: str
+              required: true
+              description: "Base64 encoded audio bytes"
+            - name: language
+              type: str
+              required: false
+              description: "Language code (e.g., 'en', 'ja')"
+            - name: options
+              type: dict
+              required: false
+              description: "Additional transcription options"
+          returns:
+            type: dict
+            description: "Transcription result"
+            schema:
+              text:
+                type: str
+                description: "Transcribed text"
+              confidence:
+                type: float
+                description: "Confidence score 0-1"
+              language:
+                type: str
+                description: "Detected language"
+              segments:
+                type: list
+                required: false
+                description: "Word-level timestamps"
+                
+        - name: get_languages
+          description: "List supported languages"
+          params: []
+          returns:
+            type: list
+            description: "List of language codes"
+            
+      optional:
+        - name: start_streaming
+          description: "Start streaming transcription"
+          params: []
+        - name: stop_streaming
+          description: "Stop streaming transcription"
+          params: []
+        - name: push_audio_chunk
+          description: "Push audio chunk during streaming"
+          params:
+            - name: chunk
+              type: str
+              required: true
+              description: "Base64 encoded audio chunk"
+              
+    smoke_test:
+      method: stt/transcribe
+      params:
+        audio_data: null  # Test audio provided by test runner
+        language: "en"
+      expected_keys:
+        - text
+      timeout_ms: 30000
+
+  # Large Language Model contract
+  llm:
+    module: contracts.llm_contract
+    class: LLMContract
+    description: "Large Language Model inference interface"
+    methods:
+      required:
+        - name: complete
+          description: "Generate completion for messages"
+          params:
+            - name: messages
+              type: list
+              required: true
+              description: "List of chat messages"
+              schema:
+                role:
+                  type: str
+                  enum: [system, user, assistant]
+                content:
+                  type: str
+            - name: options
+              type: dict
+              required: false
+              description: "Generation options (temperature, max_tokens, etc.)"
+          returns:
+            type: dict
+            description: "Completion result"
+            schema:
+              content:
+                type: str
+                description: "Generated text"
+              model:
+                type: str
+                description: "Model used"
+              usage:
+                type: dict
+                description: "Token usage stats"
+                schema:
+                  prompt_tokens:
+                    type: int
+                  completion_tokens:
+                    type: int
+                  total_tokens:
+                    type: int
+                    
+        - name: get_models
+          description: "List available models"
+          params: []
+          returns:
+            type: list
+            description: "List of model identifiers"
+            
+      optional:
+        - name: complete_stream
+          description: "Stream completion tokens"
+          params:
+            - name: messages
+              type: list
+              required: true
+        - name: embed
+          description: "Generate embeddings"
+          params:
+            - name: text
+              type: str
+              required: true
+              
+    smoke_test:
+      method: llm/complete
+      params:
+        messages:
+          - role: user
+            content: "Say hello in exactly one word."
+      expected_keys:
+        - content
+      timeout_ms: 60000
+
+  # Model Context Protocol bridge contract
+  mcp:
+    module: contracts.mcp_contract
+    class: MCPContract
+    description: "MCP server bridge interface"
+    methods:
+      required:
+        - name: list_tools
+          description: "List available tools from MCP server"
+          params: []
+          returns:
+            type: dict
+            description: "List of tool definitions"
+            schema:
+              tools:
+                type: list
+                
+        - name: call_tool
+          description: "Call a tool on the MCP server"
+          params:
+            - name: name
+              type: str
+              required: true
+              description: "Tool name"
+            - name: arguments
+              type: dict
+              required: false
+              description: "Tool arguments"
+          returns:
+            type: dict
+            description: "Tool result"
+            
+        - name: list_resources
+          description: "List available resources"
+          params: []
+          returns:
+            type: dict
+            description: "List of resources"
+            
+      optional:
+        - name: read_resource
+          description: "Read a resource"
+          params:
+            - name: uri
+              type: str
+              required: true
+              
+    smoke_test:
+      method: mcp/list_tools
+      params: {}
+      expected_keys:
+        - tools
+      timeout_ms: 10000
+
+  # Debug contract
+  debug:
+    module: contracts.debug_contract
+    class: DebugContract
+    description: "Debug and development utilities"
+    methods:
+      required:
+        - name: ping
+          description: "Simple ping/pong for health check"
+          params: []
+          returns:
+            type: str
+            description: "Returns 'pong'"
+            
+        - name: echo
+          description: "Echo back input"
+          params:
+            - name: message
+              type: any
+              required: true
+          returns:
+            type: any
+            description: "Same as input"
+            
+      optional:
+        - name: log
+          description: "Log a message"
+          params:
+            - name: level
+              type: str
+              enum: [debug, info, warning, error]
+            - name: message
+              type: str
+        - name: inspect
+          description: "Inspect plugin state"
+          params: []
+        - name: profile
+          description: "Profile plugin performance"
+          params: []
+          
+    smoke_test:
+      method: debug/ping
+      params: {}
+      expected_keys: []
+      expected_value: "pong"
+      timeout_ms: 1000
+
+  # Vision contract
+  vision:
+    module: contracts.vision_contract
+    class: VisionContract
+    description: "Computer vision interface"
+    methods:
+      required:
+        - name: analyze
+          description: "Analyze image content"
+          params:
+            - name: image_data
+              type: str
+              required: true
+              description: "Base64 encoded image"
+            - name: prompt
+              type: str
+              required: false
+              description: "Analysis prompt"
+          returns:
+            type: dict
+            description: "Analysis result"
+            schema:
+              description:
+                type: str
+              labels:
+                type: list
+              confidence:
+                type: float
+                
+      optional:
+        - name: detect
+          description: "Detect objects in image"
+          params:
+            - name: image_data
+              type: str
+              required: true
+        - name: generate
+          description: "Generate image from prompt"
+          params:
+            - name: prompt
+              type: str
+              required: true
+              
+    smoke_test:
+      method: vision/analyze
+      params:
+        image_data: null  # Test image provided by test runner
+        prompt: "Describe this image"
+      expected_keys:
+        - description
+      timeout_ms: 30000
+
+  # Embedding contract
+  embedding:
+    module: contracts.embedding_contract
+    class: EmbeddingContract
+    description: "Text/image embedding interface"
+    methods:
+      required:
+        - name: embed
+          description: "Generate embedding vector"
+          params:
+            - name: text
+              type: str
+              required: true
+              description: "Text to embed"
+          returns:
+            type: dict
+            description: "Embedding result"
+            schema:
+              vector:
+                type: list
+                description: "Float vector"
+              dimensions:
+                type: int
+              model:
+                type: str
+                
+        - name: get_dimensions
+          description: "Get embedding dimensions"
+          params: []
+          returns:
+            type: int
+            description: "Vector dimensions"
+            
+      optional:
+        - name: embed_batch
+          description: "Embed multiple texts"
+          params:
+            - name: texts
+              type: list
+              required: true
+        - name: similarity
+          description: "Calculate similarity"
+          params:
+            - name: vector_a
+              type: list
+              required: true
+            - name: vector_b
+              type: list
+              required: true
+              
+    smoke_test:
+      method: embedding/embed
+      params:
+        text: "Test embedding"
+      expected_keys:
+        - vector
+        - dimensions
+      timeout_ms: 10000
+
+# ============================================
+# VALIDATION CONFIG
+# ============================================
+
+validation:
+  # Require all required methods to be implemented
+  require_all_methods: true
+  
+  # Allow additional methods beyond contract definition
+  allow_extra_methods: true
+  
+  # Validate method signatures match contract
+  validate_signatures: true
+  
+  # Method name prefix for JSON-RPC routing
+  # Methods are called as: <contract>/<method>
+  # Example: tts/synthesize, llm/complete
+  method_prefix_separator: "/"
+
+# ============================================
+# TESTING CONFIG
+# ============================================
+
+testing:
+  # Default timeout for smoke tests
+  default_timeout_ms: 30000
+  
+  # Max retries for flaky tests
+  max_retries: 3
+  
+  # Test audio file for STT tests (relative to config dir)
+  test_audio: "test_data/test_audio.wav"
+  
+  # Test image file for vision tests (relative to config dir)
+  test_image: "test_data/test_image.png"

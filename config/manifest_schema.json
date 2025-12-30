@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://piovis.com/schemas/plugin-manifest.json",
+  "title": "Plugin Manifest Schema",
+  "description": "D008 - Schema for plugin manifest.json files. All plugins must have a manifest.json conforming to this schema.",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "contract",
+    "entry_point"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique plugin identifier. Must match folder name and follow prefix convention (e.g., tts_kokoro_plugin).",
+      "pattern": "^(tts|stt|llm|mcp|debug|vision|embedding)_[a-z0-9_]+_plugin$",
+      "examples": [
+        "tts_kokoro_plugin",
+        "llm_ollama_plugin",
+        "stt_moonshine_plugin"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version string (major.minor.patch).",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+      "examples": [
+        "1.0.0",
+        "2.1.3",
+        "0.1.0-beta"
+      ]
+    },
+    "contract": {
+      "type": "string",
+      "description": "Contract type this plugin implements. Must match a key in contract_prefixes.yaml (D005).",
+      "enum": [
+        "tts",
+        "stt",
+        "llm",
+        "mcp",
+        "debug",
+        "vision",
+        "embedding"
+      ]
+    },
+    "entry_point": {
+      "type": "string",
+      "description": "Python module path relative to plugin folder (e.g., 'plugin' for plugin.py).",
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "default": "plugin",
+      "examples": [
+        "plugin",
+        "main",
+        "core"
+      ]
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Human-readable name for UI display.",
+      "maxLength": 50,
+      "examples": [
+        "Kokoro TTS",
+        "Ollama LLM",
+        "Moonshine STT"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of plugin functionality.",
+      "maxLength": 200,
+      "examples": [
+        "High-quality Japanese TTS using Kokoro model",
+        "Local LLM inference via Ollama"
+      ]
+    },
+    "author": {
+      "type": "string",
+      "description": "Plugin author name or organization.",
+      "maxLength": 100,
+      "examples": [
+        "Piovis Studio",
+        "Community"
+      ]
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier.",
+      "examples": [
+        "MIT",
+        "Apache-2.0",
+        "GPL-3.0"
+      ]
+    },
+    "repository": {
+      "type": "string",
+      "description": "URL to source repository.",
+      "format": "uri",
+      "examples": [
+        "https://github.com/piovis/tts_kokoro_plugin"
+      ]
+    },
+    "homepage": {
+      "type": "string",
+      "description": "URL to plugin homepage or documentation.",
+      "format": "uri"
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "List of pip package requirements (requirements.txt format).",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_-]+(\\[.+\\])?(==|>=|<=|~=|>|<)?[a-zA-Z0-9._-]*$"
+      },
+      "uniqueItems": true,
+      "examples": [
+        [
+          "torch>=2.0.0",
+          "numpy",
+          "soundfile==0.12.1"
+        ]
+      ]
+    },
+    "python_requires": {
+      "type": "string",
+      "description": "Python version requirement.",
+      "pattern": "^(>=|>|<=|<|==|~=)?\\d+\\.\\d+(\\.\\d+)?$",
+      "default": ">=3.11",
+      "examples": [
+        ">=3.11",
+        ">=3.10,<3.12"
+      ]
+    },
+    "platforms": {
+      "type": "array",
+      "description": "Supported operating systems.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "windows",
+          "linux",
+          "macos",
+          "all"
+        ]
+      },
+      "default": [
+        "all"
+      ]
+    },
+    "gpu_required": {
+      "type": "boolean",
+      "description": "Whether GPU is required for this plugin.",
+      "default": false
+    },
+    "gpu_recommended": {
+      "type": "boolean",
+      "description": "Whether GPU is recommended for optimal performance.",
+      "default": false
+    },
+    "min_memory_mb": {
+      "type": "integer",
+      "description": "Minimum RAM required in megabytes.",
+      "minimum": 0,
+      "default": 512
+    },
+    "config_schema": {
+      "type": "object",
+      "description": "JSON Schema for plugin-specific configuration options.",
+      "additionalProperties": true,
+      "default": {},
+      "examples": [
+        {
+          "type": "object",
+          "properties": {
+            "model_path": {
+              "type": "string",
+              "description": "Path to model file"
+            },
+            "device": {
+              "type": "string",
+              "enum": [
+                "cpu",
+                "cuda",
+                "auto"
+              ],
+              "default": "auto"
+            }
+          }
+        }
+      ]
+    },
+    "default_config": {
+      "type": "object",
+      "description": "Default configuration values.",
+      "additionalProperties": true,
+      "default": {}
+    },
+    "capabilities": {
+      "type": "array",
+      "description": "List of optional capabilities this plugin supports.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        [
+          "streaming",
+          "ssml"
+        ],
+        [
+          "diarization",
+          "translation"
+        ],
+        [
+          "tools",
+          "vision"
+        ]
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for categorization and search.",
+      "items": {
+        "type": "string",
+        "maxLength": 30
+      },
+      "maxItems": 10,
+      "examples": [
+        [
+          "japanese",
+          "high-quality",
+          "local"
+        ]
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "description": "Relative path to plugin icon (PNG, 64x64 recommended).",
+      "pattern": "^[a-zA-Z0-9_/-]+\\.(png|svg|ico)$",
+      "examples": [
+        "icon.png",
+        "assets/icon.svg"
+      ]
+    },
+    "screenshots": {
+      "type": "array",
+      "description": "Relative paths to screenshot images for gallery.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9_/-]+\\.(png|jpg|jpeg|gif)$"
+      },
+      "maxItems": 5
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "name": "tts_kokoro_plugin",
+      "version": "1.0.0",
+      "contract": "tts",
+      "entry_point": "plugin",
+      "display_name": "Kokoro TTS",
+      "description": "High-quality Japanese text-to-speech using Kokoro model",
+      "author": "Piovis Studio",
+      "license": "MIT",
+      "dependencies": [
+        "torch>=2.0.0",
+        "numpy",
+        "soundfile"
+      ],
+      "python_requires": ">=3.11",
+      "gpu_recommended": true,
+      "min_memory_mb": 2048,
+      "config_schema": {
+        "type": "object",
+        "properties": {
+          "model_path": {
+            "type": "string",
+            "description": "Path to Kokoro model file"
+          },
+          "device": {
+            "type": "string",
+            "enum": [
+              "cpu",
+              "cuda",
+              "auto"
+            ],
+            "default": "auto"
+          }
+        },
+        "required": [
+          "model_path"
+        ]
+      },
+      "default_config": {
+        "device": "auto"
+      },
+      "capabilities": [
+        "streaming",
+        "multi-speaker"
+      ],
+      "tags": [
+        "japanese",
+        "high-quality",
+        "local"
+      ]
+    }
+  ]
+}

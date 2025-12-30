@@ -1,0 +1,19 @@
+# B008 - requirements.txt
+# ========================
+# Python dependencies for App Factory plugin host.
+#
+# Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+# Protocol: JSON-RPC 2.0 over stdin/stdout
+
+# Configuration file parsing
+PyYAML>=6.0
+
+# JSON Schema validation for plugin manifests
+jsonschema>=4.0
+
+# Note: The plugin host uses stdlib modules for core functionality:
+# - asyncio: Async event loop
+# - json: JSON-RPC serialization
+# - pathlib: Path handling
+# - logging: Structured logging
+# - importlib: Plugin dynamic loading

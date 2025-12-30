@@ -1,0 +1,72 @@
+# B005 - src-tauri/Cargo.toml
+# ============================
+# Rust dependencies for Tauri application.
+#
+# Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+
+[package]
+name = "app-factory"
+version = "1.0.0"
+description = "App Factory - Piovis Plugin Framework"
+authors = ["Piovis Development Team"]
+license = "MIT"
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+# Tauri core with required features for subprocess management
+tauri = { version = "1.8", features = [ "window-minimize", "window-hide", "fs-read-file", "window-unmaximize", "process-all", "window-set-title", "dialog-all", "window-start-dragging", "path-all", "window-unminimize", "window-set-size", "window-maximize", "fs-create-dir", "window-close", "fs-write-file", "window-set-position", "fs-read-dir", "window-show",
+    "shell-sidecar",
+    "shell-execute",
+    "shell-open",
+    "process-command-api"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Async runtime
+tokio = { version = "1", features = ["full", "sync", "time"] }
+
+# Error handling
+thiserror = "1.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.10"
+
+# Futures utilities (for blocking in threads)
+futures = "0.3"
+
+# Environment variables (.env file I/O)
+dotenvy = "0.15"
+
+# UUID generation for API key IDs
+uuid = { version = "1", features = ["v4"] }
+
+# Chrono for timestamps
+chrono = { version = "0.4", features = ["serde"] }
+
+# SWC - TypeScript/TSX compilation
+swc_common = { version = "18", features = ["sourcemap"] }
+swc_ecma_ast = "19"
+swc_ecma_parser = "31"
+swc_ecma_codegen = "21"
+swc_ecma_transforms_base = "34"
+swc_ecma_transforms_typescript = "37"
+swc_ecma_transforms_react = "37"
+swc_ecma_visit = "19"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

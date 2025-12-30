@@ -1,0 +1,10 @@
+{
+  "name": "llm_ollama",
+  "version": "1.0.0",
+  "description": "Local LLM inference via Ollama with fallback mock mode",
+  "author": "Piovis",
+  "contracts": [
+    "llm"
+  ],
+  "dependencies": []
+}

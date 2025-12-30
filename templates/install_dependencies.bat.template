@@ -1,0 +1,317 @@
+@echo off
+REM ============================================================================
+REM D092 - Windows Dependency Installer Template
+REM ============================================================================
+REM Application: {{project.name}}
+REM Version: {{project.version}}
+REM Generated: {{timestamp}}
+REM
+REM Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+REM Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
+REM ============================================================================
+
+setlocal EnableDelayedExpansion
+
+REM ============================================================================
+REM CONFIGURATION
+REM ============================================================================
+
+set APP_NAME={{project.name}}
+set APP_VERSION={{project.version}}
+set APP_ROOT=%~dp0
+if "%APP_ROOT:~-1%"=="\" set APP_ROOT=%APP_ROOT:~0,-1%
+
+set LOG_DIR=%APP_ROOT%\logs
+set LOG_FILE=%LOG_DIR%\install.log
+
+REM Installation flags
+set SKIP_PYTHON=0
+set SKIP_NPM=0
+set VERBOSE=0
+
+REM ============================================================================
+REM PARSE ARGUMENTS
+REM ============================================================================
+
+:parse_args
+if "%~1"=="" goto :main
+if /i "%~1"=="--skip-python" set SKIP_PYTHON=1
+if /i "%~1"=="--skip-npm" set SKIP_NPM=1
+if /i "%~1"=="--verbose" set VERBOSE=1
+if /i "%~1"=="--help" goto :show_help
+shift
+goto :parse_args
+
+:show_help
+echo.
+echo %APP_NAME% Dependency Installer
+echo ================================
+echo.
+echo Usage: %~nx0 [OPTIONS]
+echo.
+echo Options:
+echo   --skip-python    Skip Python dependency installation
+echo   --skip-npm       Skip npm dependency installation
+echo   --verbose        Show detailed output
+echo   --help           Show this help message
+echo.
+exit /b 0
+
+REM ============================================================================
+REM FUNCTIONS
+REM ============================================================================
+
+goto :main
+
+:log
+    REM Log message to file and console
+    echo [%date% %time%] %~1
+    if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+    echo [%date% %time%] %~1 >> "%LOG_FILE%"
+    goto :eof
+
+:log_verbose
+    REM Log only if verbose mode is enabled
+    if %VERBOSE%==1 (
+        echo [%date% %time%] [VERBOSE] %~1
+        echo [%date% %time%] [VERBOSE] %~1 >> "%LOG_FILE%"
+    )
+    goto :eof
+
+:check_python
+    REM Verify Python is available
+    call :log "Checking Python installation..."
+
+{{#if build.includePythonRuntime}}
+    REM Use bundled Python if available
+    set PYTHON_PATH=%APP_ROOT%\python\python.exe
+    if exist "%PYTHON_PATH%" (
+        call :log "Using bundled Python: %PYTHON_PATH%"
+        goto :eof
+    )
+    call :log "Bundled Python not found, falling back to system Python"
+{{/if}}
+
+    where python >nul 2>&1
+    if %errorlevel% neq 0 (
+        call :log "ERROR: Python is not installed or not in PATH"
+        echo.
+        echo ERROR: Python is required but not found in your system PATH.
+        echo Please install Python 3.11 or later and add it to your PATH.
+        echo Download from: https://www.python.org/downloads/
+        echo.
+        exit /b 1
+    )
+
+    set PYTHON_PATH=python
+
+    REM Check Python version
+    for /f "tokens=2 delims= " %%v in ('python --version 2^>^&1') do set PYTHON_VERSION=%%v
+    call :log "Found Python %PYTHON_VERSION%"
+
+    goto :eof
+
+:check_node
+    REM Verify Node.js is available
+    call :log "Checking Node.js installation..."
+
+    where node >nul 2>&1
+    if %errorlevel% neq 0 (
+        call :log "ERROR: Node.js is not installed or not in PATH"
+        echo.
+        echo ERROR: Node.js is required but not found in your system PATH.
+        echo Please install Node.js 18.x or later and add it to your PATH.
+        echo Download from: https://nodejs.org/
+        echo.
+        exit /b 1
+    )
+
+    REM Check Node version
+    for /f "tokens=1 delims= " %%v in ('node --version 2^>^&1') do set NODE_VERSION=%%v
+    call :log "Found Node.js %NODE_VERSION%"
+
+    REM Check npm
+    where npm >nul 2>&1
+    if %errorlevel% neq 0 (
+        call :log "ERROR: npm is not installed or not in PATH"
+        echo.
+        echo ERROR: npm is required but not found in your system PATH.
+        echo It should be installed with Node.js.
+        echo.
+        exit /b 1
+    )
+
+    for /f "tokens=1 delims= " %%v in ('npm --version 2^>^&1') do set NPM_VERSION=%%v
+    call :log "Found npm %NPM_VERSION%"
+
+    goto :eof
+
+:install_python_deps
+    REM Install Python dependencies
+    if %SKIP_PYTHON%==1 (
+        call :log "Skipping Python dependencies (--skip-python flag)"
+        goto :eof
+    )
+
+    call :log "Installing Python dependencies..."
+    echo.
+    echo Installing Python dependencies...
+    echo ================================
+
+    if not exist "%APP_ROOT%\requirements.txt" (
+        call :log "WARNING: requirements.txt not found, skipping Python dependencies"
+        echo WARNING: requirements.txt not found
+        goto :eof
+    )
+
+    pushd "%APP_ROOT%"
+
+    REM Upgrade pip first
+    call :log_verbose "Upgrading pip..."
+    %PYTHON_PATH% -m pip install --upgrade pip >nul 2>&1
+
+    REM Install requirements
+    if %VERBOSE%==1 (
+        %PYTHON_PATH% -m pip install -r requirements.txt
+    ) else (
+        %PYTHON_PATH% -m pip install -r requirements.txt >nul 2>&1
+    )
+
+    if %errorlevel% neq 0 (
+        call :log "ERROR: Failed to install Python dependencies"
+        popd
+        exit /b 1
+    )
+
+    popd
+    call :log "Python dependencies installed successfully"
+    echo Python dependencies installed successfully.
+
+    goto :eof
+
+:install_npm_deps
+    REM Install npm dependencies
+    if %SKIP_NPM%==1 (
+        call :log "Skipping npm dependencies (--skip-npm flag)"
+        goto :eof
+    )
+
+    call :log "Installing npm dependencies..."
+    echo.
+    echo Installing npm dependencies...
+    echo ==============================
+
+    if not exist "%APP_ROOT%\package.json" (
+        call :log "WARNING: package.json not found, skipping npm dependencies"
+        echo WARNING: package.json not found
+        goto :eof
+    )
+
+    pushd "%APP_ROOT%"
+
+    if %VERBOSE%==1 (
+        call npm install
+    ) else (
+        call npm install >nul 2>&1
+    )
+
+    if %errorlevel% neq 0 (
+        call :log "ERROR: Failed to install npm dependencies"
+        popd
+        exit /b 1
+    )
+
+    popd
+    call :log "npm dependencies installed successfully"
+    echo npm dependencies installed successfully.
+
+    goto :eof
+
+:install_plugins
+    REM Install plugin-specific dependencies
+    call :log "Checking plugin dependencies..."
+
+    if not exist "%APP_ROOT%\plugins" (
+        call :log_verbose "No plugins directory found"
+        goto :eof
+    )
+
+    for /d %%p in ("%APP_ROOT%\plugins\*") do (
+        if exist "%%p\requirements.txt" (
+            call :log "Installing dependencies for plugin: %%~nxp"
+            pushd "%%p"
+            %PYTHON_PATH% -m pip install -r requirements.txt >nul 2>&1
+            if %errorlevel% neq 0 (
+                call :log "WARNING: Failed to install dependencies for %%~nxp"
+            )
+            popd
+        )
+    )
+
+    goto :eof
+
+REM ============================================================================
+REM MAIN
+REM ============================================================================
+
+:main
+    echo.
+    echo ============================================================
+    echo  %APP_NAME% v%APP_VERSION% - Dependency Installer
+    echo ============================================================
+    echo.
+
+    REM Initialize logging
+    call :log "=========================================="
+    call :log "Starting dependency installation"
+    call :log "Application: %APP_NAME% v%APP_VERSION%"
+    call :log "=========================================="
+
+    REM Check prerequisites
+    if %SKIP_PYTHON%==0 (
+        call :check_python
+        if %errorlevel% neq 0 exit /b 1
+    )
+
+    if %SKIP_NPM%==0 (
+        call :check_node
+        if %errorlevel% neq 0 exit /b 1
+    )
+
+    REM Install dependencies
+    call :install_python_deps
+    if %errorlevel% neq 0 (
+        echo.
+        echo ERROR: Python dependency installation failed.
+        echo Check %LOG_FILE% for details.
+        pause
+        exit /b 1
+    )
+
+    call :install_npm_deps
+    if %errorlevel% neq 0 (
+        echo.
+        echo ERROR: npm dependency installation failed.
+        echo Check %LOG_FILE% for details.
+        pause
+        exit /b 1
+    )
+
+    call :install_plugins
+
+    REM Success
+    echo.
+    echo ============================================================
+    echo  Dependencies installed successfully!
+    echo ============================================================
+    echo.
+    echo Next steps:
+    echo   1. Run start.bat to launch the application
+    echo   2. Or run: npm run tauri dev (for development)
+    echo.
+
+    call :log "Dependency installation completed successfully"
+
+    pause
+    endlocal
+    exit /b 0

@@ -1,0 +1,274 @@
+# D062 - config/test_fixtures.yaml
+# =================================
+# Test fixture definitions for plugin testing.
+#
+# Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
+# Protocol: JSON-RPC 2.0 over stdin/stdout
+#
+# Dependencies:
+#     - D061: plugins/_host/test_runner.py (test runner)
+#     - D001: contracts/base.py (PluginBase)
+#     - D002: contracts/tts_contract.py (TTS contract)
+#     - D003: contracts/stt_contract.py (STT contract)
+#     - D004: contracts/llm_contract.py (LLM contract)
+#
+# Usage:
+#     runner = PluginTestRunner(manager)
+#     runner.load_fixtures_from_yaml(Path("config/test_fixtures.yaml"))
+#     result = await runner.run_fixture("tts_kokoro", runner.get_fixture("tts_basic"))
+
+# ============================================
+# FIXTURE DEFINITIONS
+# ============================================
+
+fixtures:
+  # ----------------------------------------
+  # TTS Contract Fixtures
+  # ----------------------------------------
+
+  - name: tts_basic
+    contract: tts
+    description: Basic TTS functionality tests
+    setup:
+      require_voices: true
+    teardown: {}
+    test_cases:
+      - id: tts_get_voices
+        name: Get Voices
+        description: Verify get_voices returns a list of available voices
+        method: get_voices
+        params: {}
+        expected_result:
+          __type__: type
+          name: list
+        timeout_seconds: 10.0
+        tags: [basic, voices]
+
+      - id: tts_synthesize_simple
+        name: Synthesize Simple Text
+        description: Synthesize a basic hello world message
+        method: synthesize
+        params:
+          text: "Hello, world."
+          voice_id: null  # Uses default voice
+        expected_result:
+          __type__: not_none
+        timeout_seconds: 30.0
+        tags: [basic, synthesis]
+
+      - id: tts_synthesize_empty
+        name: Synthesize Empty Text
+        description: Verify empty text handling
+        method: synthesize
+        params:
+          text: ""
+        expected_error: -32602  # INVALID_PARAMS
+        timeout_seconds: 5.0
+        tags: [edge_case, validation]
+
+      - id: tts_synthesize_long
+        name: Synthesize Long Text
+        description: Synthesize a longer paragraph
+        method: synthesize
+        params:
+          text: "This is a longer test of the text-to-speech system. It includes multiple sentences to verify that the synthesis handles paragraph-length content correctly. The output should be clear and natural sounding."
+        expected_result:
+          __type__: not_none
+        timeout_seconds: 60.0
+        tags: [basic, synthesis, long_text]
+
+  - name: tts_stress
+    contract: tts
+    description: TTS stress and performance tests
+    setup:
+      require_voices: true
+    teardown: {}
+    test_cases:
+      - id: tts_rapid_synthesis
+        name: Rapid Synthesis
+        description: Multiple quick synthesis requests
+        method: synthesize
+        params:
+          text: "Quick test."
+        expected_result:
+          __type__: not_none
+        timeout_seconds: 15.0
+        tags: [stress, performance]
+
+  # ----------------------------------------
+  # STT Contract Fixtures
+  # ----------------------------------------
+
+  - name: stt_basic
+    contract: stt
+    description: Basic STT functionality tests
+    setup:
+      require_languages: true
+    teardown: {}
+    test_cases:
+      - id: stt_get_languages
+        name: Get Languages
+        description: Verify get_languages returns supported languages
+        method: get_languages
+        params: {}
+        expected_result:
+          __type__: type
+          name: list
+        timeout_seconds: 10.0
+        tags: [basic, languages]
+
+      - id: stt_transcribe_invalid
+        name: Transcribe Invalid Audio
+        description: Verify invalid audio handling
+        method: transcribe
+        params:
+          audio_b64: "not_valid_base64_audio"
+        expected_error: 1101  # STT_AUDIO_INVALID
+        timeout_seconds: 10.0
+        tags: [edge_case, validation]
+
+  # ----------------------------------------
+  # LLM Contract Fixtures
+  # ----------------------------------------
+
+  - name: llm_basic
+    contract: llm
+    description: Basic LLM functionality tests
+    setup:
+      require_models: true
+    teardown: {}
+    test_cases:
+      - id: llm_get_models
+        name: Get Models
+        description: Verify get_models returns available models
+        method: get_models
+        params: {}
+        expected_result:
+          __type__: type
+          name: list
+        timeout_seconds: 10.0
+        tags: [basic, models]
+
+      - id: llm_complete_simple
+        name: Simple Completion
+        description: Basic text completion request
+        method: complete
+        params:
+          prompt: "Hello, how are you?"
+          max_tokens: 50
+        expected_result:
+          __type__: contains
+          key: text
+        timeout_seconds: 60.0
+        tags: [basic, completion]
+
+      - id: llm_complete_empty
+        name: Complete Empty Prompt
+        description: Verify empty prompt handling
+        method: complete
+        params:
+          prompt: ""
+        expected_error: -32602  # INVALID_PARAMS
+        timeout_seconds: 5.0
+        tags: [edge_case, validation]
+
+      - id: llm_complete_system_prompt
+        name: Completion with System Prompt
+        description: Completion with system context
+        method: complete
+        params:
+          prompt: "What is 2+2?"
+          system_prompt: "You are a helpful math tutor. Answer concisely."
+          max_tokens: 30
+        expected_result:
+          __type__: contains
+          key: text
+        timeout_seconds: 60.0
+        tags: [basic, completion, system_prompt]
+
+  - name: llm_context
+    contract: llm
+    description: LLM context and conversation tests
+    setup:
+      require_models: true
+    teardown: {}
+    test_cases:
+      - id: llm_context_length
+        name: Context Length Check
+        description: Test with moderate context length
+        method: complete
+        params:
+          prompt: "Summarize this passage."
+          context: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+          max_tokens: 100
+        expected_result:
+          __type__: contains
+          key: text
+        timeout_seconds: 90.0
+        tags: [context, completion]
+
+  # ----------------------------------------
+  # Generic Plugin Fixtures
+  # ----------------------------------------
+
+  - name: plugin_lifecycle
+    contract: any
+    description: Generic plugin lifecycle tests
+    setup: {}
+    teardown: {}
+    test_cases:
+      - id: lifecycle_health_check
+        name: Health Check
+        description: Verify health check returns valid status
+        method: health_check
+        params: {}
+        expected_result:
+          __type__: contains
+          key: status
+        timeout_seconds: 5.0
+        tags: [lifecycle, health]
+
+      - id: lifecycle_get_config
+        name: Get Configuration
+        description: Verify configuration retrieval
+        method: get_config
+        params: {}
+        expected_result:
+          __type__: type
+          name: dict
+        timeout_seconds: 5.0
+        tags: [lifecycle, config]
+        skip: false
+        skip_reason: ""
+
+# ============================================
+# METADATA
+# ============================================
+
+metadata:
+  version: "1.0"
+  created: "2025-12-24"
+  author: "App Factory"
+  description: "Standard test fixtures for plugin contract compliance"
+
+# ============================================
+# SHARED TEST DATA
+# ============================================
+
+shared_data:
+  sample_texts:
+    short: "Hello, world."
+    medium: "This is a medium-length test string for synthesis."
+    long: "This is a longer test of the text-to-speech system. It includes multiple sentences to verify that the synthesis handles paragraph-length content correctly. The output should be clear and natural sounding."
+
+  sample_prompts:
+    simple: "Hello, how are you?"
+    math: "What is 2+2?"
+    creative: "Write a haiku about coding."
+    factual: "What is the capital of France?"
+
+  timeouts:
+    quick: 5.0
+    normal: 30.0
+    long: 60.0
+    very_long: 120.0
