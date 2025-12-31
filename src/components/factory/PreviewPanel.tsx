@@ -59,6 +59,7 @@ const devicePresets: DevicePreset[] = [
  * PreviewPanel component props.
  */
 import { LivePreview } from "./LivePreview";
+import { ThemedCanvasWrapper } from "./ThemedCanvasWrapper";
 
 export interface PreviewPanelProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /** Content to preview (direct children) */
@@ -676,24 +677,23 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-6 bg-neutral-900 rounded-b-xl z-10" />
               )}
 
-              {/* Content container */}
-              <div
+              {/* Content container with theme applied */}
+              <ThemedCanvasWrapper
                 className={[
                   "absolute",
                   "inset-0",
                   "overflow-auto",
-                  theme === "dark" ? "bg-neutral-900" : "bg-white",
                 ].join(" ")}
-                data-theme={theme}
                 style={{
                   transform: `scale(${zoom})`,
                   transformOrigin: "top left",
                   width: effectiveWidth,
                   height: effectiveHeight,
                 }}
+                applyBackground
               >
                 {children ? children : <LivePreview screenId={screenId} />}
-              </div>
+              </ThemedCanvasWrapper>
             </div>
           )}
         </div>

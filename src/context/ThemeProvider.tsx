@@ -135,6 +135,16 @@ export interface ThemeConfig {
 /**
  * Theme store state.
  */
+/**
+ * Custom font entry for Google Fonts integration.
+ */
+export interface CustomFont {
+  name: string;
+  family: string;
+  url: string;
+  loaded: boolean;
+}
+
 export interface ThemeState {
   // Current theme configuration
   theme: ThemeConfig;
@@ -142,6 +152,8 @@ export interface ThemeState {
   savedThemes: ThemeConfig[];
   // Whether the theme panel is open
   isPanelOpen: boolean;
+  // Custom fonts loaded from Google Fonts
+  customFonts: CustomFont[];
 
   // Actions
   setMode: (mode: "light" | "dark") => void;
@@ -157,10 +169,13 @@ export interface ThemeState {
   saveTheme: (name: string) => void;
   loadTheme: (name: string) => void;
   deleteTheme: (name: string) => void;
+  updateTheme: (name: string, updatedTheme: ThemeConfig) => void;
   resetToDefault: () => void;
   setTheme: (theme: Partial<ThemeConfig>) => void;
   setPanelOpen: (open: boolean) => void;
   togglePanel: () => void;
+  addCustomFont: (font: CustomFont) => void;
+  removeCustomFont: (fontName: string) => void;
 }
 
 // ============================================
@@ -308,10 +323,11 @@ export const defaultDarkTheme: ThemeConfig = {
  */
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       theme: defaultLightTheme,
       savedThemes: [defaultLightTheme, defaultDarkTheme],
       isPanelOpen: false,
+      customFonts: [],
 
       setMode: (mode) =>
         set((state) => ({
@@ -396,8 +412,8 @@ export const useThemeStore = create<ThemeState>()(
           const updatedThemes =
             existingIndex >= 0
               ? state.savedThemes.map((t, i) =>
-                  i === existingIndex ? newTheme : t
-                )
+                i === existingIndex ? newTheme : t
+              )
               : [...state.savedThemes, newTheme];
           return {
             theme: newTheme,
@@ -419,6 +435,24 @@ export const useThemeStore = create<ThemeState>()(
           savedThemes: state.savedThemes.filter((t) => t.name !== name),
         })),
 
+      updateTheme: (name, updatedTheme) =>
+        set((state) => {
+          const existingIndex = state.savedThemes.findIndex(
+            (t) => t.name === name
+          );
+          if (existingIndex >= 0) {
+            const updatedThemes = state.savedThemes.map((t, i) =>
+              i === existingIndex ? updatedTheme : t
+            );
+            return {
+              savedThemes: updatedThemes,
+              // If the updated theme is the current theme, update it too
+              theme: state.theme.name === name ? updatedTheme : state.theme,
+            };
+          }
+          return {};
+        }),
+
       resetToDefault: () =>
         set((state) => ({
           theme:
@@ -436,6 +470,16 @@ export const useThemeStore = create<ThemeState>()(
       setPanelOpen: (open) => set({ isPanelOpen: open }),
 
       togglePanel: () => set((state) => ({ isPanelOpen: !state.isPanelOpen })),
+
+      addCustomFont: (font) =>
+        set((state) => ({
+          customFonts: [...state.customFonts.filter(f => f.name !== font.name), font],
+        })),
+
+      removeCustomFont: (fontName) =>
+        set((state) => ({
+          customFonts: state.customFonts.filter((f) => f.name !== fontName),
+        })),
     }),
     {
       name: "app-factory-theme",
@@ -443,6 +487,7 @@ export const useThemeStore = create<ThemeState>()(
       partialize: (state) => ({
         theme: state.theme,
         savedThemes: state.savedThemes,
+        customFonts: state.customFonts,
       }),
     }
   )

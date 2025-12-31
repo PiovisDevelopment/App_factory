@@ -14,6 +14,7 @@ import { useProjectStore, type ProjectComponent } from '../../stores/projectStor
 import { getComponent } from '../../utils/ComponentRegistry';
 import { mockSelectOptions, mockTabItems, mockEventHandler } from '../../mocks/previewMocks';
 import { demoScreen, demoComponents } from '../../mocks/demoPreviewData';
+import { ThemedCanvasWrapper } from './ThemedCanvasWrapper';
 
 // =============================================================================
 // TYPES
@@ -200,15 +201,15 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         );
     }
 
-    // Render the component tree
+    // Render the component tree with theme applied
     return (
-        <div className={className}>
+        <ThemedCanvasWrapper className={className} applyBackground={false}>
             <LivePreviewChild
                 componentId={rootId}
                 components={components}
                 onInteract={handleInteract}
             />
-        </div>
+        </ThemedCanvasWrapper>
     );
 };
 

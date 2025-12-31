@@ -13,6 +13,11 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
+import { save } from "@tauri-apps/api/dialog";
+import { writeTextFile } from "@tauri-apps/api/fs";
+import { isTauri } from "../utils/tauriUtils";
+import type { ThemeConfig } from "../context/ThemeProvider";
+import { defaultLightTheme } from "../context/ThemeProvider";
 
 /**
  * Project status.
@@ -101,29 +106,9 @@ export interface ProjectScreen {
 
 /**
  * Project theme configuration.
+ * Uses the same structure as the UI theme persistence.
  */
-export interface ProjectTheme {
-  /** Theme name */
-  name: string;
-  /** Primary color */
-  primaryColor: string;
-  /** Secondary color */
-  secondaryColor: string;
-  /** Accent color */
-  accentColor: string;
-  /** Background color */
-  backgroundColor: string;
-  /** Text color */
-  textColor: string;
-  /** Border radius scale */
-  borderRadius: "none" | "sm" | "md" | "lg" | "xl";
-  /** Font family */
-  fontFamily: string;
-  /** Dark mode enabled */
-  darkMode: boolean;
-  /** Custom CSS variables */
-  customVariables: Record<string, string>;
-}
+export type ProjectTheme = ThemeConfig;
 
 /**
  * Project build configuration.
@@ -259,6 +244,7 @@ export interface ProjectActions {
     projectJson: ProjectFile,
     pluginsConfig?: PluginsConfig
   ) => void;
+  saveProject: (saveAs?: boolean) => Promise<void>;
   setMetadata: (metadata: Partial<ProjectMetadata>) => void;
   setStatus: (status: ProjectStatus) => void;
 
@@ -312,18 +298,7 @@ export interface ProjectActions {
 /**
  * Default theme configuration.
  */
-const defaultTheme: ProjectTheme = {
-  name: "Default",
-  primaryColor: "#3b82f6",
-  secondaryColor: "#64748b",
-  accentColor: "#8b5cf6",
-  backgroundColor: "#ffffff",
-  textColor: "#0f172a",
-  borderRadius: "md",
-  fontFamily: "system-ui, -apple-system, sans-serif",
-  darkMode: false,
-  customVariables: {},
-};
+const defaultTheme: ProjectTheme = defaultLightTheme;
 
 /**
  * Default build configuration.
@@ -502,6 +477,102 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
             thumbnail: null,
           };
           get().addRecentProject(recentProject);
+        },
+
+        saveProject: async (saveAs = false) => {
+          const state = get();
+          set({ isSaving: true, error: null }, false, "saveProject:start");
+
+          try {
+            // 1. Prepare Project File Data
+            const projectFile: ProjectFile = {
+              metadata: state.metadata,
+              screens: state.screens,
+              components: state.components,
+              theme: state.theme,
+              buildConfig: state.buildConfig,
+            };
+
+            // 2. Determine File Path
+            let filePath = state.metadata.filePath;
+
+            if (saveAs || !filePath) {
+              // Open Save Dialog if "Save As" or no path exists
+              if (isTauri()) {
+                const selectedPath = await save({
+                  filters: [{ name: "App Factory Project", extensions: ["json"] }],
+                  defaultPath: state.metadata.name + ".json",
+                });
+                if (!selectedPath) {
+                  // User cancelled
+                  set({ isSaving: false }, false, "saveProject:cancelled");
+                  return;
+                }
+                filePath = selectedPath;
+              } else {
+                // Fallback for Browser Dev (Mock Save)
+                console.warn("Save unavailable in browser: mocking save");
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                // Mock a successful save
+                set(
+                  (state) => ({
+                    status: "saved",
+                    isSaving: false,
+                    metadata: {
+                      ...state.metadata,
+                      modifiedAt: Date.now(),
+                    }
+                  }),
+                  false,
+                  "saveProject:mockSuccess"
+                );
+                return;
+              }
+            }
+
+            // 3. Write to Disk (Tauri Only)
+            if (isTauri() && filePath) {
+              await writeTextFile(filePath, JSON.stringify(projectFile, null, 2));
+
+              // 4. Update State on Success
+              set(
+                (state) => ({
+                  status: "saved",
+                  isSaving: false,
+                  metadata: {
+                    ...state.metadata,
+                    filePath,
+                    modifiedAt: Date.now(),
+                  },
+                }),
+                false,
+                "saveProject:success"
+              );
+
+              // 5. Update Recent Projects
+              const recentProject: RecentProject = {
+                path: filePath,
+                name: state.metadata.name,
+                lastOpened: Date.now(),
+                thumbnail: null,
+              };
+              get().addRecentProject(recentProject);
+
+            } else {
+              throw new Error("Cannot save: Not in Tauri environment or invalid path");
+            }
+
+          } catch (error) {
+            console.error("Failed to save project:", error);
+            set(
+              {
+                isSaving: false,
+                error: error instanceof Error ? error.message : "Unknown error saving project",
+              },
+              false,
+              "saveProject:error"
+            );
+          }
         },
 
         setMetadata: (metadata) =>

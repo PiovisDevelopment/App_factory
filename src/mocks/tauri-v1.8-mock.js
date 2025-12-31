@@ -24,7 +24,10 @@ const mockStore = {
         }
     ],
     components: [],
-    lifecycle: "running"
+    lifecycle: "running",
+    // D079 - API Key storage for mock
+    apiKeys: {},        // { service: [ApiKeyEntry, ...] }
+    apiKeyValues: {}    // { "service-id": "actual-key-value" }
 };
 
 /**
@@ -128,6 +131,63 @@ window.__TAURI__.invoke = async (cmd, args = {}) => {
         case "compile_tsx":
             // Use Sucrase for browser-mode TSX compilation
             return await compileWithSucrase(args.code);
+
+        // --- API Key Management (D079) ---
+        case "get_api_keys":
+            // Return mock API keys for the service
+            return mockStore.apiKeys[args.service] || [];
+
+        case "add_api_key":
+            // Add a mock API key
+            const newKey = {
+                id: `mock-${Date.now()}`,
+                service: args.service,
+                name: args.name,
+                key_masked: args.key ? `${args.key.slice(0, 3)}***${args.key.slice(-3)}` : '***',
+                is_active: true,
+                created_at: new Date().toISOString()
+            };
+            if (!mockStore.apiKeys[args.service]) {
+                mockStore.apiKeys[args.service] = [];
+            }
+            // Set all other keys to inactive
+            mockStore.apiKeys[args.service].forEach(k => k.is_active = false);
+            mockStore.apiKeys[args.service].push(newKey);
+            // Store the actual key for get_active_api_key_value
+            mockStore.apiKeyValues[`${args.service}-${newKey.id}`] = args.key;
+            console.log(`[Tauri Mock] Added API key for ${args.service}`);
+            return newKey;
+
+        case "get_active_api_key":
+            // Return the active key (masked)
+            const serviceKeys = mockStore.apiKeys[args.service] || [];
+            return serviceKeys.find(k => k.is_active) || null;
+
+        case "get_active_api_key_value":
+            // Return the actual API key value for making API calls
+            const keys = mockStore.apiKeys[args.service] || [];
+            const activeKey = keys.find(k => k.is_active);
+            if (activeKey) {
+                return mockStore.apiKeyValues[`${args.service}-${activeKey.id}`] || null;
+            }
+            return null;
+
+        case "set_active_api_key":
+            // Set a key as active
+            const allKeys = mockStore.apiKeys[args.service] || [];
+            allKeys.forEach(k => k.is_active = (k.id === args.id));
+            return null;
+
+        case "delete_api_key":
+            // Delete a key
+            if (mockStore.apiKeys[args.service]) {
+                mockStore.apiKeys[args.service] = mockStore.apiKeys[args.service].filter(k => k.id !== args.id);
+            }
+            return null;
+
+        case "get_configured_services":
+            // Return services that have keys
+            return Object.keys(mockStore.apiKeys).filter(s => mockStore.apiKeys[s].length > 0);
 
         default:
             console.warn(`[Tauri Mock] Unhandled command: ${cmd}`);

@@ -19,6 +19,7 @@ import { Modal } from "../ui/Modal";
 import { Input } from "../ui/Input";
 import { LiveComponentPreview } from "./LiveComponentPreview";
 import { generateText } from "../../services/llmService";
+import { DESIGN_TOKEN_REFERENCE } from "../../hooks/useComponentGenerator";
 
 /**
  * Component type options for generation.
@@ -322,8 +323,8 @@ export const ComponentGenerator: React.FC<ComponentGeneratorProps> = ({
     setRefinementHistory(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
-      // Build refinement prompt
-      const refinementPrompt = `You are refining an existing ${generatedComponent.framework} component.
+      // Build refinement prompt - uses same design tokens as initial generation (EUR-1.1.3a, C2)
+      const refinementPrompt = `You are refining an existing ${generatedComponent.framework} component for the App Factory design system.
 
 CURRENT COMPONENT CODE:
 \`\`\`
@@ -336,12 +337,16 @@ USER REFINEMENT REQUEST:
 CRITICAL REQUIREMENTS:
 1. Output ONLY the complete updated component code
 2. Do NOT include any TypeScript syntax (type annotations, interfaces, generics)
-3. Use Tailwind CSS classes for ALL styling
-4. Do NOT include any import statements - React is available globally
-5. Do NOT wrap code in markdown code fences
-6. For React: use React.useState, React.useCallback directly
-7. Keep the same component name
-8. Apply the user's requested changes while preserving existing functionality
+3. Use Tailwind CSS classes for ALL styling - NO inline styles
+4. Use ONLY the design token classes listed below - this ensures visual consistency
+5. Do NOT include any import statements - React is available globally
+6. Do NOT wrap code in markdown code fences
+7. For React: use React.useState, React.useCallback directly
+8. Keep the same component name
+9. Apply the user's requested changes while preserving existing functionality
+10. For hover effects, use Tailwind hover: prefix (e.g., hover:bg-primary-700)
+
+${DESIGN_TOKEN_REFERENCE}
 
 Generate ONLY the updated component code. No explanations.`;
 

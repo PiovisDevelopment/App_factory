@@ -27,7 +27,9 @@
       "Bash(npm run lint:*)",
       "Bash(cargo build:*)",
       "Bash(cat:*)",
-      "Bash(cargo test:*)"
+      "Bash(cargo test:*)",
+      "Bash(npm run build:fe:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

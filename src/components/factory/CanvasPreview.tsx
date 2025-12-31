@@ -4,11 +4,14 @@
  * Renders canvas elements in the Preview panel as a live preview.
  * This component takes canvas elements and renders them positioned
  * according to their bounds, with actual component rendering.
+ * 
+ * Theme Support: Uses ThemedCanvasWrapper to apply theme customizations.
  */
 
 import React from 'react';
 import { type CanvasElement } from './CanvasEditor';
 import { getComponent, isComponentRegistered } from '../../utils/ComponentRegistry';
+import { ThemedCanvasWrapper } from './ThemedCanvasWrapper';
 
 interface CanvasPreviewProps {
     /** Canvas elements to render */
@@ -125,9 +128,10 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
     }
 
     return (
-        <div
-            className={`relative bg-white overflow-auto ${className}`}
+        <ThemedCanvasWrapper
+            className={`relative overflow-auto ${className}`}
             style={{ minHeight: '100%' }}
+            applyBackground
         >
             {/* Scaled canvas container */}
             <div
@@ -160,7 +164,7 @@ export const CanvasPreview: React.FC<CanvasPreviewProps> = ({
                         </div>
                     ))}
             </div>
-        </div>
+        </ThemedCanvasWrapper>
     );
 };
 

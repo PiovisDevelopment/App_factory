@@ -24,6 +24,7 @@ export type ComponentCategory =
   | "organisms"
   | "templates"
   | "layouts"
+  | "containers"
   | "custom";
 
 /**
@@ -70,7 +71,10 @@ export interface ComponentInfo {
   /** Usage example code */
   exampleCode?: string;
   /** Component version */
+  /** Component version */
   version?: string;
+  /** Default size (width/height) for drag-and-drop */
+  defaultSize?: { width: number; height: number };
 }
 
 /**
@@ -107,6 +111,7 @@ const categoryColors: Record<ComponentCategory, string> = {
   organisms: "bg-warning-50 text-warning-700 border-warning-200",
   templates: "bg-info-50 text-info-700 border-info-200",
   layouts: "bg-neutral-100 text-neutral-700 border-neutral-200",
+  containers: "bg-indigo-50 text-indigo-700 border-indigo-200",
   custom: "bg-neutral-50 text-neutral-600 border-neutral-200",
 };
 
@@ -119,6 +124,7 @@ const categoryLabels: Record<ComponentCategory, string> = {
   organisms: "Organisms",
   templates: "Templates",
   layouts: "Layouts",
+  containers: "Containers",
   custom: "Custom",
 };
 
@@ -323,8 +329,8 @@ export const ComponentGallery = forwardRef<HTMLDivElement, ComponentGalleryProps
   ) => {
     // State
     const [filters, setFilters] = useState<ComponentFilters>(initialFilters);
-    const [sortBy, setSortBy] = useState<ComponentSortBy>(initialSort.by);
-    const [sortOrder, setSortOrder] = useState<SortOrder>(initialSort.order);
+    const [sortBy] = useState<ComponentSortBy>(initialSort.by);
+    const [sortOrder] = useState<SortOrder>(initialSort.order);
     const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
 
@@ -540,7 +546,7 @@ export const ComponentGallery = forwardRef<HTMLDivElement, ComponentGalleryProps
               </label>
               <div className="flex flex-wrap gap-1">
                 {(
-                  ["all", "atoms", "molecules", "organisms", "templates", "layouts", "custom"] as const
+                  ["all", "atoms", "molecules", "organisms", "templates", "layouts", "containers", "custom"] as const
                 ).map((category) => (
                   <button
                     key={category}

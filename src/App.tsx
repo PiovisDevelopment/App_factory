@@ -7,8 +7,8 @@
  * Dependencies: D018 (ThemeProvider), D049 (FactoryLayout), D040-D048 (Factory components)
  */
 
-import React, { useState, useCallback } from 'react';
-import { ThemeProvider } from './context/ThemeProvider';
+import React, { useState, useCallback, useEffect } from 'react';
+import { ThemeProvider, useTheme } from './context/ThemeProvider';
 import { FactoryLayout } from './components/factory/FactoryLayout';
 import { PluginGallery, type PluginInfo } from './components/factory/PluginGallery';
 import { ComponentGallery, type ComponentInfo } from './components/factory/ComponentGallery';
@@ -17,7 +17,63 @@ import { PropertyInspector } from './components/factory/PropertyInspector';
 import { ProjectLoader, type ProjectInfo } from './components/project/ProjectLoader';
 import { useProjectStore, type ProjectFile } from './stores/projectStore';
 import { ThemeCustomizationPanel } from './components/ui/ThemeCustomizationPanel';
+import { WindowConfigPanel, useWindowConfigStore } from './components/ui/WindowConfigPanel';
 import { Modal } from './components/ui/Modal';
+// ProjectDetailsPanel import removed as it does not exist
+// Sidebar Icons
+const FolderIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+  </svg>
+);
+const ComponentIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <line x1="12" y1="3" x2="12" y2="21" />
+    <line x1="3" y1="12" x2="21" y2="12" />
+  </svg>
+);
+const PluginIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+// New Icons for Sidebar
+const LayoutIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <path d="M3 9h18" />
+    <path d="M9 21V9" />
+  </svg>
+);
+const WindowIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    <path d="M3 9h18" />
+    <path d="M9 21V9" />
+    <rect x="7" y="7" width="10" height="10" />
+  </svg>
+);
+
+// Template Icon for sidebar (EUR-1.1.10)
+const TemplateIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+  </svg>
+);
+
+// Backend Blueprint Icon (EUR-1.2.10)
+const BlueprintIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+    <polyline points="2 17 12 22 22 17" />
+    <polyline points="2 12 12 17 22 12" />
+  </svg>
+);
+
 // PreviewPanel and CanvasPreview removed - Canvas now has device viewport selector
 import { ComponentGenerator } from './components/ai/ComponentGenerator';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
@@ -26,6 +82,8 @@ import { useComponentLibraryStore } from './stores/componentLibraryStore';
 import { ImportWizard, type ComponentManifest } from './components/wizard/ImportWizard';
 import { registerComponent } from './utils/ComponentRegistry';
 import { MuiButtonAdapter, DashboardStatsBlock, GitHubRepoPreview } from './components/external/ExternalWrappers';
+import { TemplateBrowser } from './components/templates/TemplateBrowser';
+import { BackendBlueprintPanel, type PluginSlot } from './components/factory/BackendBlueprintPanel';
 
 /**
  * Application mode type.
@@ -247,27 +305,70 @@ const sampleComponents: ComponentInfo[] = [
     tags: ['template', 'dashboard', 'admin'],
     version: '1.0.0',
   },
+  // New Container Components
+  {
+    id: 'container_fluid',
+    name: 'Fluid Container',
+    category: 'containers',
+    type: 'container',
+    description: 'Responsive container that fills 100% width and height',
+    builtIn: true,
+    tags: ['layout', 'fluid', 'full'],
+    version: '1.0.0',
+    // Default size for drag-and-drop
+    defaultSize: { width: 400, height: 300 }
+  },
+  {
+    id: 'container_header',
+    name: 'Header Bar',
+    category: 'containers',
+    type: 'container',
+    description: 'Top navigation bar container',
+    builtIn: true,
+    tags: ['layout', 'header', 'nav'],
+    version: '1.0.0',
+    defaultSize: { width: 800, height: 64 }
+  },
+  {
+    id: 'container_sidebar',
+    name: 'Sidebar',
+    category: 'containers',
+    type: 'container',
+    description: 'Vertical sidebar container',
+    builtIn: true,
+    tags: ['layout', 'sidebar', 'nav'],
+    version: '1.0.0',
+    defaultSize: { width: 250, height: 600 }
+  },
+  {
+    id: 'container_footer',
+    name: 'Footer',
+    category: 'containers',
+    type: 'container',
+    description: 'Bottom footer container',
+    builtIn: true,
+    tags: ['layout', 'footer'],
+    version: '1.0.0',
+    defaultSize: { width: 800, height: 60 }
+  },
+  {
+    id: 'container_card',
+    name: 'Card Container',
+    category: 'containers',
+    type: 'container',
+    description: 'Standard card container for grouping content',
+    builtIn: true,
+    tags: ['layout', 'card', 'box'],
+    version: '1.0.0',
+    defaultSize: { width: 300, height: 200 }
+  },
 ];
 
 /**
- * Initial canvas elements for demonstration.
+ * Initial canvas elements.
+ * Starts empty to provide a clean slate.
  */
-const initialCanvasElements: CanvasElement[] = [
-  {
-    id: 'header',
-    type: 'container',
-    name: 'Header',
-    bounds: { x: 0, y: 0, width: 800, height: 64 },
-    zIndex: 1,
-  },
-  {
-    id: 'main-content',
-    type: 'container',
-    name: 'Main Content',
-    bounds: { x: 0, y: 80, width: 800, height: 400 },
-    zIndex: 1,
-  },
-];
+const initialCanvasElements: CanvasElement[] = [];
 
 /**
  * Header component with app title and toolbar.
@@ -277,9 +378,14 @@ interface AppHeaderProps {
   onBackToLauncher?: () => void;
   isThemePanelOpen?: boolean;
   onToggleThemePanel?: () => void;
+  isWindowConfigOpen?: boolean;
+  onToggleWindowConfig?: () => void;
   showPreview?: boolean;
   onTogglePreview?: () => void;
+  showBackendBlueprint?: boolean;
+  onToggleBackendBlueprint?: () => void;
   onToggleSettings?: () => void;
+  onSaveProject?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -287,9 +393,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onBackToLauncher,
   isThemePanelOpen = false,
   onToggleThemePanel,
+  isWindowConfigOpen = false,
+  onToggleWindowConfig,
   showPreview = false,
   onTogglePreview,
+  showBackendBlueprint = false,
+  onToggleBackendBlueprint,
   onToggleSettings,
+  onSaveProject,
 }) => (
   <div className="flex items-center justify-between w-full">
     <div className="flex items-center gap-3">
@@ -321,6 +432,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
     </div>
     <div className="flex items-center gap-2">
+      {/* Save Button */}
+      {onSaveProject && (
+        <button
+          type="button"
+          onClick={onSaveProject}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 transition-colors"
+          title="Save Project"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
+          Save
+        </button>
+      )}
       {/* Theme Button */}
       {onToggleThemePanel && (
         <button
@@ -348,6 +475,26 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           Theme
         </button>
       )}
+      {/* Window Config Button */}
+      {onToggleWindowConfig && (
+        <button
+          type="button"
+          onClick={onToggleWindowConfig}
+          className={[
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+            isWindowConfigOpen
+              ? "bg-primary-100 text-primary-700"
+              : "text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100",
+          ].join(" ")}
+          title="Window Configuration"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <line x1="3" y1="9" x2="21" y2="9" />
+          </svg>
+          Window
+        </button>
+      )}
       {/* Preview Button */}
       {onTogglePreview && (
         <button
@@ -366,6 +513,23 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <circle cx="12" cy="12" r="3" />
           </svg>
           Preview
+        </button>
+      )}
+      {/* Backend Blueprint Button (EUR-1.2.10) */}
+      {onToggleBackendBlueprint && (
+        <button
+          type="button"
+          onClick={onToggleBackendBlueprint}
+          className={[
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+            showBackendBlueprint
+              ? "bg-primary-100 text-primary-700"
+              : "text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100",
+          ].join(" ")}
+          title="Backend Architecture Blueprint"
+        >
+          <BlueprintIcon className="h-4 w-4" />
+          Blueprint
         </button>
       )}
       {/* Settings Button */}
@@ -438,9 +602,64 @@ const sampleProjects: ProjectInfo[] = [
  * - ProjectLoader: When in launcher mode (start screen)
  * - FactoryLayout: When in editor mode (main factory interface)
  */
+
+/**
+ * Calculates the initial size of a component based on "Smart Rules" relative to canvas size.
+ */
+const calculateInitialSize = (
+  component: { id: string; defaultSize?: { width: number; height: number } },
+  canvasWidth: number,
+  canvasHeight: number
+) => {
+  // Smart Rules based on component ID/Type
+  if (component.id.includes('sidebar')) {
+    return { width: Math.round(canvasWidth * 0.2), height: Math.round(canvasHeight * 0.8) };
+  }
+  if (component.id.includes('header')) {
+    return { width: canvasWidth, height: 64 };
+  }
+  if (component.id.includes('footer')) {
+    return { width: canvasWidth, height: 60 };
+  }
+  if (component.id.includes('fluid')) {
+    return { width: Math.round(canvasWidth * 0.9), height: Math.round(canvasHeight * 0.9) };
+  }
+  if (component.id.includes('card')) {
+    return { width: Math.round(canvasWidth * 0.3), height: Math.round(canvasHeight * 0.3) };
+  }
+
+  // Fallback to defined default size or generic default
+  return {
+    width: component.defaultSize?.width || 120,
+    height: component.defaultSize?.height || 48
+  };
+};
+
 export const App: React.FC = () => {
   // Application mode state (launcher vs editor)
   const [appMode, setAppMode] = useState<AppMode>('launcher');
+
+  // Theme Sync Logic
+  const { theme, setTheme } = useTheme();
+  const setProjectTheme = useProjectStore((state) => state.setTheme);
+
+  // Sync visual theme changes to project store for persistence
+  useEffect(() => {
+    setProjectTheme(theme);
+  }, [theme, setProjectTheme]);
+
+  // Project store actions
+  const saveProject = useProjectStore((state) => state.saveProject);
+
+  const handleSaveProject = useCallback(async () => {
+    await saveProject();
+  }, [saveProject]);
+
+  // Sidebar tab state (UJ-1.1.2): includes templates tab for EUR-1.1.10
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'project' | 'components' | 'containers' | 'modals' | 'templates' | 'plugins'>('project');
+
+  // Loaded template name (EUR-1.1.10) - displayed in canvas toolbar
+  const [loadedTemplateName, setLoadedTemplateName] = useState<string | null>(null);
 
   // Register external components on mount (EUR-1.1.3b)
   React.useEffect(() => {
@@ -505,16 +724,34 @@ export const App: React.FC = () => {
   const [plugins, setPlugins] = useState<PluginInfo[]>(samplePlugins);
   const [selectedPluginId, setSelectedPluginId] = useState<string | undefined>();
 
+  // Derive plugin slots for BackendBlueprintPanel from plugins state
+  const pluginSlots: PluginSlot[] = React.useMemo(() => {
+    return plugins.map(p => ({
+      id: p.id,
+      contract: p.contract.toUpperCase(),
+      name: p.name,
+      pluginName: p.status === 'loaded' ? p.name : undefined,
+      status: p.status === 'loaded' ? 'healthy' as const :
+              p.status === 'loading' ? 'degraded' as const :
+              p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
+    }));
+  }, [plugins]);
+
+  // Manual plugin slots (user-added via + button in Blueprint)
+  const [manualPluginSlots, setManualPluginSlots] = useState<PluginSlot[]>([]);
+
+  // Plugin filter for sidebar (when user clicks a slot in Blueprint)
+  const [pluginCategoryFilter, setPluginCategoryFilter] = useState<string | null>(null);
+
   // Component Gallery state (UJ-1.1.2)
   const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
-
-  // Sidebar tab state (UJ-1.1.2): 'plugins' or 'components'
-  type SidebarTab = 'plugins' | 'components';
-  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('plugins');
 
   // Component Generator state (UJ-1.1.3)
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const { state: generatorState, generate: generateComponent } = useComponentGenerator();
+
+  // Window Config State (for linking canvas size)
+  const windowConfig = useWindowConfigStore((state) => state.config);
 
 
   // Canvas state
@@ -523,7 +760,11 @@ export const App: React.FC = () => {
 
   // Theme panel and Preview state (UJ-1.1.1)
   const [isThemePanelOpen, setIsThemePanelOpen] = useState(false);
+  const [isWindowConfigOpen, setIsWindowConfigOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+
+  // Backend Blueprint state (EUR-1.2.10)
+  const [showBackendBlueprint, setShowBackendBlueprint] = useState(false);
 
   // Settings panel state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -534,10 +775,22 @@ export const App: React.FC = () => {
   // Toggle handlers for Theme and Preview panels
   const handleToggleThemePanel = useCallback(() => {
     setIsThemePanelOpen((prev) => !prev);
+    // Close window config if opening theme
+    setIsWindowConfigOpen(false);
+  }, []);
+
+  const handleToggleWindowConfig = useCallback(() => {
+    setIsWindowConfigOpen((prev) => !prev);
+    // Close theme panel if opening window config
+    setIsThemePanelOpen(false);
   }, []);
 
   const handleTogglePreview = useCallback(() => {
     setShowPreview((prev) => !prev);
+  }, []);
+
+  const handleToggleBackendBlueprint = useCallback(() => {
+    setShowBackendBlueprint((prev) => !prev);
   }, []);
 
   const handleToggleSettings = useCallback(() => {
@@ -590,8 +843,17 @@ export const App: React.FC = () => {
     };
 
     loadProjectFromFile(project.path, projectFile);
+
+    // Sync theme from loaded project to application theme store
+    if (projectFile.theme) {
+      // We need to cast or ensure types match, but projectFile.theme is ProjectTheme
+      // and setTheme expects ThemeConfig (or Partial). They should be compatible.
+      // @ts-ignore - Types might need alignment but this ensures visual sync
+      setTheme(projectFile.theme);
+    }
+
     setAppMode('editor');
-  }, [loadProjectFromFile]);
+  }, [loadProjectFromFile, setTheme]);
 
   const handleNewProject = useCallback(() => {
     // In real app, would show new project wizard
@@ -635,10 +897,7 @@ export const App: React.FC = () => {
       bounds: {
         x: 100 + (canvasElements.length * 20), // Offset each new element
         y: 100 + (canvasElements.length * 20),
-        // Material Design: 48dp minimum touch target
-        // Reasonable default: button-like width, single-line height
-        width: 120,
-        height: 48,
+        ...calculateInitialSize(component, windowConfig.width, windowConfig.height),
       },
       zIndex: canvasElements.length + 1,
     };
@@ -686,6 +945,32 @@ export const App: React.FC = () => {
         p.id === plugin.id ? { ...p, status: 'unloaded' as const } : p
       )
     );
+  }, []);
+
+  // Blueprint slot handlers
+  const handleBlueprintSlotClick = useCallback((slot: PluginSlot) => {
+    // Switch to plugins tab and filter by this slot's category
+    setActiveSidebarTab('plugins');
+    setPluginCategoryFilter(slot.contract.toUpperCase());
+  }, []);
+
+  const handleAddManualSlot = useCallback((contract: string) => {
+    const newSlot: PluginSlot = {
+      id: `slot-${Date.now()}`,
+      contract: contract.toUpperCase(),
+      name: `${contract} Slot`,
+      pluginName: undefined,
+      status: 'empty',
+    };
+    setManualPluginSlots((prev) => [...prev, newSlot]);
+  }, []);
+
+  const handleRemoveManualSlot = useCallback((slotId: string) => {
+    setManualPluginSlots((prev) => prev.filter((s) => s.id !== slotId));
+  }, []);
+
+  const handleClearPluginFilter = useCallback(() => {
+    setPluginCategoryFilter(null);
   }, []);
 
   // Canvas handlers
@@ -743,8 +1028,7 @@ export const App: React.FC = () => {
       bounds: {
         x: position.x,
         y: position.y,
-        width: 200,
-        height: 100,
+        ...calculateInitialSize(droppedComponent as any, windowConfig.width, windowConfig.height),
       },
       zIndex: canvasElements.length + 1,
     };
@@ -811,62 +1095,122 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <div className="min-h-screen bg-bg-primary text-text-primary">
         <FactoryLayout
+          key={`layout-${showBackendBlueprint ? 'with-blueprint' : 'no-blueprint'}`}
           header={
             <AppHeader
               projectName={projectName}
               onBackToLauncher={handleBackToLauncher}
               isThemePanelOpen={isThemePanelOpen}
               onToggleThemePanel={handleToggleThemePanel}
+              isWindowConfigOpen={isWindowConfigOpen}
+              onToggleWindowConfig={handleToggleWindowConfig}
               showPreview={showPreview}
               onTogglePreview={handleTogglePreview}
+              showBackendBlueprint={showBackendBlueprint}
+              onToggleBackendBlueprint={handleToggleBackendBlueprint}
               onToggleSettings={handleToggleSettings}
+              onSaveProject={handleSaveProject}
             />
           }
           leftSidebar={
             <div className="h-full flex flex-col">
-              {/* Tab Switcher (UJ-1.1.2) */}
+              {/* Tab Switcher */}
               <div className="p-2 border-b border-neutral-200">
-                <div className="flex rounded-lg bg-neutral-100 p-1">
-                  <button
-                    type="button"
-                    onClick={() => setSidebarTab('plugins')}
-                    className={[
-                      "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                      sidebarTab === 'plugins'
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-600 hover:text-neutral-900",
-                    ].join(" ")}
-                  >
-                    Plugins
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSidebarTab('components')}
-                    className={[
-                      "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
-                      sidebarTab === 'components'
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-600 hover:text-neutral-900",
-                    ].join(" ")}
-                  >
-                    Components
-                  </button>
+                <div className="flex flex-wrap gap-1 rounded-lg bg-neutral-100 p-1">
+                  {[
+                    { id: 'project', label: 'Proj', icon: FolderIcon },
+                    { id: 'components', label: 'Comp', icon: ComponentIcon },
+                    { id: 'containers', label: 'Cont', icon: LayoutIcon },
+                    { id: 'modals', label: 'Mod', icon: WindowIcon },
+                    { id: 'templates', label: 'Tmpl', icon: TemplateIcon },
+                    { id: 'plugins', label: 'Plug', icon: PluginIcon },
+                  ].map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeSidebarTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setActiveSidebarTab(tab.id as any)}
+                        className={[
+                          "flex-1 min-w-[3rem] px-2 py-1.5 flex flex-col items-center justify-center gap-1 text-[10px] font-medium rounded-md transition-colors",
+                          isActive
+                            ? "bg-white text-neutral-900 shadow-sm"
+                            : "text-neutral-500 hover:text-neutral-700 hover:bg-neutral-200/50",
+                        ].join(" ")}
+                        title={tab.label}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Gallery Content */}
               <div className="flex-1 overflow-auto p-3">
-                {sidebarTab === 'plugins' ? (
-                  <PluginGallery
-                    plugins={plugins}
-                    selectedId={selectedPluginId}
-                    onSelect={handlePluginSelect}
-                    onLoad={handlePluginLoad}
-                    onUnload={handlePluginUnload}
-                    gridColumns={2}
-                    showViewToggle={false}
-                  />
-                ) : (
+                {activeSidebarTab === 'plugins' ? (
+                  <div className="space-y-3">
+                    {/* Category Filter Banner */}
+                    {pluginCategoryFilter && (
+                      <div className="flex items-center justify-between px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                        <span className="text-xs text-amber-800">
+                          Showing: <span className="font-semibold">{pluginCategoryFilter}</span> plugins
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleClearPluginFilter}
+                          className="text-xs text-amber-600 hover:text-amber-800 underline"
+                        >
+                          Show all
+                        </button>
+                      </div>
+                    )}
+                    <PluginGallery
+                      plugins={pluginCategoryFilter
+                        ? plugins.filter(p => p.contract.toUpperCase() === pluginCategoryFilter)
+                        : plugins
+                      }
+                      selectedId={selectedPluginId}
+                      onSelect={handlePluginSelect}
+                      onLoad={handlePluginLoad}
+                      onUnload={handlePluginUnload}
+                      gridColumns={2}
+                      showViewToggle={false}
+                    />
+                  </div>
+                ) : activeSidebarTab === 'containers' ? (
+                  <div className="space-y-3">
+                    <ComponentGallery
+                      key="containers"
+                      components={sampleComponents}
+                      selectedIds={selectedComponentIds}
+                      onSelectionChange={handleComponentSelectionChange}
+                      onAdd={handleAddComponent}
+                      gridColumns={2}
+                      showViewToggle={false}
+                      showFilters={false}
+                      initialFilters={{ category: 'containers' }}
+                      draggable
+                    />
+                  </div>
+                ) : activeSidebarTab === 'modals' ? (
+                  <div className="space-y-3">
+                    <ComponentGallery
+                      key="modals"
+                      components={sampleComponents}
+                      selectedIds={selectedComponentIds}
+                      onSelectionChange={handleComponentSelectionChange}
+                      onAdd={handleAddComponent}
+                      gridColumns={2}
+                      showViewToggle={false}
+                      showFilters={false}
+                      initialFilters={{ type: 'modal' }}
+                      draggable
+                    />
+                  </div>
+                ) : activeSidebarTab === 'components' ? (
                   <div className="space-y-3">
                     {/* New Component Button (UJ-1.1.3) */}
                     <button
@@ -894,6 +1238,7 @@ export const App: React.FC = () => {
                       Import Component
                     </button>
                     <ComponentGallery
+                      key="components-all"
                       components={sampleComponents}
                       selectedIds={selectedComponentIds}
                       onSelectionChange={handleComponentSelectionChange}
@@ -904,11 +1249,38 @@ export const App: React.FC = () => {
                       draggable
                     />
                   </div>
+                ) : activeSidebarTab === 'templates' ? (
+                  // Templates tab content (EUR-1.1.10)
+                  <TemplateBrowser
+                    onLoadTemplate={(elements, windowSize, templateInfo) => {
+                      // Replace canvas with template elements
+                      setCanvasElements(elements);
+                      setSelectedElementIds([]);
+                      // Set the loaded template name for display
+                      setLoadedTemplateName(templateInfo?.name || null);
+                      // Optionally update window config if template specifies size
+                      if (windowSize) {
+                        useWindowConfigStore.getState().setConfig({
+                          width: windowSize.width,
+                          height: windowSize.height,
+                        });
+                      }
+                    }}
+                    onSaveAsTemplate={() => {
+                      // The TemplateBrowser handles its own save modal
+                    }}
+                  />
+                ) : (
+                  // Default or 'project' tab content
+                  <div className="p-4 text-center text-neutral-500">
+                    <h3 className="font-medium text-neutral-900">Project Details</h3>
+                    <p className="mt-2 text-sm">Select a project to view details.</p>
+                  </div>
                 )}
               </div>
 
               {/* Selection Summary (UJ-1.1.2) */}
-              {sidebarTab === 'components' && selectedComponentIds.length > 0 && (
+              {activeSidebarTab === 'components' && selectedComponentIds.length > 0 && (
                 <div className="p-3 border-t border-neutral-200 bg-primary-50">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-primary-700 font-medium">
@@ -930,17 +1302,32 @@ export const App: React.FC = () => {
             <CanvasEditor
               elements={canvasElements}
               selectedIds={selectedElementIds}
-              canvasWidth={1280}
-              canvasHeight={720}
-              initialZoom={0.6}
-              gridSettings={{ size: 16, snap: true, visible: true }}
               onSelect={handleElementSelect}
               onMove={handleElementMove}
               onResize={handleElementMove}
               onDelete={handleElementDelete}
               onDrop={handleElementDrop}
+              // Link canvas size to window config
+              canvasWidth={windowConfig.width}
+              canvasHeight={windowConfig.height}
               getComponentCode={getComponentCode}
-              editable
+              templateName={loadedTemplateName}
+              className="bg-neutral-100" // Add a background to distinguish the canvas area
+              initialZoom={0.6}
+              gridSettings={{ size: 16, snap: true, visible: true }}
+            />
+          }
+          bottomPanel={
+            <BackendBlueprintPanel
+              className="h-full"
+              compact
+              projectName={projectName}
+              canvasElements={canvasElements}
+              pluginRegistry={pluginSlots}
+              manualSlots={manualPluginSlots}
+              onSlotClick={handleBlueprintSlotClick}
+              onAddSlot={handleAddManualSlot}
+              onRemoveSlot={handleRemoveManualSlot}
             />
           }
           rightSidebar={
@@ -1005,7 +1392,7 @@ export const App: React.FC = () => {
           initialPanels={{
             left: { type: 'plugins', visible: true },
             right: { type: 'properties', visible: true },
-            bottom: { type: 'preview', visible: false, size: 0 },
+            bottom: { type: 'preview', visible: showBackendBlueprint, size: showBackendBlueprint ? 400 : 0 },
           }}
           preset="split"
           resizable
@@ -1015,6 +1402,13 @@ export const App: React.FC = () => {
         <ThemeCustomizationPanel
           isOpen={isThemePanelOpen}
           onClose={() => setIsThemePanelOpen(false)}
+          position="right"
+          width="380px"
+        />
+        {/* Window Config Panel Overlay (UJ-1.1.6) */}
+        <WindowConfigPanel
+          isOpen={isWindowConfigOpen}
+          onClose={() => setIsWindowConfigOpen(false)}
           position="right"
           width="380px"
         />

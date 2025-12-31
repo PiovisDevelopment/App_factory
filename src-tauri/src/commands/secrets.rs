@@ -87,15 +87,27 @@ impl ApiKeyInternal {
 // ============================================
 
 /// Get path to .env file in project root.
+/// 
+/// The function searches for the project root by looking for the `plugins/` directory.
+/// It checks:
+/// 1. Parent directories of the executable path
+/// 2. Current working directory and its parent
+/// 3. Known development paths (src-tauri parent)
 fn get_env_path() -> PathBuf {
-    // Find project root (where plugins/ directory exists)
+    // In dev mode, log what we're looking for
+    log::debug!("get_env_path: Searching for .env file...");
+    
+    // Strategy 1: Search up from executable path
     let exe_path = std::env::current_exe().unwrap_or_default();
+    log::debug!("get_env_path: exe_path = {:?}", exe_path);
+    
     let mut current = exe_path.parent().map(|p| p.to_path_buf());
 
     for _ in 0..10 {
         if let Some(ref dir) = current {
             let plugins_dir = dir.join("plugins");
             if plugins_dir.exists() && plugins_dir.is_dir() {
+                log::debug!("get_env_path: Found via exe path traversal: {:?}", dir);
                 return dir.join(".env");
             }
             current = dir.parent().map(|p| p.to_path_buf());
@@ -104,17 +116,50 @@ fn get_env_path() -> PathBuf {
         }
     }
 
-    // Fallback to current working directory
+    // Strategy 2: Check current working directory
     let cwd = std::env::current_dir().unwrap_or_default();
+    log::debug!("get_env_path: cwd = {:?}", cwd);
+    
     if cwd.join("plugins").exists() {
+        log::debug!("get_env_path: Found via cwd: {:?}", cwd);
         return cwd.join(".env");
     }
+    
+    // Strategy 3: If cwd is src-tauri, go up one level
+    if cwd.file_name().map(|n| n == "src-tauri").unwrap_or(false) {
+        if let Some(parent) = cwd.parent() {
+            if parent.join("plugins").exists() {
+                log::debug!("get_env_path: Found via src-tauri parent: {:?}", parent);
+                return parent.join(".env");
+            }
+        }
+    }
+    
+    // Strategy 4: Check parent of cwd
     if let Some(parent) = cwd.parent() {
         if parent.join("plugins").exists() {
+            log::debug!("get_env_path: Found via cwd parent: {:?}", parent);
             return parent.join(".env");
         }
     }
+    
+    // Strategy 5: Look for src-tauri sibling (if cwd contains target/)
+    // This handles the case where we're running from target/debug
+    let mut search = cwd.clone();
+    for _ in 0..5 {
+        if search.join("src-tauri").exists() && search.join("plugins").exists() {
+            log::debug!("get_env_path: Found via src-tauri sibling search: {:?}", search);
+            return search.join(".env");
+        }
+        if let Some(parent) = search.parent() {
+            search = parent.to_path_buf();
+        } else {
+            break;
+        }
+    }
 
+    // Fallback
+    log::warn!("get_env_path: Could not find project root, using cwd: {:?}", cwd);
     cwd.join(".env")
 }
 

@@ -51,14 +51,65 @@ export interface UseComponentGeneratorReturn {
 }
 
 /**
+ * Design System Token Reference (D006 - design_tokens.css)
+ * =========================================================
+ * This constant provides LLM with available Tailwind classes that map to
+ * the App Factory design system tokens. All generated components MUST use
+ * these classes to satisfy C2 (Strict FE Design System).
+ * 
+ * Traceability: EUR-1.1.3a, D070, C2
+ */
+const DESIGN_TOKEN_REFERENCE = `
+DESIGN SYSTEM TOKENS - Use ONLY these Tailwind classes for styling:
+
+COLORS (use shade 50-950):
+- Primary: bg-primary-[shade], text-primary-[shade], border-primary-[shade]
+  Examples: bg-primary-600, hover:bg-primary-700, text-primary-50, border-primary-500
+- Neutral: bg-neutral-[shade], text-neutral-[shade], border-neutral-[shade]
+  Examples: bg-neutral-100, text-neutral-900, border-neutral-300
+- Success: bg-success-[shade], text-success-[shade] (use 50, 500-700)
+- Warning: bg-warning-[shade], text-warning-[shade] (use 50, 500-700)
+- Error: bg-error-[shade], text-error-[shade] (use 50, 500-700)
+
+SPACING (4px grid):
+- Padding: p-1 to p-12, px-1 to px-8, py-1 to py-4
+- Margin: m-1 to m-12, mx-auto, my-4
+- Gap: gap-1 to gap-8
+
+TYPOGRAPHY:
+- Size: text-xs, text-sm, text-base, text-lg, text-xl, text-2xl
+- Weight: font-normal, font-medium, font-semibold, font-bold
+- Font: font-sans (default), font-mono
+
+BORDERS & RADIUS:
+- Radius: rounded-sm, rounded-md, rounded-lg, rounded-xl, rounded-full
+- Border: border, border-2, border-neutral-200, border-primary-500
+
+SHADOWS:
+- shadow-sm, shadow-md, shadow-lg, shadow-xl
+
+EFFECTS:
+- Focus: focus:outline-none, focus:ring-2, focus:ring-primary-500, focus:ring-offset-2
+- Transitions: transition-all, transition-colors, duration-150, duration-200
+- Opacity: opacity-50, opacity-75
+
+LAYOUT:
+- Flex: flex, flex-col, items-center, justify-center, justify-between
+- Width: w-full, w-auto, min-w-0, max-w-md
+- Display: inline-flex, block, hidden
+`;
+
+/**
  * Build LLM prompt for component generation.
  * 
  * The prompt is designed to produce code that can be compiled at runtime
  * by Sucrase. Key requirements:
  * - No complex TypeScript syntax (generics, type assertions)
  * - Simple parameter types or none at all
- * - Tailwind for styling
+ * - Tailwind classes referencing design tokens (C2 compliance)
  * - Self-contained components
+ * 
+ * Traceability: EUR-1.1.3a, D070, C2
  */
 function buildPrompt(
   userPrompt: string,
@@ -73,27 +124,48 @@ IMPORTANT: Do NOT include any TypeScript syntax such as:
 - Generic type parameters (<T>, useState<number>)
 - "as" type assertions
 Use plain JavaScript that works directly in the browser.`,
-    vue: "Generate a Vue 3 component using the Composition API.",
-    svelte: "Generate a Svelte component.",
-    html: "Generate HTML with CSS styling.",
+    vue: "Generate a Vue 3 component using the Composition API with Tailwind classes.",
+    svelte: "Generate a Svelte component with Tailwind classes.",
+    html: "Generate HTML with Tailwind CSS classes.",
   };
 
-  return `You are a UI component generator. Create a ${type} component based on this description:
+  return `You are a UI component generator for the App Factory design system.
 
+Create a ${type} component based on this description:
 "${userPrompt}"
 
 CRITICAL REQUIREMENTS:
 1. ${frameworkInstructions[framework]}
-2. Use INLINE STYLES (style={{ }}) for ALL styling - do NOT use CSS classes or Tailwind
-3. Do NOT include any import statements - React is available globally
-4. Do NOT wrap code in markdown code fences
-5. Make the component self-contained and immediately executable
-6. For React: use React.useState, React.useCallback directly (not destructured imports)
-7. Give the component a clear, descriptive PascalCase name
-8. For hover effects, use onMouseEnter/onMouseLeave with React.useState to toggle styles
+2. Use Tailwind CSS classes for ALL styling - NO inline styles
+3. Use ONLY the design token classes listed below - this ensures visual consistency
+4. Do NOT include any import statements - React is available globally
+5. Do NOT wrap code in markdown code fences
+6. Make the component self-contained and immediately executable
+7. For React: use React.useState, React.useCallback directly (not destructured imports)
+8. Give the component a clear, descriptive PascalCase name
+9. For hover effects, use Tailwind hover: prefix (e.g., hover:bg-primary-700)
+
+${DESIGN_TOKEN_REFERENCE}
+
+EXAMPLE COMPONENT (Button):
+const PrimaryButton = () => {
+  return (
+    <button
+      className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+    >
+      Click Me
+    </button>
+  );
+};
 
 Generate ONLY the component code. No explanations, no imports, no markdown.`;
 }
+
+/**
+ * Exported design token reference for use in refinement prompts.
+ * This ensures consistency between initial generation and refinements.
+ */
+export { DESIGN_TOKEN_REFERENCE };
 
 /**
  * Parse component name from generated code.
