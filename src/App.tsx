@@ -7,7 +7,7 @@
  * Dependencies: D018 (ThemeProvider), D049 (FactoryLayout), D040-D048 (Factory components)
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeProvider';
 import { FactoryLayout } from './components/factory/FactoryLayout';
 import { PluginGallery, type PluginInfo } from './components/factory/PluginGallery';
@@ -511,6 +511,7 @@ const initialCanvasElements: CanvasElement[] = [];
  */
 interface AppHeaderProps {
   projectName?: string;
+  projectFileName?: string;
   onBackToLauncher?: () => void;
   isThemePanelOpen?: boolean;
   onToggleThemePanel?: () => void;
@@ -522,10 +523,12 @@ interface AppHeaderProps {
   onToggleBackendBlueprint?: () => void;
   onToggleSettings?: () => void;
   onSaveProject?: () => void;
+  onSaveProjectAs?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
   projectName,
+  projectFileName,
   onBackToLauncher,
   isThemePanelOpen = false,
   onToggleThemePanel,
@@ -537,6 +540,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onToggleBackendBlueprint,
   onToggleSettings,
   onSaveProject,
+  onSaveProjectAs,
 }) => (
   <div className="flex items-center justify-between w-full">
     <div className="flex items-center gap-3">
@@ -563,7 +567,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       <div className="flex flex-col">
         <span className="font-semibold text-neutral-800">App Factory</span>
         {projectName && projectName !== 'Untitled Project' && (
-          <span className="text-xs text-neutral-500">{projectName}</span>
+          <span className="text-xs text-neutral-500">
+            {projectName}
+            {projectFileName && ` (${projectFileName})`}
+          </span>
         )}
       </div>
     </div>
@@ -582,6 +589,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <polyline points="7 3 7 8 15 8" />
           </svg>
           Save
+        </button>
+      )}
+      {/* Save As Button */}
+      {onSaveProjectAs && (
+        <button
+          type="button"
+          onClick={onSaveProjectAs}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 transition-colors"
+          title="Save As"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+            <line x1="12" y1="7" x2="12" y2="12" />
+            <line x1="9.5" y1="9.5" x2="14.5" y2="9.5" />
+          </svg>
+          Save As
         </button>
       )}
       {/* Theme Button */}
@@ -736,6 +761,28 @@ const calculateInitialSize = (
 export const App: React.FC = () => {
   // Application mode state (launcher vs editor)
   const [appMode, setAppMode] = useState<AppMode>('launcher');
+  const [saveNotice, setSaveNotice] = useState<string | null>(null);
+  const saveNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showSaveNotice = useCallback((filePath: string) => {
+    const fileName = filePath.replace(/\\/g, "/").split("/").pop() || filePath;
+    setSaveNotice(fileName);
+    if (saveNoticeTimerRef.current) {
+      clearTimeout(saveNoticeTimerRef.current);
+    }
+    saveNoticeTimerRef.current = window.setTimeout(() => {
+      setSaveNotice(null);
+      saveNoticeTimerRef.current = null;
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (saveNoticeTimerRef.current) {
+        clearTimeout(saveNoticeTimerRef.current);
+      }
+    };
+  }, []);
 
   // Theme Sync Logic
   const { theme, setTheme } = useTheme();
@@ -748,11 +795,22 @@ export const App: React.FC = () => {
 
   // Project store actions
   const saveProject = useProjectStore((state) => state.saveProject);
+  const saveProjectAs = useProjectStore((state) => state.saveProjectAs);
   const setMetadata = useProjectStore((state) => state.setMetadata);
 
   const handleSaveProject = useCallback(async () => {
-    await saveProject();
-  }, [saveProject]);
+    const savedPath = await saveProject();
+    if (savedPath) {
+      showSaveNotice(savedPath);
+    }
+  }, [saveProject, showSaveNotice]);
+
+  const handleSaveProjectAs = useCallback(async () => {
+    const savedPath = await saveProjectAs();
+    if (savedPath) {
+      showSaveNotice(savedPath);
+    }
+  }, [saveProjectAs, showSaveNotice]);
 
   // Sidebar tab state (UJ-1.1.2): includes templates tab for EUR-1.1.10, AI chat tab
   const [activeSidebarTab, setActiveSidebarTab] = useState<'project' | 'components' | 'containers' | 'modals' | 'templates' | 'plugins' | 'aichat'>('project');
@@ -814,6 +872,8 @@ export const App: React.FC = () => {
   // Project store actions
   const loadProjectFromFile = useProjectStore((state) => state.loadProjectFromFile);
   const projectName = useProjectStore((state) => state.metadata.name);
+  const projectFilePath = useProjectStore((state) => state.metadata.filePath);
+  const projectFileName = projectFilePath ? projectFilePath.replace(/\\/g, "/").split("/").pop() : undefined;
   const projectDescription = useProjectStore((state) => state.metadata.description);
   // Subscribe to project theme for canvas (isolated from App Factory theme)
   const projectTheme = useProjectStore((state) => state.theme);
@@ -1341,6 +1401,7 @@ export const App: React.FC = () => {
               onOpenProject={handleOpenProject}
               onNewProject={handleNewProject}
               onBrowseProject={handleBrowseProject}
+              onToggleSettings={handleToggleSettings}
               isLoading={isLoadingProjects}
               className="h-[500px]"
             />
@@ -1359,6 +1420,7 @@ export const App: React.FC = () => {
           header={
             <AppHeader
               projectName={projectName}
+              projectFileName={projectFileName}
               onBackToLauncher={handleBackToLauncher}
               isThemePanelOpen={isThemePanelOpen}
               onToggleThemePanel={handleToggleThemePanel}
@@ -1370,6 +1432,7 @@ export const App: React.FC = () => {
               onToggleBackendBlueprint={handleToggleBackendBlueprint}
               onToggleSettings={handleToggleSettings}
               onSaveProject={handleSaveProject}
+              onSaveProjectAs={handleSaveProjectAs}
             />
           }
           leftSidebar={
@@ -1784,6 +1847,16 @@ export const App: React.FC = () => {
           resizable
           collapsible
         />
+        {saveNotice && (
+          <div className="fixed top-16 right-4 z-50 pointer-events-none">
+            <div className="flex items-center gap-2 rounded-md border border-success-200 bg-success-50 px-3 py-1.5 text-xs text-success-700 shadow-sm">
+              <span className="font-medium">Saved</span>
+              <span className="font-mono truncate" title={saveNotice}>
+                {saveNotice}
+              </span>
+            </div>
+          </div>
+        )}
         {/* Theme Customization Panel Overlay (UJ-1.1.1) */}
         <ThemeCustomizationPanel
           isOpen={isThemePanelOpen}

@@ -71,6 +71,8 @@ export interface ProjectLoaderProps extends Omit<HTMLAttributes<HTMLDivElement>,
   onBrowseProject?: () => void;
   /** Callback when new project is requested */
   onNewProject?: () => void;
+  /** Callback when settings is requested */
+  onToggleSettings?: () => void;
   /** Whether loading projects */
   isLoading?: boolean;
   /** Loading error message */
@@ -214,6 +216,24 @@ const AlertCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
+ * Settings icon.
+ */
+const SettingsIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </svg>
+);
+
+/**
  * Status badge colors.
  */
 const statusColors: Record<ProjectInfo["status"], string> = {
@@ -270,6 +290,7 @@ const formatDate = (date: Date): string => {
  *   onOpenProject={(project) => loadProject(project)}
  *   onNewProject={() => showNewProjectWizard()}
  *   onBrowseProject={() => openFilePicker()}
+ *   onToggleSettings={() => toggleSettings()}
  * />
  * ```
  */
@@ -281,6 +302,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
   onDeleteProject,
   onBrowseProject,
   onNewProject,
+  onToggleSettings,
   isLoading = false,
   errorMessage,
   className = "",
@@ -291,6 +313,9 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
 
   // Delete confirmation
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Visible projects count (pagination/truncation)
+  const [visibleCount, setVisibleCount] = useState(5);
 
   // Filtered projects
   const filteredProjects = useMemo(() => {
@@ -360,6 +385,31 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-neutral-900">Projects</h2>
           <div className="flex items-center gap-2">
+            {onToggleSettings && (
+              <button
+                type="button"
+                onClick={onToggleSettings}
+                className={[
+                  "inline-flex",
+                  "items-center",
+                  "justify-center",
+                  "h-8",
+                  "w-8",
+                  "text-neutral-500",
+                  "bg-white",
+                  "border",
+                  "border-neutral-300",
+                  "rounded-md",
+                  "hover:bg-neutral-50",
+                  "hover:text-neutral-700",
+                  "transition-colors",
+                  "duration-150",
+                ].join(" ")}
+                title="Settings"
+              >
+                <SettingsIcon className="h-4 w-4" />
+              </button>
+            )}
             <button
               type="button"
               onClick={onBrowseProject}
@@ -496,191 +546,202 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
             )}
           </div>
         ) : (
-          <ul className="divide-y divide-neutral-100">
-            {sortedProjects.map((project) => (
-              <li key={project.id}>
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleSelect(project)}
-                  onDoubleClick={() => handleOpen(project)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleOpen(project);
-                    if (e.key === " ") handleSelect(project);
-                  }}
-                  className={[
-                    "px-4",
-                    "py-2",
-                    "cursor-pointer",
-                    "transition-colors",
-                    "duration-150",
-                    selectedProjectId === project.id
-                      ? "bg-primary-50"
-                      : "hover:bg-neutral-50",
-                    "focus:outline-none",
-                    "focus:bg-primary-50",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-3">
-                    {/* Thumbnail or folder icon - reduced size */}
-                    <div
-                      className={[
-                        "flex",
-                        "items-center",
-                        "justify-center",
-                        "h-8",
-                        "w-8",
-                        "rounded-md",
-                        "bg-neutral-100",
-                        "shrink-0",
-                      ].join(" ")}
-                    >
-                      {project.thumbnail ? (
-                        <img
-                          src={project.thumbnail}
-                          alt={project.name}
-                          className="h-full w-full object-cover rounded-md"
-                        />
-                      ) : (
-                        <FolderIcon className="h-4 w-4 text-neutral-400" />
-                      )}
-                    </div>
-
-                    {/* Project info - condensed layout */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-medium text-neutral-900 truncate">
-                          {project.name}
-                        </h3>
-                        <span
-                          className={[
-                            "px-1.5",
-                            "py-0.5",
-                            "text-xs",
-                            "font-medium",
-                            "rounded",
-                            "border",
-                            statusColors[project.status],
-                          ].join(" ")}
-                        >
-                          {statusLabels[project.status]}
-                        </span>
-                      </div>
-
-                      {project.description && (
-                        <p className="text-xs text-neutral-500 truncate">
-                          {project.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-3 text-xs text-neutral-400">
-                        <span className="flex items-center gap-1">
-                          <ClockIcon className="h-3 w-3" />
-                          {formatDate(project.updatedAt)}
-                        </span>
-                        <span>v{project.version}</span>
-                        <span>{project.plugins.length} plugins</span>
-                        <span>{project.screens.length} screens</span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpen(project);
-                        }}
-                        disabled={project.status === "error"}
+          <div className="flex flex-col">
+            <ul className="divide-y divide-neutral-100">
+              {sortedProjects.slice(0, visibleCount).map((project) => (
+                <li key={project.id}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleSelect(project)}
+                    onDoubleClick={() => handleOpen(project)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleOpen(project);
+                      if (e.key === " ") handleSelect(project);
+                    }}
+                    className={[
+                      "px-4",
+                      "py-2",
+                      "cursor-pointer",
+                      "transition-colors",
+                      "duration-150",
+                      selectedProjectId === project.id
+                        ? "bg-primary-50"
+                        : "hover:bg-neutral-50",
+                      "focus:outline-none",
+                      "focus:bg-primary-50",
+                    ].join(" ")}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Thumbnail or folder icon - reduced size */}
+                      <div
                         className={[
-                          "p-1.5",
+                          "flex",
+                          "items-center",
+                          "justify-center",
+                          "h-8",
+                          "w-8",
                           "rounded-md",
-                          "text-neutral-400",
-                          "hover:text-primary-600",
-                          "hover:bg-primary-50",
-                          "disabled:opacity-50",
-                          "disabled:cursor-not-allowed",
-                          "transition-colors",
-                          "duration-150",
+                          "bg-neutral-100",
+                          "shrink-0",
                         ].join(" ")}
-                        title="Open project"
                       >
-                        <ExternalLinkIcon className="h-4 w-4" />
-                      </button>
+                        {project.thumbnail ? (
+                          <img
+                            src={project.thumbnail}
+                            alt={project.name}
+                            className="h-full w-full object-cover rounded-md"
+                          />
+                        ) : (
+                          <FolderIcon className="h-4 w-4 text-neutral-400" />
+                        )}
+                      </div>
 
-                      {deleteConfirmId === project.id ? (
-                        <div className="flex items-center gap-1 ml-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteConfirm(project);
-                            }}
+                      {/* Project info - condensed layout */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-medium text-neutral-900 truncate">
+                            {project.name}
+                          </h3>
+                          <span
                             className={[
-                              "px-2",
+                              "px-1.5",
                               "py-0.5",
                               "text-xs",
                               "font-medium",
-                              "text-white",
-                              "bg-error-600",
                               "rounded",
-                              "hover:bg-error-700",
-                              "transition-colors",
-                              "duration-150",
+                              "border",
+                              statusColors[project.status],
                             ].join(" ")}
                           >
-                            Delete
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteConfirmId(null);
-                            }}
-                            className={[
-                              "px-2",
-                              "py-0.5",
-                              "text-xs",
-                              "font-medium",
-                              "text-neutral-600",
-                              "bg-neutral-100",
-                              "rounded",
-                              "hover:bg-neutral-200",
-                              "transition-colors",
-                              "duration-150",
-                            ].join(" ")}
-                          >
-                            Cancel
-                          </button>
+                            {statusLabels[project.status]}
+                          </span>
                         </div>
-                      ) : (
+
+                        {project.description && (
+                          <p className="text-xs text-neutral-500 truncate">
+                            {project.description}
+                          </p>
+                        )}
+
+                        <div className="flex items-center gap-3 text-xs text-neutral-400">
+                          <span className="flex items-center gap-1">
+                            <ClockIcon className="h-3 w-3" />
+                            {formatDate(project.updatedAt)}
+                          </span>
+                          <span>v{project.version}</span>
+                          <span>{project.plugins.length} plugins</span>
+                          <span>{project.screens.length} screens</span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setDeleteConfirmId(project.id);
+                            handleOpen(project);
                           }}
+                          disabled={project.status === "error"}
                           className={[
                             "p-1.5",
                             "rounded-md",
                             "text-neutral-400",
-                            "hover:text-error-600",
-                            "hover:bg-error-50",
+                            "hover:text-primary-600",
+                            "hover:bg-primary-50",
+                            "disabled:opacity-50",
+                            "disabled:cursor-not-allowed",
                             "transition-colors",
                             "duration-150",
                           ].join(" ")}
-                          title="Delete project"
+                          title="Open project"
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          <ExternalLinkIcon className="h-4 w-4" />
                         </button>
-                      )}
+
+                        {deleteConfirmId === project.id ? (
+                          <div className="flex items-center gap-1 ml-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteConfirm(project);
+                              }}
+                              className={[
+                                "px-2",
+                                "py-0.5",
+                                "text-xs",
+                                "font-medium",
+                                "text-white",
+                                "bg-error-600",
+                                "rounded",
+                                "hover:bg-error-700",
+                                "transition-colors",
+                                "duration-150",
+                              ].join(" ")}
+                            >
+                              Delete
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConfirmId(null);
+                              }}
+                              className={[
+                                "px-2",
+                                "py-0.5",
+                                "text-xs",
+                                "font-medium",
+                                "text-neutral-600",
+                                "bg-neutral-100",
+                                "rounded",
+                                "hover:bg-neutral-200",
+                                "transition-colors",
+                                "duration-150",
+                              ].join(" ")}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirmId(project.id);
+                            }}
+                            className={[
+                              "p-1.5",
+                              "rounded-md",
+                              "text-neutral-400",
+                              "hover:text-error-600",
+                              "hover:bg-error-50",
+                              "transition-colors",
+                              "duration-150",
+                            ].join(" ")}
+                            title="Delete project"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+            {sortedProjects.length > visibleCount && (
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 5)}
+                className="w-full py-3 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors border-t border-neutral-100"
+              >
+                See more ({sortedProjects.length - visibleCount} remaining)
+              </button>
+            )}
+          </div>
         )}
       </div>
 

@@ -325,10 +325,10 @@ export interface ProjectActions {
     pluginsConfig?: PluginsConfig
   ) => void;
   browseAndLoadProject: () => Promise<boolean>;
-  /** Save project - overwrites current file (or prompts for new file if none exists) */
-  saveProject: () => Promise<void>;
-  /** Save As - always prompts for a new file location with versioned filename */
-  saveProjectAs: () => Promise<void>;
+  /** Save project - writes a new versioned file (prompts for location if none exists) */
+  saveProject: () => Promise<string | null>;
+  /** Save As - prompts for a file location (defaulting to current file name if present) */
+  saveProjectAs: () => Promise<string | null>;
   setMetadata: (metadata: Partial<ProjectMetadata>) => void;
   setStatus: (status: ProjectStatus) => void;
 
@@ -492,6 +492,52 @@ const generateId = (): string => {
  */
 const deepClone = <T>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
+};
+
+const VERSIONED_FILENAME_REGEX = /^(.*)_v(\d{3})_(\d{6})$/;
+
+const sanitizeBaseName = (name: string): string => {
+  const safe = name.replace(/[^a-zA-Z0-9_-]/g, "_").replace(/^_+|_+$/g, "");
+  return safe || "project";
+};
+
+const formatDateForFilename = (date: Date): string => {
+  return [
+    String(date.getFullYear()).slice(-2),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("");
+};
+
+const buildVersionedFilename = (baseName: string, version: number, date = new Date()): string => {
+  const versionStr = String(version).padStart(3, "0");
+  const dateStr = formatDateForFilename(date);
+  return `${sanitizeBaseName(baseName)}_v${versionStr}_${dateStr}.json`;
+};
+
+const getBaseNameAndDetectedVersion = (
+  filePath: string | null,
+  fallbackName: string
+): { baseName: string; detectedVersion: number } => {
+  if (!filePath) {
+    return { baseName: sanitizeBaseName(fallbackName), detectedVersion: 0 };
+  }
+
+  const filename = filePath.replace(/\\/g, "/").split("/").pop() || "";
+  const withoutExt = filename.replace(/\.json$/i, "");
+  const match = VERSIONED_FILENAME_REGEX.exec(withoutExt);
+
+  if (match) {
+    return {
+      baseName: sanitizeBaseName(match[1] || fallbackName),
+      detectedVersion: Number(match[2]) || 0,
+    };
+  }
+
+  return {
+    baseName: sanitizeBaseName(withoutExt || fallbackName),
+    detectedVersion: 0,
+  };
 };
 
 /**
@@ -666,49 +712,40 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
         },
 
         /**
-         * Save project - overwrites current file (or prompts for new file if none exists).
-         * Includes all project data: metadata, screens, components, theme, buildConfig,
-         * canvasElements, windowConfig, and activeScreenId/activeComponentId.
+         * Save project - writes a new versioned file each time.
+         * Prompts for a location if none exists, then auto-increments version
+         * in the chosen directory on subsequent saves.
          */
         saveProject: async () => {
           const state = get();
           set({ isSaving: true, error: null }, false, "saveProject:start");
 
           try {
-            // 1. Prepare complete Project File Data (version 2 format)
-            const projectFile: ProjectFile = {
-              version: 2,
-              metadata: state.metadata,
-              screens: state.screens,
-              components: state.components,
-              theme: state.theme,
-              buildConfig: state.buildConfig,
-              canvasElements: state.canvasElements,
-              windowConfig: state.windowConfig ?? undefined,
-              activeScreenId: state.activeScreenId,
-              activeComponentId: state.activeComponentId,
-            };
+            const now = Date.now();
+            const { baseName, detectedVersion } = getBaseNameAndDetectedVersion(
+              state.metadata.filePath,
+              state.metadata.name
+            );
+            const nextVersion = Math.max(state.saveVersion, detectedVersion) + 1;
+            const versionedFilename = buildVersionedFilename(baseName, nextVersion, new Date(now));
 
-            // 2. Determine File Path - use existing path or prompt for new one
+            // Determine file path - prompt for new location once, then auto-increment
             let filePath = state.metadata.filePath;
 
             if (!filePath) {
-              // No existing path - prompt for file location
               if (isTauri()) {
                 const defaultDir = await resolve("outputs", "projects");
-                const defaultFilePath = await resolve(defaultDir, state.metadata.name + ".json");
-
+                const defaultFilePath = await resolve(defaultDir, versionedFilename);
                 const selectedPath = await save({
                   filters: [{ name: "App Factory Project", extensions: ["json"] }],
                   defaultPath: defaultFilePath,
                 });
                 if (!selectedPath) {
                   set({ isSaving: false }, false, "saveProject:cancelled");
-                  return;
+                  return null;
                 }
                 filePath = selectedPath;
               } else {
-                // Browser fallback - ISS-002 fix: provide clear feedback that save failed
                 console.warn("Save unavailable in browser mode: Tauri IPC not available");
                 set(
                   (s) => ({
@@ -720,34 +757,72 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                   false,
                   "saveProject:browserModeUnavailable"
                 );
-                return;
+                return null;
+              }
+            } else {
+              if (isTauri()) {
+                const targetDir = await dirname(filePath);
+                filePath = await resolve(targetDir, versionedFilename);
+              } else {
+                console.warn("Save unavailable in browser mode: Tauri IPC not available");
+                set(
+                  (s) => ({
+                    status: "error",
+                    isSaving: false,
+                    error: "Save to disk unavailable in browser mode. Run with 'npm run tauri dev' for full functionality.",
+                    metadata: { ...s.metadata },
+                  }),
+                  false,
+                  "saveProject:browserModeUnavailable"
+                );
+                return null;
               }
             }
 
-            // 3. Write to Disk (Tauri) or Mock Save (Browser)
+            // Prepare complete Project File Data (version 2 format)
+            const projectFile: ProjectFile = {
+              version: 2,
+              metadata: {
+                ...state.metadata,
+                filePath,
+                modifiedAt: now,
+              },
+              screens: state.screens,
+              components: state.components,
+              theme: state.theme,
+              buildConfig: state.buildConfig,
+              canvasElements: state.canvasElements,
+              windowConfig: state.windowConfig ?? undefined,
+              activeScreenId: state.activeScreenId,
+              activeComponentId: state.activeComponentId,
+            };
+
+            // Write to disk (Tauri)
             if (isTauri() && filePath) {
               await writeTextFile(filePath, JSON.stringify(projectFile, null, 2));
 
-              // 4. Update State on Success
+              // Update state on success
               set(
                 (s) => ({
                   status: "saved",
                   isSaving: false,
-                  metadata: { ...s.metadata, filePath, modifiedAt: Date.now() },
+                  saveVersion: nextVersion,
+                  metadata: { ...s.metadata, filePath, modifiedAt: now },
                 }),
                 false,
                 "saveProject:success"
               );
 
-              // 5. Update Recent Projects
+              // Update recent projects
               get().addRecentProject({
                 path: filePath,
                 name: state.metadata.name,
-                lastOpened: Date.now(),
+                lastOpened: now,
                 thumbnail: null,
               });
+
+              return filePath;
             } else if (!isTauri()) {
-              // Browser fallback - ISS-002 fix: provide clear feedback that save failed
               console.warn("Save unavailable in browser mode: Tauri IPC not available");
               set(
                 (s) => ({
@@ -759,6 +834,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                 false,
                 "saveProject:browserModeUnavailable"
               );
+              return null;
             } else {
               throw new Error("Cannot save: invalid file path");
             }
@@ -772,12 +848,13 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               false,
               "saveProject:error"
             );
+            return null;
           }
         },
 
         /**
-         * Save As - always prompts for a new file location with versioned filename.
-         * Format: <projectName>_v<NNN>_<YYMMDD>.json
+         * Save As - prompts for a file location (defaulting to current file name if present).
+         * Format recommendation: <projectName>_v<NNN>_<YYMMDD>.json
          * Increments saveVersion counter for each Save As operation.
          */
         saveProjectAs: async () => {
@@ -785,24 +862,20 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
           set({ isSaving: true, error: null }, false, "saveProjectAs:start");
 
           try {
-            // Generate versioned filename
-            const newVersion = state.saveVersion + 1;
-            const now = new Date();
-            const dateStr = [
-              String(now.getFullYear()).slice(-2),
-              String(now.getMonth() + 1).padStart(2, "0"),
-              String(now.getDate()).padStart(2, "0"),
-            ].join("");
-            const versionStr = String(newVersion).padStart(3, "0");
-            const baseName = state.metadata.name.replace(/[^a-zA-Z0-9_-]/g, "_");
-            const versionedFilename = `${baseName}_v${versionStr}_${dateStr}.json`;
+            const now = Date.now();
+            const { baseName, detectedVersion } = getBaseNameAndDetectedVersion(
+              state.metadata.filePath,
+              state.metadata.name
+            );
+            const newVersion = Math.max(state.saveVersion, detectedVersion) + 1;
+            const versionedFilename = buildVersionedFilename(baseName, newVersion, new Date(now));
 
             // Prepare complete Project File Data
             const projectFile: ProjectFile = {
               version: 2,
               metadata: {
                 ...state.metadata,
-                modifiedAt: Date.now(),
+                modifiedAt: now,
               },
               screens: state.screens,
               components: state.components,
@@ -816,13 +889,13 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
 
             if (isTauri()) {
               // Determine default directory
-              let defaultDir: string;
+              let defaultFilePath: string;
               if (state.metadata.filePath) {
-                defaultDir = await dirname(state.metadata.filePath);
+                defaultFilePath = state.metadata.filePath;
               } else {
-                defaultDir = await resolve("outputs", "projects");
+                const defaultDir = await resolve("outputs", "projects");
+                defaultFilePath = await resolve(defaultDir, versionedFilename);
               }
-              const defaultFilePath = await resolve(defaultDir, versionedFilename);
 
               const selectedPath = await save({
                 filters: [{ name: "App Factory Project", extensions: ["json"] }],
@@ -831,11 +904,19 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
 
               if (!selectedPath) {
                 set({ isSaving: false }, false, "saveProjectAs:cancelled");
-                return;
+                return null;
               }
 
               // Write to disk
-              await writeTextFile(selectedPath, JSON.stringify(projectFile, null, 2));
+              const projectFileWithPath: ProjectFile = {
+                ...projectFile,
+                metadata: {
+                  ...projectFile.metadata,
+                  filePath: selectedPath,
+                },
+              };
+
+              await writeTextFile(selectedPath, JSON.stringify(projectFileWithPath, null, 2));
 
               // Update state with new path and version
               set(
@@ -846,7 +927,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                   metadata: {
                     ...s.metadata,
                     filePath: selectedPath,
-                    modifiedAt: Date.now(),
+                    modifiedAt: now,
                   },
                 }),
                 false,
@@ -857,9 +938,11 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               get().addRecentProject({
                 path: selectedPath,
                 name: state.metadata.name,
-                lastOpened: Date.now(),
+                lastOpened: now,
                 thumbnail: null,
               });
+
+              return selectedPath;
             } else {
               // Browser fallback
               console.warn("Save As unavailable in browser: mocking save");
@@ -874,6 +957,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                 false,
                 "saveProjectAs:mockSuccess"
               );
+              return null;
             }
           } catch (error) {
             console.error("Failed to save project as:", error);
@@ -885,6 +969,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               false,
               "saveProjectAs:error"
             );
+            return null;
           }
         },
 
