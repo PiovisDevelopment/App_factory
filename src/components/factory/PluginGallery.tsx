@@ -229,6 +229,46 @@ const SearchIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
+ * Load/Download icon component.
+ */
+const LoadIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+/**
+ * Unload/Stop icon component.
+ */
+const UnloadIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="6" y="6" width="12" height="12" rx="2" />
+  </svg>
+);
+
+/**
  * Grid column class mapping.
  */
 const gridColumnClasses: Record<number, string> = {
@@ -728,31 +768,32 @@ const PluginGalleryItem: React.FC<PluginGalleryItemProps> = ({
         </p>
       </div>
 
-      {/* Action button */}
+      {/* Permanent Load/Unload icon button */}
       <button
         type="button"
         onClick={handleAction}
         disabled={plugin.status === "loading" || plugin.status === "error"}
         className={[
-          "px-3",
-          "py-1.5",
-          "text-xs",
-          "font-medium",
+          "p-1.5",
           "rounded-md",
           "transition-colors",
           "duration-150",
-          "opacity-0",
-          "group-hover:opacity-100",
-          "focus:opacity-100",
-          isGrid ? "absolute bottom-3 right-3" : "",
+          isGrid ? "absolute bottom-3 right-3" : "shrink-0",
           plugin.status === "loaded"
-            ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
-            : "bg-primary-500 text-white hover:bg-primary-600",
+            ? "text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100"
+            : "text-primary-500 hover:text-primary-700 hover:bg-primary-50",
           (plugin.status === "loading" || plugin.status === "error") &&
           "opacity-50 cursor-not-allowed",
         ].join(" ")}
+        title={plugin.status === "loaded" ? "Unload plugin" : "Load plugin"}
       >
-        {plugin.status === "loaded" ? "Unload" : plugin.status === "loading" ? "..." : "Load"}
+        {plugin.status === "loaded" ? (
+          <UnloadIcon className="h-5 w-5" />
+        ) : plugin.status === "loading" ? (
+          <LoadIcon className="h-5 w-5 animate-pulse" />
+        ) : (
+          <LoadIcon className="h-5 w-5" />
+        )}
       </button>
     </div>
   );

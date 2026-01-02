@@ -48,9 +48,12 @@
         "scope": [
           "$APP/*",
           "$RESOURCE/*",
+          "$RESOURCE/outputs/**",
+          "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\outputs\\**",
           "plugins/*",
           "config/*",
-          "logs/*"
+          "logs/*",
+          "outputs/**"
         ]
       },
       "path": {

@@ -604,14 +604,32 @@ const ThemeEditorModal: React.FC<ThemeEditorModalProps> = ({ isOpen, onClose, th
 // Main Component
 // ============================================
 
+/**
+ * Target for theme application.
+ * - 'factory': Apply theme to App Factory UI itself
+ * - 'canvas': Apply theme to the app being designed in the canvas (saves to project)
+ */
+export type ThemeTarget = 'factory' | 'canvas';
+
 export interface ThemeCustomizationPanelProps {
   isOpen?: boolean;
   onClose?: () => void;
   position?: "left" | "right";
   width?: string;
+  /** Initial target for theme application */
+  initialTarget?: ThemeTarget;
+  /** Callback when theme is applied to canvas app */
+  onApplyToCanvas?: (theme: ThemeConfig) => void;
 }
 
-export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = ({ isOpen: controlledOpen, onClose, position = "right", width = "360px" }) => {
+export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = ({
+  isOpen: controlledOpen,
+  onClose,
+  position = "right",
+  width = "360px",
+  initialTarget = 'factory',
+  onApplyToCanvas,
+}) => {
   const {
     theme,
     savedThemes,
@@ -631,6 +649,7 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
   const [editingTheme, setEditingTheme] = useState<ThemeConfig | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [newThemeName, setNewThemeName] = useState("");
+  const [themeTarget, setThemeTarget] = useState<ThemeTarget>(initialTarget);
 
   const handleClose = useCallback(() => {
     if (onClose) {
@@ -651,6 +670,9 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
   };
 
   const handleSaveEditedTheme = (updatedTheme: ThemeConfig) => {
+    // Remember current theme name before saving (in case we need to restore it)
+    const previousThemeName = theme.name;
+
     if (isCreatingNew) {
       // For new themes, save as a new theme entry
       saveTheme(updatedTheme.name);
@@ -660,13 +682,43 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
       // Update existing theme
       updateTheme(editingTheme.name, updatedTheme);
     }
+
+    // If in canvas mode, restore the App Factory theme and apply to canvas instead
+    if (themeTarget === 'canvas') {
+      // Restore the previous App Factory theme (saveTheme activates the new theme)
+      if (previousThemeName !== updatedTheme.name) {
+        loadTheme(previousThemeName);
+      } else {
+        // If editing the currently active theme, reload the default
+        loadTheme('Default');
+      }
+      // Apply to canvas
+      if (onApplyToCanvas) {
+        onApplyToCanvas(updatedTheme);
+      }
+    }
+
     setEditingTheme(null);
     setIsCreatingNew(false);
   };
 
   const handleQuickSave = () => {
     if (newThemeName.trim()) {
+      // Remember current theme before saving
+      const previousThemeName = theme.name;
+
       saveTheme(newThemeName.trim());
+
+      // If in canvas mode, restore App Factory theme and apply to canvas
+      if (themeTarget === 'canvas') {
+        loadTheme(previousThemeName);
+        // Apply the newly saved theme to canvas
+        const savedTheme = savedThemes.find(t => t.name === newThemeName.trim());
+        if (savedTheme && onApplyToCanvas) {
+          onApplyToCanvas(savedTheme);
+        }
+      }
+
       setNewThemeName("");
     }
   };
@@ -698,6 +750,41 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
           </div>
         </div>
 
+        {/* Target Selector - Factory vs Canvas App */}
+        <div className="px-4 py-3 border-b border-neutral-200 bg-white">
+          <div className="flex rounded-lg bg-neutral-100 p-1">
+            <button
+              type="button"
+              onClick={() => setThemeTarget('factory')}
+              className={[
+                "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                themeTarget === 'factory'
+                  ? "bg-white text-neutral-900 shadow-sm"
+                  : "text-neutral-600 hover:text-neutral-900"
+              ].join(" ")}
+            >
+              App Factory
+            </button>
+            <button
+              type="button"
+              onClick={() => setThemeTarget('canvas')}
+              className={[
+                "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                themeTarget === 'canvas'
+                  ? "bg-primary-500 text-white shadow-sm"
+                  : "text-neutral-600 hover:text-neutral-900"
+              ].join(" ")}
+            >
+              Canvas App
+            </button>
+          </div>
+          <p className="text-xs text-neutral-500 mt-2 text-center">
+            {themeTarget === 'factory'
+              ? "Changes apply to App Factory UI"
+              : "Changes apply to the app in the canvas"}
+          </p>
+        </div>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {/* Quick Save Current Theme */}
@@ -718,34 +805,51 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
           {/* Themes List */}
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-neutral-800">Saved Themes</h3>
-            {savedThemes.map((savedTheme) => (
-              <div
-                key={savedTheme.name}
-                className={["flex", "items-center", "justify-between", "p-3", "rounded-md", "border", theme.name === savedTheme.name ? "border-primary-500 bg-primary-50" : "border-neutral-200 bg-white hover:bg-neutral-50"].join(" ")}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex -space-x-1">
-                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: savedTheme.colors.primary[500] }} />
-                    <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: savedTheme.colors.neutral[500] }} />
+            {savedThemes.map((savedTheme) => {
+              const handleLoadTheme = () => {
+                if (themeTarget === 'factory') {
+                  loadTheme(savedTheme.name);
+                } else if (onApplyToCanvas) {
+                  onApplyToCanvas(savedTheme);
+                }
+              };
+
+              return (
+                <div
+                  key={savedTheme.name}
+                  className={["flex", "items-center", "justify-between", "p-3", "rounded-md", "border", theme.name === savedTheme.name && themeTarget === 'factory' ? "border-primary-500 bg-primary-50" : "border-neutral-200 bg-white hover:bg-neutral-50"].join(" ")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-1">
+                      <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: savedTheme.colors.primary[500] }} />
+                      <div className="w-5 h-5 rounded-full border-2 border-white" style={{ backgroundColor: savedTheme.colors.neutral[500] }} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-neutral-800">{savedTheme.name}</p>
+                      <p className="text-xs text-neutral-500 capitalize">{savedTheme.mode} Mode</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-neutral-800">{savedTheme.name}</p>
-                    <p className="text-xs text-neutral-500 capitalize">{savedTheme.mode} Mode</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="xs" onClick={() => loadTheme(savedTheme.name)} disabled={theme.name === savedTheme.name}>Load</Button>
-                  <Button variant="ghost" size="xs" onClick={() => handleEditTheme(savedTheme)}>
-                    <EditIcon />
-                  </Button>
-                  {savedTheme.name !== "Default" && savedTheme.name !== "Default Dark" && (
-                    <Button variant="ghost" size="xs" onClick={() => deleteTheme(savedTheme.name)} className="text-error-600 hover:text-error-700 hover:bg-error-50">
-                      <TrashIcon />
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant={themeTarget === 'canvas' ? "primary" : "ghost"}
+                      size="xs"
+                      onClick={handleLoadTheme}
+                      disabled={themeTarget === 'factory' && theme.name === savedTheme.name}
+                    >
+                      {themeTarget === 'canvas' ? 'Apply' : 'Load'}
                     </Button>
-                  )}
+                    <Button variant="ghost" size="xs" onClick={() => handleEditTheme(savedTheme)}>
+                      <EditIcon />
+                    </Button>
+                    {savedTheme.name !== "Default" && savedTheme.name !== "Default Dark" && (
+                      <Button variant="ghost" size="xs" onClick={() => deleteTheme(savedTheme.name)} className="text-error-600 hover:text-error-700 hover:bg-error-50">
+                        <TrashIcon />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Reset Button */}
@@ -760,7 +864,9 @@ export const ThemeCustomizationPanel: React.FC<ThemeCustomizationPanelProps> = (
         {/* Footer */}
         <div className="px-4 py-3 border-t border-neutral-200 bg-neutral-50 shrink-0">
           <p className="text-xs text-neutral-500 text-center">
-            Current: <span className="font-medium">{theme.name}</span> ({theme.mode})
+            {themeTarget === 'factory'
+              ? <>Current: <span className="font-medium">{theme.name}</span> ({theme.mode})</>
+              : <>Editing theme for Canvas App</>}
           </p>
         </div>
       </div>

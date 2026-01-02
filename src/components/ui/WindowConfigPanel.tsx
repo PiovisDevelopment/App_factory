@@ -31,6 +31,7 @@ import Input from "./Input";
 import Select, { type SelectOption } from "./Select";
 import Checkbox from "./Checkbox";
 import Panel, { PanelHeader, PanelBody, PanelFooter } from "./Panel";
+import type { ScreenType, SerializedWindowConfig } from "../../stores/projectStore";
 
 // ============================================
 // Types
@@ -296,6 +297,13 @@ const windowPresets: WindowPreset[] = [
 // Main Component
 // ============================================
 
+/**
+ * Target for window config application.
+ * - 'factory': Apply config to App Factory window itself
+ * - 'canvas': Apply config to the app being designed in the canvas (saves to project)
+ */
+export type WindowConfigTarget = 'factory' | 'canvas';
+
 export interface WindowConfigPanelProps {
   /** Whether the panel is open */
   isOpen?: boolean;
@@ -307,6 +315,20 @@ export interface WindowConfigPanelProps {
   position?: "left" | "right";
   /** Width of the panel */
   width?: string;
+  /** Initial target for window config application */
+  initialTarget?: WindowConfigTarget;
+  /** Callback when window config is applied to canvas app (main window) */
+  onApplyToCanvas?: (config: WindowConfig) => void;
+  /** Callback when window config is applied to a specific screen */
+  onApplyToScreen?: (screenId: string, config: WindowConfig) => void;
+  /** Available screens from loaded project (for per-screen config) */
+  screens?: Array<{ id: string; name: string; type: ScreenType; hasCustomConfig?: boolean }>;
+  /** Currently selected screen ID for per-screen config (null = main window) */
+  selectedScreenId?: string | null;
+  /** Callback when screen selection changes */
+  onScreenSelect?: (screenId: string | null) => void;
+  /** Initial config to load (from project or screen) */
+  initialConfig?: SerializedWindowConfig | null;
 }
 
 /**
@@ -333,6 +355,13 @@ export const WindowConfigPanel: React.FC<WindowConfigPanelProps> = ({
   onSave,
   position = "right",
   width = "380px",
+  initialTarget = 'factory',
+  onApplyToCanvas,
+  onApplyToScreen,
+  screens = [],
+  selectedScreenId,
+  onScreenSelect,
+  initialConfig,
 }) => {
   const {
     config,
@@ -343,8 +372,32 @@ export const WindowConfigPanel: React.FC<WindowConfigPanelProps> = ({
     exportToTauriConfig,
   } = useWindowConfigStore();
 
-  const [activeSection, setActiveSection] = useState<string>("dimensions");
   const [showExportModal, setShowExportModal] = useState(false);
+  const [configTarget, setConfigTarget] = useState<WindowConfigTarget>(initialTarget);
+  // Local state for screen selection (controlled by parent or internal)
+  const [localSelectedScreen, setLocalSelectedScreen] = useState<string | null>(selectedScreenId ?? null);
+
+  // Sync local screen selection with parent prop
+  useEffect(() => {
+    if (selectedScreenId !== undefined) {
+      setLocalSelectedScreen(selectedScreenId);
+    }
+  }, [selectedScreenId]);
+
+  // Load initial config when it changes (e.g., when switching screens)
+  useEffect(() => {
+    if (initialConfig && configTarget === 'canvas') {
+      setConfig(initialConfig as Partial<WindowConfig>);
+    }
+  }, [initialConfig, configTarget, setConfig]);
+
+  // Handle screen selection change
+  const handleScreenChange = useCallback((screenId: string | null) => {
+    setLocalSelectedScreen(screenId);
+    if (onScreenSelect) {
+      onScreenSelect(screenId);
+    }
+  }, [onScreenSelect]);
 
   // Handle number input changes
   const handleNumberChange = useCallback(
@@ -443,6 +496,78 @@ export const WindowConfigPanel: React.FC<WindowConfigPanelProps> = ({
           </button>
         )}
       </div>
+
+      {/* Target Selector - Factory vs Canvas App */}
+      <div className="px-4 py-3 border-b border-neutral-200 bg-white">
+        <div className="flex rounded-lg bg-neutral-100 p-1">
+          <button
+            type="button"
+            onClick={() => setConfigTarget('factory')}
+            className={[
+              "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+              configTarget === 'factory'
+                ? "bg-white text-neutral-900 shadow-sm"
+                : "text-neutral-600 hover:text-neutral-900"
+            ].join(" ")}
+          >
+            App Factory
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfigTarget('canvas')}
+            className={[
+              "flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+              configTarget === 'canvas'
+                ? "bg-primary-500 text-white shadow-sm"
+                : "text-neutral-600 hover:text-neutral-900"
+            ].join(" ")}
+          >
+            Canvas App
+          </button>
+        </div>
+        <p className="text-xs text-neutral-500 mt-2 text-center">
+          {configTarget === 'factory'
+            ? "Changes apply to App Factory window"
+            : "Changes apply to the app in the canvas"}
+        </p>
+      </div>
+
+      {/* Screen Selector - Only show when Canvas App mode is active */}
+      {configTarget === 'canvas' && (
+        <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+          <label className="block text-xs font-medium text-neutral-600 mb-2">
+            Configure Window For:
+          </label>
+          <select
+            value={localSelectedScreen ?? 'main'}
+            onChange={(e) => handleScreenChange(e.target.value === 'main' ? null : e.target.value)}
+            className={[
+              "w-full px-3 py-2 text-sm rounded-md border border-neutral-200",
+              "bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
+              "transition-colors"
+            ].join(" ")}
+          >
+            <option value="main">Main App Window</option>
+            {screens.map((screen) => (
+              <option key={screen.id} value={screen.id}>
+                {screen.name} ({screen.type})
+                {screen.hasCustomConfig ? ' ★' : ''}
+              </option>
+            ))}
+          </select>
+          {localSelectedScreen && screens.find(s => s.id === localSelectedScreen)?.hasCustomConfig && (
+            <p className="text-xs text-primary-600 mt-1.5 flex items-center gap-1">
+              <span className="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
+              Custom configuration set
+            </p>
+          )}
+          {screens.length === 0 && (
+            <p className="text-xs text-neutral-400 mt-1.5 italic">
+              No additional screens in project
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -689,32 +814,61 @@ export const WindowConfigPanel: React.FC<WindowConfigPanelProps> = ({
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-neutral-200 bg-neutral-50 shrink-0">
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={resetToDefaults}
-            className="flex-1"
-          >
-            Reset
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={copyToClipboard}
-            className="flex-1"
-          >
-            Copy JSON
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleExport}
-            className="flex-1"
-          >
-            Export
-          </Button>
-        </div>
+        {configTarget === 'canvas' ? (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={resetToDefaults}
+              className="flex-1"
+            >
+              Reset
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                if (localSelectedScreen && onApplyToScreen) {
+                  // Apply to specific screen
+                  onApplyToScreen(localSelectedScreen, config);
+                } else if (onApplyToCanvas) {
+                  // Apply to main app window
+                  onApplyToCanvas(config);
+                }
+              }}
+              className="flex-1"
+            >
+              {localSelectedScreen ? 'Apply to Screen' : 'Apply to Canvas'}
+            </Button>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={resetToDefaults}
+              className="flex-1"
+            >
+              Reset
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={copyToClipboard}
+              className="flex-1"
+            >
+              Copy JSON
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleExport}
+              className="flex-1"
+            >
+              Export
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Export Success Modal */}

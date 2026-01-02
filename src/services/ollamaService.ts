@@ -24,23 +24,38 @@ export async function listLocalModels(): Promise<string[]> {
 
 /**
  * Generate text using a local Ollama model.
- * @param modelId - The model to use (e.g., 'llama3.2')
+ * @param modelId - The model to use (e.g., 'llama3.2', 'gemma3')
  * @param temperature - Temperature setting
  * @param systemPrompt - System instruction
  * @param userPrompt - User's message
+ * @param images - Optional array of base64 encoded images (raw or data URI - header stripped automatically)
  */
 export async function generateWithOllama(
     modelId: string,
     temperature: number,
     systemPrompt: string,
-    userPrompt: string
+    userPrompt: string,
+    images?: string[]
 ): Promise<LLMResult> {
     try {
+        // Build user message payload
+        const userMessage: { role: 'user'; content: string; images?: string[] } = {
+            role: 'user',
+            content: userPrompt,
+        };
+
+        // Add images if provided (strip data URI header if present)
+        if (images && images.length > 0) {
+            userMessage.images = images.map(img =>
+                img.replace(/^data:image\/\w+;base64,/, '')
+            );
+        }
+
         const response = await ollama.chat({
             model: modelId,
             messages: [
                 { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
+                userMessage,
             ],
             options: {
                 temperature,

@@ -550,6 +550,52 @@ function injectThemeVariables(theme: ThemeConfig): void {
   }
 }
 
+/**
+ * Generate CSS custom property styles for a theme.
+ * Use this to apply a theme to a specific container element (for scoped theming).
+ *
+ * @param theme - The theme configuration to generate styles for
+ * @returns An object with CSS custom properties as style object
+ */
+export function generateThemeStyles(theme: ThemeConfig): React.CSSProperties {
+  const styles: Record<string, string> = {};
+
+  // Inject colors
+  Object.entries(theme.colors).forEach(([category, scale]) => {
+    Object.entries(scale).forEach(([shade, value]) => {
+      styles[`--color-${category}-${shade}`] = value as string;
+    });
+  });
+
+  // Inject typography
+  styles["--font-family-sans"] = theme.typography.fontFamily.sans;
+  styles["--font-family-mono"] = theme.typography.fontFamily.mono;
+
+  Object.entries(theme.typography.fontSize).forEach(([key, value]) => {
+    styles[`--font-size-${key}`] = value;
+  });
+
+  // Inject spacing
+  Object.entries(theme.spacing).forEach(([key, value]) => {
+    styles[`--spacing-${key}`] = value;
+  });
+
+  // Inject radius
+  Object.entries(theme.radius).forEach(([key, value]) => {
+    styles[`--radius-${key}`] = value;
+  });
+
+  // Inject shadows
+  Object.entries(theme.shadows).forEach(([key, value]) => {
+    styles[`--shadow-${key}`] = value;
+  });
+
+  // Set color scheme for native elements
+  styles["colorScheme"] = theme.mode;
+
+  return styles as React.CSSProperties;
+}
+
 // ============================================
 // Theme Context
 // ============================================

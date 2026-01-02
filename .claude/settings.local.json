@@ -29,7 +29,12 @@
       "Bash(cat:*)",
       "Bash(cargo test:*)",
       "Bash(npm run build:fe:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)"
     ]
   }
 }

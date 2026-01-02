@@ -72,7 +72,12 @@ const DEFAULT_SETTINGS: SettingsState = {
     apiKey: '',
     model: 'gemini-3-flash-preview',
     temperature: 0.0,
-    systemPrompt: 'You are a helpful assistant.',
+    systemPrompt: `You are a UI component generator that follows Apple Human Interface Guidelines.
+MANDATORY RULES:
+1. Every interactive element MUST have aria-label for accessibility
+2. Use design token classes ONLY - no hardcoded colors or hex values
+3. Include focus states (focus:ring-2) on all interactive elements
+4. Use 4.5:1 minimum contrast ratio (primary-600+ on white backgrounds)`,
     ollamaModels: [],
 };
 

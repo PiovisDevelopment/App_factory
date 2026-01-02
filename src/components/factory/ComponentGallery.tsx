@@ -764,6 +764,13 @@ const ComponentGalleryItem: React.FC<ComponentGalleryItemProps> = ({
       onDragStart={handleDragStart}
       role="button"
       tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick(e as unknown as React.MouseEvent);
+        }
+      }}
+      aria-label={`${component.name} - ${component.description}`}
     >
       {/* Multi-select checkbox (UJ-1.1.2) */}
       {isMultiSelect && (

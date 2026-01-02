@@ -237,6 +237,44 @@ const InfoIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
+ * Load/Download icon.
+ */
+const LoadIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+);
+
+/**
+ * Unload/Stop icon.
+ */
+const UnloadIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="6" y="6" width="12" height="12" rx="2" />
+  </svg>
+);
+
+/**
  * PluginCard component.
  *
  * A standalone card component for displaying plugin information.
@@ -454,8 +492,8 @@ export const PluginCard = forwardRef<HTMLDivElement, PluginCardProps>(
                           plugin.healthScore >= 80
                             ? "bg-success-500"
                             : plugin.healthScore >= 50
-                            ? "bg-warning-500"
-                            : "bg-error-500",
+                              ? "bg-warning-500"
+                              : "bg-error-500",
                         ].join(" ")}
                         style={{ width: `${plugin.healthScore}%` }}
                       />
@@ -483,94 +521,40 @@ export const PluginCard = forwardRef<HTMLDivElement, PluginCardProps>(
             ].join(" ")}
             title={statusLabels[plugin.status]}
           />
-        </div>
 
-        {/* Action buttons */}
-        {showActions && (
-          <div
-            className={[
-              "flex",
-              "items-center",
-              "gap-2",
-              "mt-3",
-              "pt-3",
-              "border-t",
-              "border-neutral-100",
-              "opacity-0",
-              "group-hover:opacity-100",
-              "transition-opacity",
-              "duration-150",
-            ].join(" ")}
-          >
-            {/* Load/Unload button */}
+          {/* Permanent Load/Unload icon button */}
+          {showActions && (
             <button
               type="button"
               onClick={handleToggleLoad}
               disabled={plugin.status === "loading" || plugin.status === "error"}
               className={[
-                "flex-1",
-                "px-3",
-                "py-1.5",
-                "text-sm",
-                "font-medium",
+                "absolute",
+                "bottom-3",
+                "right-3",
+                "p-1.5",
                 "rounded-md",
                 "transition-colors",
                 "duration-150",
                 plugin.status === "loaded"
-                  ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
-                  : "bg-primary-500 text-white hover:bg-primary-600",
+                  ? "text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100"
+                  : "text-primary-500 hover:text-primary-700 hover:bg-primary-50",
                 (plugin.status === "loading" || plugin.status === "error") &&
-                  "opacity-50 cursor-not-allowed",
+                "opacity-50 cursor-not-allowed",
               ].join(" ")}
+              title={plugin.status === "loaded" ? "Unload plugin" : "Load plugin"}
             >
-              {plugin.status === "loaded"
-                ? "Unload"
-                : plugin.status === "loading"
-                ? "Loading..."
-                : "Load"}
+              {plugin.status === "loaded" ? (
+                <UnloadIcon className="h-5 w-5" />
+              ) : plugin.status === "loading" ? (
+                <LoadIcon className="h-5 w-5 animate-pulse" />
+              ) : (
+                <LoadIcon className="h-5 w-5" />
+              )}
             </button>
+          )}
+        </div>
 
-            {/* Configure button */}
-            {onConfigure && plugin.status === "loaded" && (
-              <button
-                type="button"
-                onClick={handleConfigure}
-                className={[
-                  "p-1.5",
-                  "rounded-md",
-                  "text-neutral-500",
-                  "hover:text-neutral-700",
-                  "hover:bg-neutral-100",
-                  "transition-colors",
-                  "duration-150",
-                ].join(" ")}
-                title="Configure"
-              >
-                <SettingsIcon className="h-4 w-4" />
-              </button>
-            )}
-
-            {/* Info button */}
-            {onInfo && (
-              <button
-                type="button"
-                onClick={handleInfo}
-                className={[
-                  "p-1.5",
-                  "rounded-md",
-                  "text-neutral-500",
-                  "hover:text-neutral-700",
-                  "hover:bg-neutral-100",
-                  "transition-colors",
-                  "duration-150",
-                ].join(" ")}
-                title="More info"
-              >
-                <InfoIcon className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        )}
       </div>
     );
   }

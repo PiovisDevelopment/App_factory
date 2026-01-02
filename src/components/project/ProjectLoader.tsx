@@ -509,7 +509,8 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                     if (e.key === " ") handleSelect(project);
                   }}
                   className={[
-                    "p-4",
+                    "px-4",
+                    "py-2",
                     "cursor-pointer",
                     "transition-colors",
                     "duration-150",
@@ -520,16 +521,16 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                     "focus:bg-primary-50",
                   ].join(" ")}
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Thumbnail or folder icon */}
+                  <div className="flex items-center gap-3">
+                    {/* Thumbnail or folder icon - reduced size */}
                     <div
                       className={[
                         "flex",
                         "items-center",
                         "justify-center",
-                        "h-12",
-                        "w-12",
-                        "rounded-lg",
+                        "h-8",
+                        "w-8",
+                        "rounded-md",
                         "bg-neutral-100",
                         "shrink-0",
                       ].join(" ")}
@@ -538,14 +539,14 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                         <img
                           src={project.thumbnail}
                           alt={project.name}
-                          className="h-full w-full object-cover rounded-lg"
+                          className="h-full w-full object-cover rounded-md"
                         />
                       ) : (
-                        <FolderIcon className="h-6 w-6 text-neutral-400" />
+                        <FolderIcon className="h-4 w-4 text-neutral-400" />
                       )}
                     </div>
 
-                    {/* Project info */}
+                    {/* Project info - condensed layout */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-medium text-neutral-900 truncate">
@@ -567,12 +568,12 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                       </div>
 
                       {project.description && (
-                        <p className="mt-0.5 text-xs text-neutral-500 truncate">
+                        <p className="text-xs text-neutral-500 truncate">
                           {project.description}
                         </p>
                       )}
 
-                      <div className="mt-2 flex items-center gap-4 text-xs text-neutral-400">
+                      <div className="flex items-center gap-3 text-xs text-neutral-400">
                         <span className="flex items-center gap-1">
                           <ClockIcon className="h-3 w-3" />
                           {formatDate(project.updatedAt)}
@@ -581,10 +582,6 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                         <span>{project.plugins.length} plugins</span>
                         <span>{project.screens.length} screens</span>
                       </div>
-
-                      <p className="mt-1 text-xs text-neutral-400 truncate font-mono">
-                        {project.path}
-                      </p>
                     </div>
 
                     {/* Actions */}
@@ -597,7 +594,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                         }}
                         disabled={project.status === "error"}
                         className={[
-                          "p-2",
+                          "p-1.5",
                           "rounded-md",
                           "text-neutral-400",
                           "hover:text-primary-600",
@@ -613,7 +610,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                       </button>
 
                       {deleteConfirmId === project.id ? (
-                        <div className="flex items-center gap-1 ml-2">
+                        <div className="flex items-center gap-1 ml-1">
                           <button
                             type="button"
                             onClick={(e) => {
@@ -622,7 +619,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                             }}
                             className={[
                               "px-2",
-                              "py-1",
+                              "py-0.5",
                               "text-xs",
                               "font-medium",
                               "text-white",
@@ -643,7 +640,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                             }}
                             className={[
                               "px-2",
-                              "py-1",
+                              "py-0.5",
                               "text-xs",
                               "font-medium",
                               "text-neutral-600",
@@ -665,7 +662,7 @@ export const ProjectLoader: React.FC<ProjectLoaderProps> = ({
                             setDeleteConfirmId(project.id);
                           }}
                           className={[
-                            "p-2",
+                            "p-1.5",
                             "rounded-md",
                             "text-neutral-400",
                             "hover:text-error-600",

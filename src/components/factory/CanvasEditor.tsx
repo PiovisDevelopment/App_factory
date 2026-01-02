@@ -18,11 +18,13 @@ import React, {
   useCallback,
   useRef,
   useEffect,
+  useMemo,
   type HTMLAttributes,
 } from "react";
 import { LiveComponentPreview } from "../ai/LiveComponentPreview";
-import { getComponent as getRegistryComponent } from "../../utils/ComponentRegistry";
-import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { generateThemeCSSProperties } from "../../hooks/useThemedStyles";
+import { resolveColor, resolveBorder } from "../../utils/tokenMap";
+import type { ThemeConfig } from "../../context/ThemeProvider";
 
 /**
  * Canvas element types.
@@ -136,6 +138,14 @@ export interface CanvasEditorProps extends Omit<HTMLAttributes<HTMLDivElement>, 
   demoMode?: boolean;
   /** Callback when demo mode changes */
   onDemoModeChange?: (demoMode: boolean) => void;
+  /** Theme configuration for the canvas app (isolated from App Factory theme) */
+  canvasTheme?: ThemeConfig;
+  /** Callback when clear canvas is clicked */
+  onClear?: () => void;
+  /** Callback when undo is clicked */
+  onUndo?: () => void;
+  /** Whether undo is available (history stack has items) */
+  canUndo?: boolean;
 }
 
 /**
@@ -225,46 +235,38 @@ const StopIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
- * Element type colors.
+ * Clear/eraser icon (for clear canvas).
  */
-const elementTypeColors: Record<CanvasElementType, string> = {
-  component: "border-primary-400 bg-primary-50",
-  container: "border-neutral-400 bg-neutral-50",
-  text: "border-success-400 bg-success-50",
-  image: "border-warning-400 bg-warning-50",
-  spacer: "border-neutral-300 bg-neutral-100 border-dashed",
-};
+const ClearIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 5H9l-7 7 7 7h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z" />
+    <line x1="18" y1="9" x2="12" y2="15" />
+    <line x1="12" y1="9" x2="18" y2="15" />
+  </svg>
+);
 
 /**
- * Built-in component preview renderer.
- * Renders components from ComponentRegistry for built-in/sample components.
+ * Undo icon (curved arrow left).
  */
-const BuiltInComponentPreview: React.FC<{ type: string }> = ({ type }) => {
-  const Component = getRegistryComponent(type);
+const UndoIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 7v6h6" />
+    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+  </svg>
+);
 
-  // Sample props for different component types
-  const sampleProps: Record<string, Record<string, unknown>> = {
-    button: { children: "Button", variant: "primary", size: "sm" },
-    input: { placeholder: "Input...", size: "sm" },
-    select: { options: [{ value: "1", label: "Option" }], placeholder: "Select", size: "sm" },
-    checkbox: { label: "Check", size: "sm" },
-    panel: { children: "Panel", className: "p-2 text-xs" },
-    card: { children: "Card Content", className: "p-2 text-xs" },
-    tabs: { tabs: [{ id: "1", label: "Tab" }], activeTab: "1", size: "sm" },
-  };
-
-  const props = sampleProps[type.toLowerCase()] || {};
-
-  try {
-    return (
-      <div className="transform scale-75 origin-center">
-        <Component {...props} />
-      </div>
-    );
-  } catch {
-    return <span className="text-xs text-neutral-400">{type}</span>;
-  }
+/**
+ * Element type colors - EDIT mode only.
+ * Only borders - NO backgrounds, so TemplateComponentRenderer colors show through.
+ */
+const elementTypeColors: Record<CanvasElementType, string> = {
+  component: "border-primary-400",
+  container: "border-neutral-400",
+  text: "border-success-400",
+  image: "border-warning-400",
+  spacer: "border-neutral-300 border-dashed",
 };
+
 
 /**
  * Template component renderer.
@@ -284,6 +286,10 @@ const TemplateComponentRenderer: React.FC<{
   const placeholder = (props.placeholder as string) || "";
   const variant = (props.variant as string) || "default";
   const backgroundColor = (props.backgroundColor as string) || "";
+
+  // Resolve hex colors to design tokens
+  const resolvedBg = resolveColor(backgroundColor, "");
+  const _resolvedBorderColor = resolveBorder(props.borderBottom as string) || resolveBorder(props.borderTop as string);
 
   // Render based on component type
   switch (componentId) {
@@ -353,7 +359,7 @@ const TemplateComponentRenderer: React.FC<{
       return (
         <div
           className={`w-full h-full ${baseClasses}`}
-          style={{ backgroundColor: backgroundColor || "#1e1e2e" }}
+          style={{ backgroundColor: resolvedBg || "var(--color-neutral-900)" }}
         />
       );
 
@@ -363,9 +369,9 @@ const TemplateComponentRenderer: React.FC<{
         <div
           className={`w-full h-full ${baseClasses}`}
           style={{
-            backgroundColor: backgroundColor || "#ffffff",
-            borderBottom: componentId === "container_header" ? "1px solid #e5e5e5" : undefined,
-            borderTop: componentId === "container_footer" ? "1px solid #e5e5e5" : undefined,
+            backgroundColor: resolvedBg || "var(--bg-primary)",
+            borderBottom: componentId === "container_header" ? "1px solid var(--border-primary)" : undefined,
+            borderTop: componentId === "container_footer" ? "1px solid var(--border-primary)" : undefined,
           }}
         />
       );
@@ -376,9 +382,9 @@ const TemplateComponentRenderer: React.FC<{
         <div
           className={`w-full h-full ${baseClasses}`}
           style={{
-            backgroundColor: backgroundColor || "#f9fafb",
+            backgroundColor: resolvedBg || "var(--color-neutral-50)",
             borderRadius: componentId === "container_card" ? "12px" : undefined,
-            boxShadow: componentId === "container_card" ? "0 4px 20px rgba(0,0,0,0.1)" : undefined,
+            boxShadow: componentId === "container_card" ? "var(--shadow-md)" : undefined,
           }}
         />
       );
@@ -533,11 +539,10 @@ const TemplateComponentRenderer: React.FC<{
     case "button_icon":
       return (
         <button
-          className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${
-            variant === "primary"
-              ? "bg-primary-500 hover:bg-primary-600 text-white"
-              : "text-neutral-500 hover:bg-neutral-100"
-          } ${baseClasses}`}
+          className={`w-full h-full flex items-center justify-center rounded-full transition-colors ${variant === "primary"
+            ? "bg-primary-500 hover:bg-primary-600 text-white"
+            : "text-neutral-500 hover:bg-neutral-100"
+            } ${baseClasses}`}
         >
           {props.icon === "send" && (
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -560,11 +565,10 @@ const TemplateComponentRenderer: React.FC<{
     // Chat Bubble
     case "chat_bubble":
       return (
-        <div className={`w-full h-full p-3 rounded-lg ${
-          props.sender === "assistant"
-            ? "bg-neutral-100 text-neutral-800"
-            : "bg-primary-500 text-white"
-        } ${baseClasses}`}>
+        <div className={`w-full h-full p-3 rounded-lg ${props.sender === "assistant"
+          ? "bg-neutral-100 text-neutral-800"
+          : "bg-primary-500 text-white"
+          } ${baseClasses}`}>
           <p className="text-sm">{props.message as string || "Message text"}</p>
           {props.timestamp && (
             <span className="text-[10px] opacity-70 mt-1 block">{props.timestamp as string}</span>
@@ -576,11 +580,10 @@ const TemplateComponentRenderer: React.FC<{
     case "chip":
       return (
         <div
-          className={`w-full h-full flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${
-            variant === "outline"
-              ? "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
-              : "bg-primary-100 text-primary-700 border-primary-200"
-          } ${baseClasses}`}
+          className={`w-full h-full flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium border cursor-pointer transition-colors ${variant === "outline"
+            ? "border-neutral-300 text-neutral-600 hover:bg-neutral-100"
+            : "bg-primary-100 text-primary-700 border-primary-200"
+            } ${baseClasses}`}
         >
           {label || "Chip"}
         </div>
@@ -665,6 +668,10 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
       templateName,
       demoMode: externalDemoMode,
       onDemoModeChange,
+      canvasTheme,
+      onClear,
+      onUndo,
+      canUndo = false,
       className = "",
       ...props
     },
@@ -702,8 +709,18 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
     const canvasRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
 
-    // Theme
-    const { themedStyles } = useThemedStyles();
+    // Theme - generate CSS properties from canvasTheme prop (isolated from App Factory theme)
+    // If no canvasTheme provided, use a clean default with white background
+    const canvasThemeStyles = useMemo(() => {
+      if (canvasTheme) {
+        return generateThemeCSSProperties(canvasTheme);
+      }
+      // Default canvas styling when no theme is provided
+      return {
+        backgroundColor: '#ffffff',
+        color: '#18181b',
+      };
+    }, [canvasTheme]);
 
     // Snap to grid
     const snapToGrid = useCallback(
@@ -751,11 +768,31 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
       onZoomChange?.(1);
     }, [onZoomChange]);
 
+    // Handle wheel zoom (Ctrl + middle mouse wheel)
+    const handleWheel = useCallback(
+      (e: React.WheelEvent) => {
+        // Only zoom when Ctrl key is held
+        if (!e.ctrlKey) return;
+
+        e.preventDefault();
+
+        // deltaY > 0 means scrolling down (zoom out)
+        // deltaY < 0 means scrolling up (zoom in)
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else if (e.deltaY > 0) {
+          handleZoomOut();
+        }
+      },
+      [handleZoomIn, handleZoomOut]
+    );
+
     // Handle element click
     const handleElementClick = useCallback(
       (e: React.MouseEvent, element: CanvasElement) => {
+        // In demo mode, let clicks pass through to interactive components
+        if (!editable || isDemoMode) return;
         e.stopPropagation();
-        if (!editable) return;
 
         if (e.shiftKey) {
           // Multi-select
@@ -767,7 +804,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
           onSelect?.([element.id]);
         }
       },
-      [editable, selectedIds, onSelect]
+      [editable, isDemoMode, selectedIds, onSelect]
     );
 
     // Handle canvas click (deselect)
@@ -783,12 +820,12 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
     // Handle drag start
     const handleDragStart = useCallback(
       (e: React.MouseEvent, element: CanvasElement) => {
-        if (!editable || element.locked) return;
+        if (!editable || element.locked || isDemoMode) return;
         e.preventDefault();
         setIsDragging(true);
         setDragStart({ x: e.clientX, y: e.clientY });
       },
-      [editable]
+      [editable, isDemoMode]
     );
 
     // Handle drag
@@ -1020,14 +1057,17 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
           key={element.id}
           className={[
             "absolute",
-            "border-2",
-            "rounded",
-            "cursor-move",
+            // In demo mode, let clicks pass through to interactive components
+            isDemoMode && "pointer-events-none",
+            // Hide debug styling in demo mode
+            !isDemoMode && "border-2",
+            !isDemoMode && "rounded",
+            !isDemoMode && "cursor-move",
             "transition-shadow",
             "duration-150",
-            elementTypeColors[element.type],
-            isSelected && "ring-2 ring-primary-500 ring-offset-2",
-            element.locked && "opacity-50 cursor-not-allowed",
+            !isDemoMode && elementTypeColors[element.type],
+            isSelected && !isDemoMode && "ring-2 ring-primary-500 ring-offset-2",
+            element.locked && !isDemoMode && "opacity-50 cursor-not-allowed",
           ]
             .filter(Boolean)
             .join(" ")}
@@ -1041,13 +1081,15 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
           onClick={(e) => handleElementClick(e, element)}
           onMouseDown={(e) => handleDragStart(e, element)}
         >
-          {/* Element label */}
-          <div className="absolute -top-5 left-0 px-1 text-xs font-medium text-neutral-600 bg-white rounded shadow-sm truncate max-w-full">
-            {element.name}
-          </div>
+          {/* Element label - hidden in demo mode */}
+          {!isDemoMode && (
+            <div className="absolute -top-5 left-0 px-1 text-xs font-medium text-neutral-600 bg-white rounded shadow-sm truncate max-w-full">
+              {element.name}
+            </div>
+          )}
 
           {/* Live component preview for component-type elements */}
-          <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
+          <div className={`absolute inset-0 overflow-hidden flex items-center justify-center ${isDemoMode ? "pointer-events-auto" : ""}`}>
             {componentData?.code ? (
               // AI-generated component: use LiveComponentPreview
               <LiveComponentPreview
@@ -1055,11 +1097,9 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                 framework={componentData.framework || 'react'}
                 className="w-full h-full"
               />
-            ) : componentData?.componentType ? (
-              // Built-in component: use ComponentRegistry
-              <BuiltInComponentPreview type={componentData.componentType} />
             ) : element.componentId ? (
-              // Template component: use TemplateComponentRenderer
+              // Template/built-in component: use TemplateComponentRenderer
+              // This has rich visual previews for all template component types
               <TemplateComponentRenderer
                 componentId={element.componentId}
                 props={element.props}
@@ -1069,8 +1109,9 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
             ) : null}
           </div>
 
-          {/* Resize handles (when selected) */}
-          {isSelected && editable && !element.locked && (
+
+          {/* Resize handles (when selected, hidden in demo mode) */}
+          {isSelected && editable && !element.locked && !isDemoMode && (
             <>
               {/* Corner handles */}
               {["nw", "ne", "sw", "se"].map((pos) => (
@@ -1134,7 +1175,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
     };
 
     return (
-      <div ref={ref} className={containerStyles} {...props}>
+      <div id="canvas-editor" ref={ref} className={containerStyles} {...props}>
         {/* Toolbar */}
         <div className="flex items-center gap-2 p-2 bg-white border-b border-neutral-200">
           {/* Tool buttons */}
@@ -1151,6 +1192,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                   : "text-neutral-500 hover:bg-neutral-50",
               ].join(" ")}
               title="Select tool (V)"
+              aria-label="Select tool"
             >
               <CursorIcon className="h-4 w-4" />
             </button>
@@ -1168,6 +1210,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                   : "text-neutral-500 hover:bg-neutral-50",
               ].join(" ")}
               title="Pan tool (H)"
+              aria-label="Pan tool"
             >
               <HandIcon className="h-4 w-4" />
             </button>
@@ -1187,6 +1230,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                 : "text-neutral-500 hover:bg-neutral-50",
             ].join(" ")}
             title="Toggle grid"
+            aria-label="Toggle grid visibility"
           >
             <GridIcon className="h-4 w-4" />
           </button>
@@ -1203,6 +1247,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
               onCanvasSizeChange?.(device.width, device.height);
             }}
             className="px-2 py-1 text-xs border border-neutral-200 rounded-md bg-white text-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            aria-label="Select device viewport size"
           >
             {devicePresets.map((device, idx) => (
               <option key={device.name} value={idx}>
@@ -1235,6 +1280,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
               disabled={zoom <= 0.1}
               className="p-1.5 text-neutral-500 hover:bg-neutral-50 disabled:opacity-50"
               title="Zoom out"
+              aria-label="Zoom out"
             >
               <ZoomOutIcon className="h-4 w-4" />
             </button>
@@ -1243,6 +1289,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
               onClick={handleZoomReset}
               className="px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-50 min-w-12 text-center"
               title="Reset zoom"
+              aria-label="Reset zoom to 100%"
             >
               {Math.round(zoom * 100)}%
             </button>
@@ -1252,6 +1299,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
               disabled={zoom >= 2}
               className="p-1.5 text-neutral-500 hover:bg-neutral-50 disabled:opacity-50"
               title="Zoom in"
+              aria-label="Zoom in"
             >
               <ZoomInIcon className="h-4 w-4" />
             </button>
@@ -1268,6 +1316,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                 : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200 border border-neutral-200",
             ].join(" ")}
             title={isDemoMode ? "Exit Demo Mode" : "Enter Demo Mode - Preview interactive experience"}
+            aria-label={isDemoMode ? "Exit demo mode" : "Enter demo mode"}
           >
             {isDemoMode ? (
               <>
@@ -1289,8 +1338,47 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
               onClick={() => onDelete?.(selectedIds)}
               className="p-1.5 rounded-md text-error-500 hover:bg-error-50 transition-colors duration-150"
               title="Delete selected"
+              aria-label="Delete selected elements"
             >
               <TrashIcon className="h-4 w-4" />
+            </button>
+          )}
+
+          {/* Undo button */}
+          {editable && (
+            <button
+              type="button"
+              onClick={() => onUndo?.()}
+              disabled={!canUndo}
+              className={[
+                "p-1.5 rounded-md transition-colors duration-150",
+                canUndo
+                  ? "text-neutral-600 hover:bg-neutral-100"
+                  : "text-neutral-300 cursor-not-allowed",
+              ].join(" ")}
+              title="Undo last action (Ctrl+Z)"
+              aria-label="Undo last action"
+            >
+              <UndoIcon className="h-4 w-4" />
+            </button>
+          )}
+
+          {/* Clear Canvas button */}
+          {editable && (
+            <button
+              type="button"
+              onClick={() => onClear?.()}
+              disabled={elements.length === 0}
+              className={[
+                "p-1.5 rounded-md transition-colors duration-150",
+                elements.length > 0
+                  ? "text-warning-600 hover:bg-warning-50"
+                  : "text-neutral-300 cursor-not-allowed",
+              ].join(" ")}
+              title="Clear canvas"
+              aria-label="Clear all elements from canvas"
+            >
+              <ClearIcon className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -1302,6 +1390,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
             "flex-1",
             "overflow-hidden",
             "relative",
+            "p-4",
             tool === "pan" && "cursor-grab",
             isPanning && "cursor-grabbing",
           ]
@@ -1324,13 +1413,14 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
             handleDragEnd();
             handleResizeEnd();
           }}
+          onWheel={handleWheel}
         >
-          {/* Canvas with theme applied */}
+          {/* Canvas with theme applied - uses canvasTheme (project theme), NOT App Factory theme */}
           <div
             ref={canvasRef}
             className="absolute shadow-xl"
             style={{
-              ...themedStyles,
+              ...canvasThemeStyles,
               width: effectiveWidth,
               height: effectiveHeight,
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,

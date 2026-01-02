@@ -97,6 +97,15 @@ LAYOUT:
 - Flex: flex, flex-col, items-center, justify-center, justify-between
 - Width: w-full, w-auto, min-w-0, max-w-md
 - Display: inline-flex, block, hidden
+
+ACCESSIBILITY (Apple HIG Compliance - MANDATORY):
+- All buttons: MUST include aria-label="descriptive text"
+- All inputs: MUST include aria-label OR a visible label with htmlFor
+- Icon-only buttons: MUST have aria-label (no text = no context for screen readers)
+- Interactive elements: add tabIndex={0} for keyboard navigation
+- Focus states: ALWAYS include focus:ring-2 focus:ring-offset-2
+- Disabled states: add disabled:opacity-50 disabled:cursor-not-allowed
+- Contrast: use primary-600+ on white, neutral-50 text on dark backgrounds (4.5:1 ratio)
 `;
 
 /**
@@ -144,13 +153,15 @@ CRITICAL REQUIREMENTS:
 7. For React: use React.useState, React.useCallback directly (not destructured imports)
 8. Give the component a clear, descriptive PascalCase name
 9. For hover effects, use Tailwind hover: prefix (e.g., hover:bg-primary-700)
+10. ACCESSIBILITY: Include aria-label on ALL buttons and icon elements - this is MANDATORY
 
 ${DESIGN_TOKEN_REFERENCE}
 
-EXAMPLE COMPONENT (Button):
+EXAMPLE COMPONENT (Button with accessibility):
 const PrimaryButton = () => {
   return (
     <button
+      aria-label="Submit form"
       className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
     >
       Click Me

@@ -16,6 +16,7 @@ import { CanvasEditor, type CanvasElement, type ElementBounds } from './componen
 import { PropertyInspector } from './components/factory/PropertyInspector';
 import { ProjectLoader, type ProjectInfo } from './components/project/ProjectLoader';
 import { useProjectStore, type ProjectFile } from './stores/projectStore';
+import { isTauri } from './utils/tauriUtils';
 import { ThemeCustomizationPanel } from './components/ui/ThemeCustomizationPanel';
 import { WindowConfigPanel, useWindowConfigStore } from './components/ui/WindowConfigPanel';
 import { Modal } from './components/ui/Modal';
@@ -84,6 +85,7 @@ import { registerComponent } from './utils/ComponentRegistry';
 import { MuiButtonAdapter, DashboardStatsBlock, GitHubRepoPreview } from './components/external/ExternalWrappers';
 import { TemplateBrowser } from './components/templates/TemplateBrowser';
 import { BackendBlueprintPanel, type PluginSlot } from './components/factory/BackendBlueprintPanel';
+import { PluginConfigPanel, type PluginConfigOption } from './components/factory/PluginConfigPanel';
 
 /**
  * Application mode type.
@@ -93,9 +95,16 @@ import { BackendBlueprintPanel, type PluginSlot } from './components/factory/Bac
 type AppMode = 'launcher' | 'editor';
 
 /**
+ * Extended PluginInfo with configuration options.
+ */
+interface PluginInfoWithConfig extends PluginInfo {
+  config?: PluginConfigOption[];
+}
+
+/**
  * Sample plugin data for demonstration.
  */
-const samplePlugins: PluginInfo[] = [
+const samplePlugins: PluginInfoWithConfig[] = [
   {
     id: 'tts_kokoro',
     name: 'Kokoro TTS',
@@ -106,6 +115,31 @@ const samplePlugins: PluginInfo[] = [
     author: 'Piovis',
     builtIn: true,
     tags: ['voice', 'speech', 'synthesis'],
+    config: [
+      {
+        key: 'voice',
+        label: 'Voice Model',
+        type: 'select',
+        value: 'af_sky',
+        defaultValue: 'af_sky',
+        description: 'The voice model to use for speech synthesis',
+        options: [
+          { value: 'af_sky', label: 'Sky (Female, American)' },
+          { value: 'af_bella', label: 'Bella (Female, American)' },
+          { value: 'am_adam', label: 'Adam (Male, American)' },
+          { value: 'bf_emma', label: 'Emma (Female, British)' },
+        ],
+      },
+      {
+        key: 'speed',
+        label: 'Speed',
+        type: 'number',
+        value: 1.0,
+        defaultValue: 1.0,
+        description: 'Speech speed multiplier (0.5 - 2.0)',
+        validation: { min: 0.5, max: 2.0 },
+      },
+    ],
   },
   {
     id: 'stt_whisper',
@@ -117,6 +151,46 @@ const samplePlugins: PluginInfo[] = [
     author: 'Piovis',
     builtIn: true,
     tags: ['voice', 'transcription', 'recognition'],
+    config: [
+      {
+        key: 'model',
+        label: 'Model Size',
+        type: 'select',
+        value: 'base',
+        defaultValue: 'base',
+        description: 'Whisper model size (larger = more accurate but slower)',
+        options: [
+          { value: 'tiny', label: 'Tiny (~39M params)' },
+          { value: 'base', label: 'Base (~74M params)' },
+          { value: 'small', label: 'Small (~244M params)' },
+          { value: 'medium', label: 'Medium (~769M params)' },
+          { value: 'large-v3', label: 'Large v3 (~1.5B params)' },
+        ],
+      },
+      {
+        key: 'language',
+        label: 'Language',
+        type: 'select',
+        value: 'en',
+        defaultValue: 'en',
+        description: 'Transcription language',
+        options: [
+          { value: 'en', label: 'English' },
+          { value: 'auto', label: 'Auto-detect' },
+          { value: 'es', label: 'Spanish' },
+          { value: 'fr', label: 'French' },
+          { value: 'de', label: 'German' },
+        ],
+      },
+      {
+        key: 'useGpu',
+        label: 'Use GPU Acceleration',
+        type: 'boolean',
+        value: true,
+        defaultValue: true,
+        description: 'Enable CUDA acceleration for faster transcription',
+      },
+    ],
   },
   {
     id: 'llm_ollama',
@@ -128,6 +202,49 @@ const samplePlugins: PluginInfo[] = [
     author: 'Piovis',
     builtIn: true,
     tags: ['ai', 'inference', 'local'],
+    config: [
+      {
+        key: 'model',
+        label: 'Model Name',
+        type: 'select',
+        value: 'llama3.2',
+        defaultValue: 'llama3.2',
+        description: 'The LLM model to use for inference',
+        options: [
+          { value: 'llama3.2', label: 'Llama 3.2' },
+          { value: 'llama3.1', label: 'Llama 3.1' },
+          { value: 'codellama', label: 'Code Llama' },
+          { value: 'mistral', label: 'Mistral' },
+          { value: 'phi3', label: 'Phi-3' },
+        ],
+      },
+      {
+        key: 'baseUrl',
+        label: 'Ollama Server URL',
+        type: 'string',
+        value: 'http://localhost:11434',
+        defaultValue: 'http://localhost:11434',
+        description: 'URL of the Ollama server',
+      },
+      {
+        key: 'temperature',
+        label: 'Temperature',
+        type: 'number',
+        value: 0.7,
+        defaultValue: 0.7,
+        description: 'Sampling temperature (0 = deterministic, 2 = creative)',
+        validation: { min: 0, max: 2 },
+      },
+      {
+        key: 'maxTokens',
+        label: 'Max Tokens',
+        type: 'number',
+        value: 2048,
+        defaultValue: 2048,
+        description: 'Maximum tokens to generate',
+        validation: { min: 1, max: 32768 },
+      },
+    ],
   },
   {
     id: 'mem_chromadb',
@@ -138,6 +255,24 @@ const samplePlugins: PluginInfo[] = [
     status: 'unloaded',
     author: 'Piovis',
     tags: ['memory', 'vector', 'embeddings'],
+    config: [
+      {
+        key: 'persistPath',
+        label: 'Storage Path',
+        type: 'path',
+        value: './chroma_db',
+        defaultValue: './chroma_db',
+        description: 'Path to persist the vector database',
+      },
+      {
+        key: 'collectionName',
+        label: 'Collection Name',
+        type: 'string',
+        value: 'default',
+        defaultValue: 'default',
+        description: 'Name of the ChromaDB collection',
+      },
+    ],
   },
 ];
 
@@ -715,6 +850,8 @@ export const App: React.FC = () => {
   // Project store actions
   const loadProjectFromFile = useProjectStore((state) => state.loadProjectFromFile);
   const projectName = useProjectStore((state) => state.metadata.name);
+  // Subscribe to project theme for canvas (isolated from App Factory theme)
+  const projectTheme = useProjectStore((state) => state.theme);
 
   // Recent projects state (in real app, would come from store)
   const [projects] = useState<ProjectInfo[]>(sampleProjects);
@@ -732,8 +869,8 @@ export const App: React.FC = () => {
       name: p.name,
       pluginName: p.status === 'loaded' ? p.name : undefined,
       status: p.status === 'loaded' ? 'healthy' as const :
-              p.status === 'loading' ? 'degraded' as const :
-              p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
+        p.status === 'loading' ? 'degraded' as const :
+          p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
     }));
   }, [plugins]);
 
@@ -742,6 +879,10 @@ export const App: React.FC = () => {
 
   // Plugin filter for sidebar (when user clicks a slot in Blueprint)
   const [pluginCategoryFilter, setPluginCategoryFilter] = useState<string | null>(null);
+
+  // Selected plugin for configuration panel (when user clicks a slot or selects a plugin)
+  const [selectedPluginForConfig, setSelectedPluginForConfig] = useState<PluginInfoWithConfig | null>(null);
+
 
   // Component Gallery state (UJ-1.1.2)
   const [selectedComponentIds, setSelectedComponentIds] = useState<string[]>([]);
@@ -757,6 +898,9 @@ export const App: React.FC = () => {
   // Canvas state
   const [canvasElements, setCanvasElements] = useState<CanvasElement[]>(initialCanvasElements);
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]);
+
+  // Undo history state - stores snapshots of canvasElements before each mutation
+  const [canvasHistory, setCanvasHistory] = useState<CanvasElement[][]>([]);
 
   // Theme panel and Preview state (UJ-1.1.1)
   const [isThemePanelOpen, setIsThemePanelOpen] = useState(false);
@@ -802,68 +946,105 @@ export const App: React.FC = () => {
     setSelectedProjectId(project.id);
   }, []);
 
-  const handleOpenProject = useCallback((project: ProjectInfo) => {
-    // Load project from file (simulated here, in real app would read from disk)
-    const projectFile: ProjectFile = {
-      metadata: {
-        name: project.name,
-        description: project.description || '',
-        author: 'User',
-        version: project.version,
-        createdAt: project.createdAt.getTime(),
-        modifiedAt: project.updatedAt.getTime(),
-        filePath: project.path,
-        tags: [],
-      },
-      screens: {},
-      components: {},
-      theme: {
-        name: 'Default',
-        primaryColor: '#3b82f6',
-        secondaryColor: '#64748b',
-        accentColor: '#8b5cf6',
-        backgroundColor: '#ffffff',
-        textColor: '#0f172a',
-        borderRadius: 'md',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        darkMode: false,
-        customVariables: {},
-      },
-      buildConfig: {
-        outputDir: './dist',
-        platform: 'windows',
-        mode: 'development',
-        includePythonRuntime: true,
-        bundledPlugins: [],
-        appIcon: null,
-        version: project.version,
-        publisher: '',
-        identifier: 'com.appfactory.app',
-      },
-    };
+  const handleOpenProject = useCallback(async (project: ProjectInfo) => {
+    // Read actual project file from disk in Tauri mode
+    if (isTauri()) {
+      try {
+        const { readTextFile } = await import('@tauri-apps/api/fs');
+        const content = await readTextFile(project.path);
+        const projectFile = JSON.parse(content) as ProjectFile;
 
-    loadProjectFromFile(project.path, projectFile);
+        // Load into project store
+        loadProjectFromFile(project.path, projectFile);
 
-    // Sync theme from loaded project to application theme store
-    if (projectFile.theme) {
-      // We need to cast or ensure types match, but projectFile.theme is ProjectTheme
-      // and setTheme expects ThemeConfig (or Partial). They should be compatible.
-      // @ts-ignore - Types might need alignment but this ensures visual sync
-      setTheme(projectFile.theme);
+        // Sync theme from loaded project to visual ThemeProvider
+        if (projectFile.theme) {
+          setTheme(projectFile.theme);
+        }
+
+        // Sync windowConfig from loaded project to WindowConfigStore
+        if (projectFile.windowConfig) {
+          useWindowConfigStore.getState().setConfig(projectFile.windowConfig);
+        }
+
+        // Sync canvas elements to local state
+        if (projectFile.canvasElements) {
+          setCanvasElements(projectFile.canvasElements as unknown as CanvasElement[]);
+        }
+
+        setAppMode('editor');
+      } catch (error) {
+        console.error('Failed to load project:', error);
+        // Fallback: still open editor with default state
+        setAppMode('editor');
+      }
+    } else {
+      // Browser mode: use sample data (for demo purposes)
+      const projectFile: ProjectFile = {
+        version: 2,
+        metadata: {
+          name: project.name,
+          description: project.description || '',
+          author: 'User',
+          version: project.version,
+          createdAt: project.createdAt.getTime(),
+          modifiedAt: project.updatedAt.getTime(),
+          filePath: project.path,
+          tags: [],
+        },
+        screens: {},
+        components: {},
+        theme: theme, // Use current theme instead of hardcoded
+        buildConfig: {
+          outputDir: './dist',
+          platform: 'windows',
+          mode: 'development',
+          includePythonRuntime: true,
+          bundledPlugins: [],
+          appIcon: null,
+          version: project.version,
+          publisher: '',
+          identifier: 'com.appfactory.app',
+        },
+      };
+
+      loadProjectFromFile(project.path, projectFile);
+      setAppMode('editor');
     }
-
-    setAppMode('editor');
-  }, [loadProjectFromFile, setTheme]);
+  }, [loadProjectFromFile, setTheme, theme, setCanvasElements]);
 
   const handleNewProject = useCallback(() => {
     // In real app, would show new project wizard
     setAppMode('editor');
   }, []);
 
-  const handleBrowseProject = useCallback(() => {
-    // In real app, would open native file picker via Tauri
-    console.log('Browse for project...');
-  }, []);
+  const handleBrowseProject = useCallback(async () => {
+    // Use store's browseAndLoadProject which handles file picker and loading
+    const browseAndLoadProject = useProjectStore.getState().browseAndLoadProject;
+    const success = await browseAndLoadProject();
+
+    if (success) {
+      // Get the loaded project state from store
+      const state = useProjectStore.getState();
+
+      // Sync theme from loaded project to visual ThemeProvider
+      if (state.theme) {
+        setTheme(state.theme);
+      }
+
+      // Sync windowConfig from loaded project to WindowConfigStore
+      if (state.windowConfig) {
+        useWindowConfigStore.getState().setConfig(state.windowConfig);
+      }
+
+      // Sync canvas elements to local state
+      if (state.canvasElements && state.canvasElements.length > 0) {
+        setCanvasElements(state.canvasElements as unknown as CanvasElement[]);
+      }
+
+      setAppMode('editor');
+    }
+  }, [setTheme, setCanvasElements]);
 
   const handleBackToLauncher = useCallback(() => {
     setAppMode('launcher');
@@ -872,7 +1053,13 @@ export const App: React.FC = () => {
   // Plugin handlers
   const handlePluginSelect = useCallback((plugin: PluginInfo) => {
     setSelectedPluginId(plugin.id);
-  }, []);
+    // Also set it as the selected plugin for configuration
+    const pluginWithConfig = (plugins as PluginInfoWithConfig[]).find(p => p.id === plugin.id);
+    if (pluginWithConfig) {
+      setSelectedPluginForConfig(pluginWithConfig);
+      setSelectedElementIds([]); // Clear canvas selection
+    }
+  }, [plugins]);
 
   // Component Gallery handlers (UJ-1.1.2)
   const handleComponentSelectionChange = useCallback((component: ComponentInfo, selected: boolean) => {
@@ -949,10 +1136,18 @@ export const App: React.FC = () => {
 
   // Blueprint slot handlers
   const handleBlueprintSlotClick = useCallback((slot: PluginSlot) => {
+    // Find a plugin that matches this slot's contract
+    const matchingPlugin = (plugins as PluginInfoWithConfig[]).find(
+      p => p.contract.toUpperCase() === slot.contract.toUpperCase()
+    );
+    if (matchingPlugin) {
+      setSelectedPluginForConfig(matchingPlugin);
+      setSelectedElementIds([]); // Clear canvas selection when showing plugin config
+    }
     // Switch to plugins tab and filter by this slot's category
     setActiveSidebarTab('plugins');
     setPluginCategoryFilter(slot.contract.toUpperCase());
-  }, []);
+  }, [plugins]);
 
   const handleAddManualSlot = useCallback((contract: string) => {
     const newSlot: PluginSlot = {
@@ -974,8 +1169,35 @@ export const App: React.FC = () => {
   }, []);
 
   // Canvas handlers
+
+  // Helper to push current state to undo history before mutation
+  const pushToHistory = useCallback(() => {
+    setCanvasHistory((prev) => [...prev, canvasElements]);
+  }, [canvasElements]);
+
+  // Undo handler - pops last state from history and restores it
+  const handleUndo = useCallback(() => {
+    if (canvasHistory.length === 0) return;
+    const previousState = canvasHistory[canvasHistory.length - 1];
+    setCanvasHistory((prev) => prev.slice(0, -1));
+    setCanvasElements(previousState);
+    setSelectedElementIds([]);
+  }, [canvasHistory]);
+
+  // Clear canvas handler - clears all elements (with undo support)
+  const handleClearCanvas = useCallback(() => {
+    if (canvasElements.length === 0) return;
+    pushToHistory();
+    setCanvasElements([]);
+    setSelectedElementIds([]);
+  }, [canvasElements.length, pushToHistory]);
+
   const handleElementSelect = useCallback((ids: string[]) => {
     setSelectedElementIds(ids);
+    // Clear plugin config selection when canvas element is selected
+    if (ids.length > 0) {
+      setSelectedPluginForConfig(null);
+    }
   }, []);
 
   const handleElementMove = useCallback((id: string, bounds: ElementBounds) => {
@@ -985,9 +1207,10 @@ export const App: React.FC = () => {
   }, []);
 
   const handleElementDelete = useCallback((ids: string[]) => {
+    pushToHistory();
     setCanvasElements((prev) => prev.filter((el) => !ids.includes(el.id)));
     setSelectedElementIds([]);
-  }, []);
+  }, [pushToHistory]);
 
   // Handle property changes from PropertyInspector
   const handlePropertyChange = useCallback((key: string, value: unknown) => {
@@ -1307,6 +1530,9 @@ export const App: React.FC = () => {
               onResize={handleElementMove}
               onDelete={handleElementDelete}
               onDrop={handleElementDrop}
+              onClear={handleClearCanvas}
+              onUndo={handleUndo}
+              canUndo={canvasHistory.length > 0}
               // Link canvas size to window config
               canvasWidth={windowConfig.width}
               canvasHeight={windowConfig.height}
@@ -1315,6 +1541,7 @@ export const App: React.FC = () => {
               className="bg-neutral-100" // Add a background to distinguish the canvas area
               initialZoom={0.6}
               gridSettings={{ size: 16, snap: true, visible: true }}
+              canvasTheme={projectTheme} // Use project theme (isolated from App Factory theme)
             />
           }
           bottomPanel={
@@ -1332,63 +1559,100 @@ export const App: React.FC = () => {
           }
           rightSidebar={
             <div className="h-full flex flex-col">
-              <div className="p-3 border-b border-neutral-200">
-                <h2 className="text-sm font-semibold text-neutral-700">Properties</h2>
-              </div>
-              <div className="flex-1 overflow-auto">
-                <PropertyInspector
-                  selectedElement={
-                    selectedElement
-                      ? {
-                        id: selectedElement.id,
-                        name: selectedElement.name,
-                        type: selectedElement.type,
-                        componentId: selectedElement.componentId,
-                      }
-                      : undefined
-                  }
-                  properties={
-                    selectedElement
-                      ? [
-                        {
-                          key: 'x',
-                          label: 'X Position',
-                          type: 'number',
-                          value: selectedElement.bounds.x,
-                          category: 'Position',
-                        },
-                        {
-                          key: 'y',
-                          label: 'Y Position',
-                          type: 'number',
-                          value: selectedElement.bounds.y,
-                          category: 'Position',
-                        },
-                        {
-                          key: 'width',
-                          label: 'Width',
-                          type: 'number',
-                          value: selectedElement.bounds.width,
-                          min: 1,
-                          category: 'Size',
-                        },
-                        {
-                          key: 'height',
-                          label: 'Height',
-                          type: 'number',
-                          value: selectedElement.bounds.height,
-                          min: 1,
-                          category: 'Size',
-                        },
-                      ]
-                      : []
-                  }
-                  onChange={handlePropertyChange}
-                  editable
+              {selectedPluginForConfig ? (
+                // Show plugin configuration panel when a plugin is selected
+                <PluginConfigPanel
+                  plugin={{
+                    id: selectedPluginForConfig.id,
+                    name: selectedPluginForConfig.name,
+                    version: selectedPluginForConfig.version,
+                    contract: selectedPluginForConfig.contract,
+                    description: selectedPluginForConfig.description,
+                    config: selectedPluginForConfig.config || [],
+                  }}
+                  onChange={(key, value) => {
+                    // Update the plugin config in the plugins array
+                    setPlugins((prev) =>
+                      prev.map((p) =>
+                        p.id === selectedPluginForConfig?.id
+                          ? {
+                            ...p,
+                            config: (p as PluginInfoWithConfig).config?.map((opt) =>
+                              opt.key === key ? { ...opt, value } : opt
+                            ),
+                          }
+                          : p
+                      )
+                    );
+                  }}
+                  onApply={(config) => {
+                    console.log('Applied plugin config:', selectedPluginForConfig?.id, config);
+                  }}
+                  onClose={() => setSelectedPluginForConfig(null)}
                 />
-              </div>
+              ) : (
+                // Show element properties when a canvas element is selected
+                <>
+                  <div className="p-3 border-b border-neutral-200">
+                    <h2 className="text-sm font-semibold text-neutral-700">Properties</h2>
+                  </div>
+                  <div className="flex-1 overflow-auto">
+                    <PropertyInspector
+                      selectedElement={
+                        selectedElement
+                          ? {
+                            id: selectedElement.id,
+                            name: selectedElement.name,
+                            type: selectedElement.type,
+                            componentId: selectedElement.componentId,
+                          }
+                          : undefined
+                      }
+                      properties={
+                        selectedElement
+                          ? [
+                            {
+                              key: 'x',
+                              label: 'X Position',
+                              type: 'number',
+                              value: selectedElement.bounds.x,
+                              category: 'Position',
+                            },
+                            {
+                              key: 'y',
+                              label: 'Y Position',
+                              type: 'number',
+                              value: selectedElement.bounds.y,
+                              category: 'Position',
+                            },
+                            {
+                              key: 'width',
+                              label: 'Width',
+                              type: 'number',
+                              value: selectedElement.bounds.width,
+                              min: 1,
+                              category: 'Size',
+                            },
+                            {
+                              key: 'height',
+                              label: 'Height',
+                              type: 'number',
+                              value: selectedElement.bounds.height,
+                              min: 1,
+                              category: 'Size',
+                            },
+                          ]
+                          : []
+                      }
+                      onChange={handlePropertyChange}
+                      editable
+                    />
+                  </div>
+                </>
+              )}
             </div>
           }
+
           initialPanels={{
             left: { type: 'plugins', visible: true },
             right: { type: 'properties', visible: true },
@@ -1404,6 +1668,10 @@ export const App: React.FC = () => {
           onClose={() => setIsThemePanelOpen(false)}
           position="right"
           width="380px"
+          onApplyToCanvas={(themeConfig) => {
+            // Update project store theme - this will flow to CanvasEditor via projectTheme prop
+            useProjectStore.getState().setTheme(themeConfig);
+          }}
         />
         {/* Window Config Panel Overlay (UJ-1.1.6) */}
         <WindowConfigPanel

@@ -13,11 +13,71 @@
 
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { save } from "@tauri-apps/api/dialog";
-import { writeTextFile } from "@tauri-apps/api/fs";
+import { save, open } from "@tauri-apps/api/dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/api/fs";
+import { resolve, dirname } from "@tauri-apps/api/path";
 import { isTauri } from "../utils/tauriUtils";
 import type { ThemeConfig } from "../context/ThemeProvider";
 import { defaultLightTheme } from "../context/ThemeProvider";
+
+/**
+ * Canvas element types (mirrored from CanvasEditor for serialization).
+ */
+export type CanvasElementType = "component" | "container" | "text" | "image" | "spacer";
+
+/**
+ * Canvas element bounds for serialization.
+ */
+export interface SerializedElementBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Serialized canvas element for project file persistence.
+ */
+export interface SerializedCanvasElement {
+  id: string;
+  type: CanvasElementType;
+  name: string;
+  bounds: SerializedElementBounds;
+  componentId?: string;
+  children?: SerializedCanvasElement[];
+  props?: Record<string, unknown>;
+  locked?: boolean;
+  visible?: boolean;
+  zIndex?: number;
+}
+
+/**
+ * Window configuration for project file persistence.
+ */
+export interface SerializedWindowConfig {
+  title: string;
+  width: number;
+  height: number;
+  minWidth: number;
+  minHeight: number;
+  maxWidth: number | null;
+  maxHeight: number | null;
+  x: number | null;
+  y: number | null;
+  center: boolean;
+  fullscreen: boolean;
+  resizable: boolean;
+  decorations: boolean;
+  alwaysOnTop: boolean;
+  skipTaskbar: boolean;
+  transparent: boolean;
+  visible: boolean;
+  focus: boolean;
+  closable: boolean;
+  minimizable: boolean;
+  maximizable: boolean;
+  fileDropEnabled: boolean;
+}
 
 /**
  * Project status.
@@ -102,6 +162,8 @@ export interface ProjectScreen {
   isDefault: boolean;
   /** Screen-specific settings */
   settings: Record<string, unknown>;
+  /** Screen-specific window configuration (overrides global windowConfig) */
+  windowConfig?: SerializedWindowConfig;
 }
 
 /**
@@ -182,6 +244,10 @@ export interface ProjectState {
   theme: ProjectTheme;
   buildConfig: ProjectBuildConfig;
 
+  // Canvas state - the actual visual layout
+  canvasElements: SerializedCanvasElement[];
+  windowConfig: SerializedWindowConfig | null;
+
   // Active selections
   activeScreenId: string | null;
   activeComponentId: string | null;
@@ -196,6 +262,9 @@ export interface ProjectState {
   recentProjects: RecentProject[];
   maxRecentProjects: number;
 
+  // Save version tracking
+  saveVersion: number;
+
   // Project state
   isLoading: boolean;
   isSaving: boolean;
@@ -207,8 +276,11 @@ export interface ProjectState {
  */
 /**
  * Project file structure for loading from disk.
+ * Version 2: Includes canvasElements and windowConfig for complete save/load fidelity.
  */
 export interface ProjectFile {
+  /** File format version for forward compatibility */
+  version: number;
   /** Project metadata */
   metadata: ProjectMetadata;
   /** Screens configuration */
@@ -219,6 +291,14 @@ export interface ProjectFile {
   theme: ProjectTheme;
   /** Build configuration */
   buildConfig: ProjectBuildConfig;
+  /** Canvas elements - the actual visual layout on the canvas */
+  canvasElements?: SerializedCanvasElement[];
+  /** Window configuration - Tauri window settings */
+  windowConfig?: SerializedWindowConfig;
+  /** Active screen ID */
+  activeScreenId?: string | null;
+  /** Active component ID */
+  activeComponentId?: string | null;
 }
 
 /**
@@ -244,9 +324,26 @@ export interface ProjectActions {
     projectJson: ProjectFile,
     pluginsConfig?: PluginsConfig
   ) => void;
-  saveProject: (saveAs?: boolean) => Promise<void>;
+  browseAndLoadProject: () => Promise<boolean>;
+  /** Save project - overwrites current file (or prompts for new file if none exists) */
+  saveProject: () => Promise<void>;
+  /** Save As - always prompts for a new file location with versioned filename */
+  saveProjectAs: () => Promise<void>;
   setMetadata: (metadata: Partial<ProjectMetadata>) => void;
   setStatus: (status: ProjectStatus) => void;
+
+  // Canvas element actions
+  setCanvasElements: (elements: SerializedCanvasElement[]) => void;
+  updateCanvasElement: (elementId: string, updates: Partial<SerializedCanvasElement>) => void;
+  addCanvasElement: (element: SerializedCanvasElement) => void;
+  removeCanvasElement: (elementId: string) => void;
+
+  // Window config actions
+  setWindowConfig: (config: Partial<SerializedWindowConfig>) => void;
+  /** Update window config for a specific screen (for per-screen window settings) */
+  updateScreenWindowConfig: (screenId: string, config: Partial<SerializedWindowConfig>) => void;
+  /** Clear a screen's window config (inherit from main) */
+  clearScreenWindowConfig: (screenId: string) => void;
 
   // Screen actions
   addScreen: (screen: ProjectScreen) => void;
@@ -330,6 +427,34 @@ const defaultMetadata: ProjectMetadata = {
 };
 
 /**
+ * Default window configuration.
+ */
+const defaultWindowConfig: SerializedWindowConfig = {
+  title: "App Factory",
+  width: 1200,
+  height: 800,
+  minWidth: 800,
+  minHeight: 600,
+  maxWidth: null,
+  maxHeight: null,
+  x: null,
+  y: null,
+  center: true,
+  fullscreen: false,
+  resizable: true,
+  decorations: true,
+  alwaysOnTop: false,
+  skipTaskbar: false,
+  transparent: false,
+  visible: true,
+  focus: true,
+  closable: true,
+  minimizable: true,
+  maximizable: true,
+  fileDropEnabled: true,
+};
+
+/**
  * Initial state values.
  */
 const initialState: ProjectState = {
@@ -339,6 +464,8 @@ const initialState: ProjectState = {
   components: {},
   theme: defaultTheme,
   buildConfig: defaultBuildConfig,
+  canvasElements: [],
+  windowConfig: defaultWindowConfig,
   activeScreenId: null,
   activeComponentId: null,
   clipboard: {
@@ -347,6 +474,7 @@ const initialState: ProjectState = {
   },
   recentProjects: [],
   maxRecentProjects: 10,
+  saveVersion: 0,
   isLoading: false,
   isSaving: false,
   error: null,
@@ -445,25 +573,33 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
             return;
           }
 
-          // Hydrate project state from file
+          // Hydrate project state from file - restore ALL fields for perfect round-trip
           set(
             (state) => ({
               ...state,
               metadata: {
                 ...projectJson.metadata,
                 filePath: projectPath,
-                modifiedAt: Date.now(),
+                // Preserve original modifiedAt from file, don't overwrite
               },
               screens: projectJson.screens || {},
               components: projectJson.components || {},
               theme: projectJson.theme || state.theme,
               buildConfig: projectJson.buildConfig || state.buildConfig,
+              // Restore canvas elements (v2 format) or empty array for v1 files
+              canvasElements: projectJson.canvasElements || [],
+              // Restore window config (v2 format) or keep default for v1 files
+              windowConfig: projectJson.windowConfig || state.windowConfig,
               status: "saved",
               isLoading: false,
               error: null,
-              // Set first screen as active if available
-              activeScreenId: Object.keys(projectJson.screens || {})[0] || null,
-              activeComponentId: null,
+              // Restore active selections from file, or fallback to first screen
+              activeScreenId: projectJson.activeScreenId !== undefined
+                ? projectJson.activeScreenId
+                : Object.keys(projectJson.screens || {})[0] || null,
+              activeComponentId: projectJson.activeComponentId !== undefined
+                ? projectJson.activeComponentId
+                : null,
             }),
             false,
             "loadProjectFromFile"
@@ -479,89 +615,153 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
           get().addRecentProject(recentProject);
         },
 
-        saveProject: async (saveAs = false) => {
+        browseAndLoadProject: async () => {
+          set({ isLoading: true, error: null }, false, "browseAndLoadProject:start");
+
+          try {
+            if (!isTauri()) {
+              console.warn("Browse unavailable in browser mode");
+              set({ isLoading: false }, false, "browseAndLoadProject:browserMode");
+              return false;
+            }
+
+            // Hardcoded path for development - projects directory
+            const defaultDir = 'C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\outputs\\projects';
+
+            // Open file dialog
+            const selectedPath = await open({
+              filters: [{ name: "App Factory Project", extensions: ["json"] }],
+              defaultPath: defaultDir,
+              multiple: false,
+              directory: false,
+            });
+
+            if (!selectedPath || Array.isArray(selectedPath)) {
+              // User cancelled or invalid selection
+              set({ isLoading: false }, false, "browseAndLoadProject:cancelled");
+              return false;
+            }
+
+            // Read the project file
+            const content = await readTextFile(selectedPath);
+            const projectJson = JSON.parse(content) as ProjectFile;
+
+            // Load the project using existing method
+            get().loadProjectFromFile(selectedPath, projectJson);
+
+            set({ isLoading: false }, false, "browseAndLoadProject:success");
+            return true;
+          } catch (error) {
+            console.error("Failed to browse and load project:", error);
+            set(
+              {
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to load project",
+              },
+              false,
+              "browseAndLoadProject:error"
+            );
+            return false;
+          }
+        },
+
+        /**
+         * Save project - overwrites current file (or prompts for new file if none exists).
+         * Includes all project data: metadata, screens, components, theme, buildConfig,
+         * canvasElements, windowConfig, and activeScreenId/activeComponentId.
+         */
+        saveProject: async () => {
           const state = get();
           set({ isSaving: true, error: null }, false, "saveProject:start");
 
           try {
-            // 1. Prepare Project File Data
+            // 1. Prepare complete Project File Data (version 2 format)
             const projectFile: ProjectFile = {
+              version: 2,
               metadata: state.metadata,
               screens: state.screens,
               components: state.components,
               theme: state.theme,
               buildConfig: state.buildConfig,
+              canvasElements: state.canvasElements,
+              windowConfig: state.windowConfig ?? undefined,
+              activeScreenId: state.activeScreenId,
+              activeComponentId: state.activeComponentId,
             };
 
-            // 2. Determine File Path
+            // 2. Determine File Path - use existing path or prompt for new one
             let filePath = state.metadata.filePath;
 
-            if (saveAs || !filePath) {
-              // Open Save Dialog if "Save As" or no path exists
+            if (!filePath) {
+              // No existing path - prompt for file location
               if (isTauri()) {
+                const defaultDir = await resolve("outputs", "projects");
+                const defaultFilePath = await resolve(defaultDir, state.metadata.name + ".json");
+
                 const selectedPath = await save({
                   filters: [{ name: "App Factory Project", extensions: ["json"] }],
-                  defaultPath: state.metadata.name + ".json",
+                  defaultPath: defaultFilePath,
                 });
                 if (!selectedPath) {
-                  // User cancelled
                   set({ isSaving: false }, false, "saveProject:cancelled");
                   return;
                 }
                 filePath = selectedPath;
               } else {
-                // Fallback for Browser Dev (Mock Save)
-                console.warn("Save unavailable in browser: mocking save");
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                // Mock a successful save
+                // Browser fallback - ISS-002 fix: provide clear feedback that save failed
+                console.warn("Save unavailable in browser mode: Tauri IPC not available");
                 set(
-                  (state) => ({
-                    status: "saved",
+                  (s) => ({
+                    status: "error",
                     isSaving: false,
-                    metadata: {
-                      ...state.metadata,
-                      modifiedAt: Date.now(),
-                    }
+                    error: "Save to disk unavailable in browser mode. Run with 'npm run tauri dev' for full functionality.",
+                    metadata: { ...s.metadata },
                   }),
                   false,
-                  "saveProject:mockSuccess"
+                  "saveProject:browserModeUnavailable"
                 );
                 return;
               }
             }
 
-            // 3. Write to Disk (Tauri Only)
+            // 3. Write to Disk (Tauri) or Mock Save (Browser)
             if (isTauri() && filePath) {
               await writeTextFile(filePath, JSON.stringify(projectFile, null, 2));
 
               // 4. Update State on Success
               set(
-                (state) => ({
+                (s) => ({
                   status: "saved",
                   isSaving: false,
-                  metadata: {
-                    ...state.metadata,
-                    filePath,
-                    modifiedAt: Date.now(),
-                  },
+                  metadata: { ...s.metadata, filePath, modifiedAt: Date.now() },
                 }),
                 false,
                 "saveProject:success"
               );
 
               // 5. Update Recent Projects
-              const recentProject: RecentProject = {
+              get().addRecentProject({
                 path: filePath,
                 name: state.metadata.name,
                 lastOpened: Date.now(),
                 thumbnail: null,
-              };
-              get().addRecentProject(recentProject);
-
+              });
+            } else if (!isTauri()) {
+              // Browser fallback - ISS-002 fix: provide clear feedback that save failed
+              console.warn("Save unavailable in browser mode: Tauri IPC not available");
+              set(
+                (s) => ({
+                  status: "error",
+                  isSaving: false,
+                  error: "Save to disk unavailable in browser mode. Run with 'npm run tauri dev' for full functionality.",
+                  metadata: { ...s.metadata },
+                }),
+                false,
+                "saveProject:browserModeUnavailable"
+              );
             } else {
-              throw new Error("Cannot save: Not in Tauri environment or invalid path");
+              throw new Error("Cannot save: invalid file path");
             }
-
           } catch (error) {
             console.error("Failed to save project:", error);
             set(
@@ -571,6 +771,119 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               },
               false,
               "saveProject:error"
+            );
+          }
+        },
+
+        /**
+         * Save As - always prompts for a new file location with versioned filename.
+         * Format: <projectName>_v<NNN>_<YYMMDD>.json
+         * Increments saveVersion counter for each Save As operation.
+         */
+        saveProjectAs: async () => {
+          const state = get();
+          set({ isSaving: true, error: null }, false, "saveProjectAs:start");
+
+          try {
+            // Generate versioned filename
+            const newVersion = state.saveVersion + 1;
+            const now = new Date();
+            const dateStr = [
+              String(now.getFullYear()).slice(-2),
+              String(now.getMonth() + 1).padStart(2, "0"),
+              String(now.getDate()).padStart(2, "0"),
+            ].join("");
+            const versionStr = String(newVersion).padStart(3, "0");
+            const baseName = state.metadata.name.replace(/[^a-zA-Z0-9_-]/g, "_");
+            const versionedFilename = `${baseName}_v${versionStr}_${dateStr}.json`;
+
+            // Prepare complete Project File Data
+            const projectFile: ProjectFile = {
+              version: 2,
+              metadata: {
+                ...state.metadata,
+                modifiedAt: Date.now(),
+              },
+              screens: state.screens,
+              components: state.components,
+              theme: state.theme,
+              buildConfig: state.buildConfig,
+              canvasElements: state.canvasElements,
+              windowConfig: state.windowConfig ?? undefined,
+              activeScreenId: state.activeScreenId,
+              activeComponentId: state.activeComponentId,
+            };
+
+            if (isTauri()) {
+              // Determine default directory
+              let defaultDir: string;
+              if (state.metadata.filePath) {
+                defaultDir = await dirname(state.metadata.filePath);
+              } else {
+                defaultDir = await resolve("outputs", "projects");
+              }
+              const defaultFilePath = await resolve(defaultDir, versionedFilename);
+
+              const selectedPath = await save({
+                filters: [{ name: "App Factory Project", extensions: ["json"] }],
+                defaultPath: defaultFilePath,
+              });
+
+              if (!selectedPath) {
+                set({ isSaving: false }, false, "saveProjectAs:cancelled");
+                return;
+              }
+
+              // Write to disk
+              await writeTextFile(selectedPath, JSON.stringify(projectFile, null, 2));
+
+              // Update state with new path and version
+              set(
+                (s) => ({
+                  status: "saved",
+                  isSaving: false,
+                  saveVersion: newVersion,
+                  metadata: {
+                    ...s.metadata,
+                    filePath: selectedPath,
+                    modifiedAt: Date.now(),
+                  },
+                }),
+                false,
+                "saveProjectAs:success"
+              );
+
+              // Update Recent Projects
+              get().addRecentProject({
+                path: selectedPath,
+                name: state.metadata.name,
+                lastOpened: Date.now(),
+                thumbnail: null,
+              });
+            } else {
+              // Browser fallback
+              console.warn("Save As unavailable in browser: mocking save");
+              await new Promise((r) => setTimeout(r, 500));
+              set(
+                (s) => ({
+                  status: "saved",
+                  isSaving: false,
+                  saveVersion: newVersion,
+                  metadata: { ...s.metadata, modifiedAt: Date.now() },
+                }),
+                false,
+                "saveProjectAs:mockSuccess"
+              );
+            }
+          } catch (error) {
+            console.error("Failed to save project as:", error);
+            set(
+              {
+                isSaving: false,
+                error: error instanceof Error ? error.message : "Unknown error saving project",
+              },
+              false,
+              "saveProjectAs:error"
             );
           }
         },
@@ -590,6 +903,108 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
           ),
 
         setStatus: (status) => set({ status }, false, "setStatus"),
+
+        // Canvas element actions
+        setCanvasElements: (elements) =>
+          set(
+            { canvasElements: elements, status: "modified" },
+            false,
+            "setCanvasElements"
+          ),
+
+        updateCanvasElement: (elementId, updates) =>
+          set(
+            (state) => ({
+              canvasElements: state.canvasElements.map((el) =>
+                el.id === elementId ? { ...el, ...updates } : el
+              ),
+              status: "modified",
+            }),
+            false,
+            "updateCanvasElement"
+          ),
+
+        addCanvasElement: (element) =>
+          set(
+            (state) => ({
+              canvasElements: [...state.canvasElements, element],
+              status: "modified",
+            }),
+            false,
+            "addCanvasElement"
+          ),
+
+        removeCanvasElement: (elementId) =>
+          set(
+            (state) => ({
+              canvasElements: state.canvasElements.filter((el) => el.id !== elementId),
+              status: "modified",
+            }),
+            false,
+            "removeCanvasElement"
+          ),
+
+        // Window config actions
+        setWindowConfig: (config) =>
+          set(
+            (state) => ({
+              windowConfig: state.windowConfig
+                ? { ...state.windowConfig, ...config }
+                : { ...defaultWindowConfig, ...config },
+              status: "modified",
+            }),
+            false,
+            "setWindowConfig"
+          ),
+
+        updateScreenWindowConfig: (screenId, config) =>
+          set(
+            (state) => {
+              const screen = state.screens[screenId];
+              if (!screen) return state;
+
+              // Merge with existing screen windowConfig or create new one based on defaults
+              const baseConfig = screen.windowConfig || state.windowConfig || defaultWindowConfig;
+              const newWindowConfig: SerializedWindowConfig = {
+                ...baseConfig,
+                ...config,
+              };
+
+              return {
+                screens: {
+                  ...state.screens,
+                  [screenId]: {
+                    ...screen,
+                    windowConfig: newWindowConfig,
+                  },
+                },
+                status: "modified",
+              };
+            },
+            false,
+            "updateScreenWindowConfig"
+          ),
+
+        clearScreenWindowConfig: (screenId) =>
+          set(
+            (state) => {
+              const screen = state.screens[screenId];
+              if (!screen) return state;
+
+              // Create a copy without windowConfig
+              const { windowConfig: _, ...screenWithoutConfig } = screen;
+
+              return {
+                screens: {
+                  ...state.screens,
+                  [screenId]: screenWithoutConfig as ProjectScreen,
+                },
+                status: "modified",
+              };
+            },
+            false,
+            "clearScreenWindowConfig"
+          ),
 
         // Screen actions
         addScreen: (screen) =>
@@ -1161,5 +1576,20 @@ export const useProjectTheme = () => useProjectStore((state) => state.theme);
  * Selector for build config.
  */
 export const useBuildConfig = () => useProjectStore((state) => state.buildConfig);
+
+/**
+ * Selector for canvas elements.
+ */
+export const useCanvasElements = () => useProjectStore((state) => state.canvasElements);
+
+/**
+ * Selector for window config.
+ */
+export const useWindowConfig = () => useProjectStore((state) => state.windowConfig);
+
+/**
+ * Selector for save version.
+ */
+export const useSaveVersion = () => useProjectStore((state) => state.saveVersion);
 
 export default useProjectStore;
