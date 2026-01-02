@@ -304,7 +304,9 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
       "w-screen",
       "bg-neutral-100",
       "overflow-hidden",
-      isResizing && "select-none cursor-col-resize",
+      isResizing === "left" && "select-none cursor-ew-resize",
+      isResizing === "right" && "select-none cursor-ew-resize",
+      isResizing === "bottom" && "select-none cursor-ns-resize",
       className,
     ]
       .filter(Boolean)
@@ -313,6 +315,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
     // Sidebar styles
     const sidebarStyles = (visible: boolean, side: "left" | "right") =>
       [
+        "relative", // Required for absolute positioned resize handle
         "flex",
         "flex-col",
         "bg-white",
@@ -326,18 +329,19 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
         .join(" ");
 
     // Resize handle styles
+    // Using w-2 (8px) for better hit target while keeping visual appearance subtle
     const resizeHandleStyles = (orientation: "vertical" | "horizontal") =>
       [
         "absolute",
         "bg-transparent",
-        "hover:bg-primary-300",
+        "hover:bg-primary-300/50",
         "transition-colors",
         "duration-150",
-        "z-10",
+        "z-20",
         orientation === "vertical"
-          ? "w-1 h-full top-0 cursor-col-resize"
-          : "h-1 w-full left-0 cursor-row-resize",
-        isResizing && "bg-primary-400",
+          ? "w-2 h-full top-0 cursor-ew-resize" // cursor-ew-resize is the double-ended horizontal arrow
+          : "h-2 w-full left-0 cursor-ns-resize", // cursor-ns-resize is the double-ended vertical arrow
+        isResizing && "bg-primary-400/70",
       ]
         .filter(Boolean)
         .join(" ");

@@ -15,3 +15,7 @@ export { FixSuggestions } from './FixSuggestions';
 
 // D093: Register New Contract Type Wizard (M6 remediation)
 export { RegisterContractWizard } from './RegisterContractWizard';
+
+// AI App Chat: Full-app AI assistant with Chat/Change modes
+export { AiAppChatPanel, AiAppChatIcon } from './AiAppChatPanel';
+export { AiChatSettingsModal } from './AiChatSettingsModal';

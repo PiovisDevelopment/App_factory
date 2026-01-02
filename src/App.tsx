@@ -86,6 +86,7 @@ import { MuiButtonAdapter, DashboardStatsBlock, GitHubRepoPreview } from './comp
 import { TemplateBrowser } from './components/templates/TemplateBrowser';
 import { BackendBlueprintPanel, type PluginSlot } from './components/factory/BackendBlueprintPanel';
 import { PluginConfigPanel, type PluginConfigOption } from './components/factory/PluginConfigPanel';
+import { AiAppChatPanel, AiAppChatIcon } from './components/ai/AiAppChatPanel';
 
 /**
  * Application mode type.
@@ -753,8 +754,8 @@ export const App: React.FC = () => {
     await saveProject();
   }, [saveProject]);
 
-  // Sidebar tab state (UJ-1.1.2): includes templates tab for EUR-1.1.10
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'project' | 'components' | 'containers' | 'modals' | 'templates' | 'plugins'>('project');
+  // Sidebar tab state (UJ-1.1.2): includes templates tab for EUR-1.1.10, AI chat tab
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'project' | 'components' | 'containers' | 'modals' | 'templates' | 'plugins' | 'aichat'>('project');
 
   // Loaded template name (EUR-1.1.10) - displayed in canvas toolbar
   const [loadedTemplateName, setLoadedTemplateName] = useState<string | null>(null);
@@ -1383,6 +1384,7 @@ export const App: React.FC = () => {
                     { id: 'modals', label: 'Mod', icon: WindowIcon },
                     { id: 'templates', label: 'Tmpl', icon: TemplateIcon },
                     { id: 'plugins', label: 'Plug', icon: PluginIcon },
+                    { id: 'aichat', label: 'AI', icon: AiAppChatIcon },
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeSidebarTab === tab.id;
@@ -1529,6 +1531,9 @@ export const App: React.FC = () => {
                       // The TemplateBrowser handles its own save modal
                     }}
                   />
+                ) : activeSidebarTab === 'aichat' ? (
+                  // AI App Chat panel - full panel takeover
+                  <AiAppChatPanel className="h-full -m-3" />
                 ) : (
                   // Default or 'project' tab content - shows loaded project details
                   <div className="p-3 space-y-4">
