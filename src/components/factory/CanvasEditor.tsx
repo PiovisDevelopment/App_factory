@@ -989,6 +989,18 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
       const handleKeyDown = (e: KeyboardEvent) => {
         if (!editable) return;
 
+        // Check if the user is typing in an input field - allow normal behavior
+        const activeElement = document.activeElement;
+        const isInputElement =
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          activeElement?.getAttribute('contenteditable') === 'true';
+
+        if (isInputElement) {
+          // Allow all keyboard events to pass through to input elements
+          return;
+        }
+
         if (e.key === "Delete" || e.key === "Backspace") {
           if (selectedIds.length > 0) {
             onDelete?.(selectedIds);
@@ -1030,6 +1042,7 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
       window.addEventListener("keydown", handleKeyDown);
       return () => window.removeEventListener("keydown", handleKeyDown);
     }, [editable, selectedIds, gridSettings.size, getElementById, onDelete, onSelect, onMove]);
+
 
     // Container styles
     const containerStyles = [

@@ -1,12 +1,12 @@
 {
   "version": 2,
   "metadata": {
-    "name": "Voice Assistant Anuj",
+    "name": "Voice Anuj",
     "description": "AI-powered voice assistant with TTS and STT and other sexy stuff",
     "author": "User",
     "version": "1.2.0",
     "createdAt": 1766583289761,
-    "modifiedAt": 1767283169862,
+    "modifiedAt": 1767381574150,
     "filePath": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\outputs\\projects\\Voice_Assistant_Anuj_v002_260101.json",
     "tags": []
   },

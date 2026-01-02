@@ -687,45 +687,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   </div>
 );
 
-/**
- * Sample recent projects for demonstration.
- */
-const sampleProjects: ProjectInfo[] = [
-  {
-    id: 'proj-1',
-    name: 'Voice Assistant App',
-    path: 'C:/Projects/voice-assistant',
-    description: 'AI-powered voice assistant with TTS and STT',
-    version: '1.2.0',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    plugins: [
-      { id: 'tts_kokoro', name: 'Kokoro TTS', contract: 'tts', version: '1.0.0', enabled: true },
-      { id: 'stt_whisper', name: 'Whisper STT', contract: 'stt', version: '1.2.0', enabled: true },
-    ],
-    screens: [
-      { id: 's1', name: 'Main', route: '/', componentCount: 5 },
-      { id: 's2', name: 'Settings', route: '/settings', componentCount: 8 },
-    ],
-    status: 'ready',
-  },
-  {
-    id: 'proj-2',
-    name: 'Chat Application',
-    path: 'C:/Projects/chat-app',
-    description: 'Real-time chat with LLM integration',
-    version: '2.0.0',
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    plugins: [
-      { id: 'llm_ollama', name: 'Ollama LLM', contract: 'llm', version: '2.0.0', enabled: true },
-    ],
-    screens: [
-      { id: 's1', name: 'Chat', route: '/', componentCount: 12 },
-    ],
-    status: 'ready',
-  },
-];
+// sampleProjects removed - projects are now loaded dynamically from outputs/projects folder
 
 /**
  * Root application component.
@@ -785,6 +747,7 @@ export const App: React.FC = () => {
 
   // Project store actions
   const saveProject = useProjectStore((state) => state.saveProject);
+  const setMetadata = useProjectStore((state) => state.setMetadata);
 
   const handleSaveProject = useCallback(async () => {
     await saveProject();
@@ -850,12 +813,84 @@ export const App: React.FC = () => {
   // Project store actions
   const loadProjectFromFile = useProjectStore((state) => state.loadProjectFromFile);
   const projectName = useProjectStore((state) => state.metadata.name);
+  const projectDescription = useProjectStore((state) => state.metadata.description);
   // Subscribe to project theme for canvas (isolated from App Factory theme)
   const projectTheme = useProjectStore((state) => state.theme);
 
-  // Recent projects state (in real app, would come from store)
-  const [projects] = useState<ProjectInfo[]>(sampleProjects);
+  // Dynamic project loading from outputs/projects folder
+  const [projects, setProjects] = useState<ProjectInfo[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+
+  // Load projects from outputs/projects folder on mount
+  useEffect(() => {
+    const loadProjects = async () => {
+      setIsLoadingProjects(true);
+      try {
+        const { isTauri } = await import('./utils/tauriUtils');
+        if (!isTauri()) {
+          console.warn('Project loading requires Tauri environment');
+          setIsLoadingProjects(false);
+          return;
+        }
+
+        const { readDir, readTextFile } = await import('@tauri-apps/api/fs');
+
+        // Absolute path to projects directory
+        const projectsDir = 'C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\outputs\\projects';
+        console.log('Loading projects from:', projectsDir);
+
+        try {
+          const entries = await readDir(projectsDir);
+          const projectFiles = entries.filter(e => e.name?.endsWith('.json'));
+
+          // Load ALL project files (no grouping - show every file)
+          const loadedProjects: ProjectInfo[] = [];
+
+          for (const file of projectFiles) {
+            if (!file.path) continue;
+
+            try {
+              const content = await readTextFile(file.path);
+              const projectData = JSON.parse(content) as ProjectFile;
+
+              loadedProjects.push({
+                id: file.path,
+                name: projectData.metadata?.name || file.name?.replace('.json', '') || 'Unknown',
+                path: file.path,
+                description: projectData.metadata?.description || '',
+                version: projectData.metadata?.version || '1.0.0',
+                createdAt: new Date(projectData.metadata?.createdAt || Date.now()),
+                updatedAt: new Date(projectData.metadata?.modifiedAt || Date.now()),
+                plugins: [],
+                screens: Object.values(projectData.screens || {}).map(s => ({
+                  id: s.id,
+                  name: s.name,
+                  route: s.route,
+                  componentCount: Object.keys(projectData.components || {}).length,
+                })),
+                status: 'ready',
+              });
+            } catch {
+              // Skip files that can't be parsed
+            }
+          }
+
+          // Sort by updatedAt (most recent first)
+          loadedProjects.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+          setProjects(loadedProjects);
+        } catch (err) {
+          console.warn('Could not read projects directory:', err);
+        }
+      } catch (err) {
+        console.error('Failed to load projects:', err);
+      } finally {
+        setIsLoadingProjects(false);
+      }
+    };
+
+    loadProjects();
+  }, []);
 
   // Plugin state
   const [plugins, setPlugins] = useState<PluginInfo[]>(samplePlugins);
@@ -1305,6 +1340,7 @@ export const App: React.FC = () => {
               onOpenProject={handleOpenProject}
               onNewProject={handleNewProject}
               onBrowseProject={handleBrowseProject}
+              isLoading={isLoadingProjects}
               className="h-[500px]"
             />
           </div>
@@ -1494,10 +1530,91 @@ export const App: React.FC = () => {
                     }}
                   />
                 ) : (
-                  // Default or 'project' tab content
-                  <div className="p-4 text-center text-neutral-500">
-                    <h3 className="font-medium text-neutral-900">Project Details</h3>
-                    <p className="mt-2 text-sm">Select a project to view details.</p>
+                  // Default or 'project' tab content - shows loaded project details
+                  <div className="p-3 space-y-4">
+                    <div className="space-y-2">
+                      {/* Editable App Name */}
+                      <input
+                        type="text"
+                        value={projectName || ''}
+                        onChange={(e) => setMetadata({ name: e.target.value })}
+                        onBlur={() => saveProject()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                        className="w-full font-semibold text-neutral-900 text-sm bg-transparent border-b border-transparent hover:border-neutral-300 focus:border-primary-500 focus:outline-none transition-colors px-0 py-1"
+                        placeholder="Untitled Project"
+                      />
+                      {/* Editable Description */}
+                      <textarea
+                        value={projectDescription || ''}
+                        onChange={(e) => setMetadata({ description: e.target.value })}
+                        onBlur={() => saveProject()}
+                        className="w-full text-xs text-neutral-500 bg-transparent border border-transparent hover:border-neutral-300 focus:border-primary-500 focus:outline-none resize-none transition-colors rounded px-1 py-1"
+                        placeholder="Add a description..."
+                        rows={2}
+                      />
+                    </div>
+
+                    {/* Project Stats */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-neutral-50 rounded-md p-2">
+                        <div className="text-lg font-semibold text-primary-600">{canvasElements.length}</div>
+                        <div className="text-xs text-neutral-500">Elements</div>
+                      </div>
+                      <div className="bg-neutral-50 rounded-md p-2">
+                        <div className="text-lg font-semibold text-primary-600">{Object.keys(useProjectStore.getState().screens).length}</div>
+                        <div className="text-xs text-neutral-500">Screens</div>
+                      </div>
+                    </div>
+
+                    {/* Canvas/Window Size */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-medium text-neutral-700 uppercase tracking-wide">Canvas Size</h4>
+                      <div className="flex items-center gap-2 text-sm text-neutral-600 bg-neutral-50 rounded-md p-2">
+                        <span>{windowConfig.width} x {windowConfig.height}px</span>
+                      </div>
+                    </div>
+
+                    {/* Theme Info */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-medium text-neutral-700 uppercase tracking-wide">Project Theme</h4>
+                      <div className="flex items-center gap-2 text-sm text-neutral-600 bg-neutral-50 rounded-md p-2">
+                        <div
+                          className="w-4 h-4 rounded-full border border-neutral-200"
+                          style={{ backgroundColor: projectTheme?.colors?.primary?.[500] || '#3b82f6' }}
+                        />
+                        <span>{projectTheme?.name || 'Default'}</span>
+                        <span className="text-xs text-neutral-400 ml-auto">{projectTheme?.mode || 'light'}</span>
+                      </div>
+                    </div>
+
+                    {/* Version & Status */}
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-medium text-neutral-700 uppercase tracking-wide">Project Info</h4>
+                      <div className="space-y-1 text-xs text-neutral-600">
+                        <div className="flex justify-between">
+                          <span>Version</span>
+                          <span className="font-medium">{useProjectStore.getState().metadata.version}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Author</span>
+                          <span className="font-medium">{useProjectStore.getState().metadata.author || 'Unknown'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* File Path (if saved) */}
+                    {useProjectStore.getState().metadata.filePath && (
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-medium text-neutral-700 uppercase tracking-wide">File Location</h4>
+                        <p className="text-xs text-neutral-500 font-mono truncate" title={useProjectStore.getState().metadata.filePath || ''}>
+                          {useProjectStore.getState().metadata.filePath}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
