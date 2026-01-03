@@ -14,7 +14,7 @@
  * Use caution when modifying the compilation or execution logic.
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { compileTsx } from '../../services/compilerService';
 
 // =============================================================================
@@ -61,9 +61,48 @@ function extractComponentName(code: string): string | null {
 }
 
 /**
+ * Clean function parameters by removing type annotations.
+ * Only processes actual function parameters, not JSX content.
+ */
+function cleanFunctionParams(params: string): string {
+    return params
+        .split(',')
+        .map((p: string) => {
+            const trimmed = p.trim();
+            if (!trimmed) return '';
+
+            // Handle destructuring: { prop }: Type => { prop }
+            const destructMatch = trimmed.match(/^(\{[^}]+\})\s*:\s*.+$/);
+            if (destructMatch) return destructMatch[1];
+
+            // Handle array destructuring: [a, b]: Type => [a, b]
+            const arrayDestructMatch = trimmed.match(/^(\[[^\]]+\])\s*:\s*.+$/);
+            if (arrayDestructMatch) return arrayDestructMatch[1];
+
+            // Handle regular params: param: Type => param
+            // But NOT if it contains Tailwind-like patterns (word:word without spaces)
+            if (trimmed.includes(':')) {
+                const colonIndex = trimmed.indexOf(':');
+                const beforeColon = trimmed.substring(0, colonIndex).trim();
+                const afterColon = trimmed.substring(colonIndex + 1).trim();
+
+                // If afterColon starts with a letter (type annotation), strip it
+                // But if it looks like a value (number, string, etc.), keep it
+                if (/^[A-Za-z]/.test(afterColon) && /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(beforeColon)) {
+                    return beforeColon;
+                }
+            }
+
+            return trimmed;
+        })
+        .filter((p: string) => p.length > 0)
+        .join(', ');
+}
+
+/**
  * Normalize AI-generated code for runtime compilation.
  * Strips imports, interfaces, TypeScript annotations, and simplifies patterns.
- * 
+ *
  * This function handles patterns that Sucrase cannot process at runtime:
  * - Import statements (React is injected)
  * - Interface/type definitions
@@ -71,6 +110,9 @@ function extractComponentName(code: string): string | null {
  * - Generic type parameters
  * - Type assertions (as, satisfies)
  * - Markdown code fences from LLM output
+ *
+ * IMPORTANT: Does NOT touch JSX content - Tailwind classes like hover:bg-primary
+ * contain colons but are NOT type annotations.
  */
 function normalizeCode(code: string): string {
     let normalized = code;
@@ -106,25 +148,40 @@ function normalizeCode(code: string): string {
     normalized = normalized.replace(/(<[A-Z][^>]*>)\s*(?=\()/g, '');
 
     // Remove return type annotations: ): Type => or ): Type {
-    normalized = normalized.replace(/\)\s*:\s*[\w<>[\]|&\s,]+(?=\s*[=>{])/g, ')');
+    // Only match when followed by arrow or opening brace (function body)
+    normalized = normalized.replace(/\)\s*:\s*[\w<>[\]|&\s,]+(?=\s*[=>]\s*[{(])/g, ')');
+    normalized = normalized.replace(/\)\s*:\s*[\w<>[\]|&\s,]+(?=\s*\{)/g, ')');
 
-    // Remove parameter type annotations in arrow functions and regular functions
-    // Match: (param: Type) or (param: Type, param2: Type)
-    normalized = normalized.replace(/\(([^)]*)\)/g, (match, params: string) => {
+    // Remove parameter type annotations ONLY in function/arrow function signatures
+    // Pattern: matches function declarations and arrow functions, NOT JSX or return statements
+    // Match: const name = (param: Type) => or function name(param: Type)
+    // Use lookbehind to ensure we're in a function context
+
+    // Arrow function parameters: = (params) =>
+    normalized = normalized.replace(/=\s*\(([^)]*)\)\s*=>/g, (match, params: string) => {
         if (!params.includes(':')) return match;
-        const cleanedParams = params
-            .split(',')
-            .map((p: string) => {
-                // Handle destructuring: { prop }: Type => { prop }
-                const destructMatch = p.match(/^(\s*\{[^}]+\})\s*:\s*.+$/);
-                if (destructMatch) return destructMatch[1];
-                // Handle regular params: param: Type => param
-                const parts = p.split(':');
-                return parts[0].trim();
-            })
-            .filter((p: string) => p.length > 0)
-            .join(', ');
-        return `(${cleanedParams})`;
+        // Skip if it looks like JSX (contains quotes or HTML-like content)
+        if (params.includes('"') || params.includes("'") || params.includes('<')) return match;
+        const cleanedParams = cleanFunctionParams(params);
+        return `= (${cleanedParams}) =>`;
+    });
+
+    // Regular function parameters: function name(params) or name(params) {
+    normalized = normalized.replace(/function\s+\w+\s*\(([^)]*)\)/g, (match, params: string) => {
+        if (!params.includes(':')) return match;
+        if (params.includes('"') || params.includes("'") || params.includes('<')) return match;
+        const funcNameMatch = match.match(/function\s+(\w+)/);
+        const funcName = funcNameMatch ? funcNameMatch[1] : '';
+        const cleanedParams = cleanFunctionParams(params);
+        return `function ${funcName}(${cleanedParams})`;
+    });
+
+    // Callback parameters in hooks: useCallback((param: Type) =>
+    normalized = normalized.replace(/(useCallback|useMemo|useEffect)\s*\(\s*\(([^)]*)\)\s*=>/g, (match, hookName: string, params: string) => {
+        if (!params.includes(':')) return match;
+        if (params.includes('"') || params.includes("'") || params.includes('<')) return match;
+        const cleanedParams = cleanFunctionParams(params);
+        return `${hookName}((${cleanedParams}) =>`;
     });
 
     // Remove 'as Type' assertions
@@ -208,7 +265,8 @@ function createComponent(
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
-    fallback: React.ReactNode;
+    fallback?: React.ReactNode;
+    renderFallback?: (error: Error) => React.ReactNode;
     onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
@@ -232,8 +290,11 @@ class PreviewErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     }
 
     render(): React.ReactNode {
-        if (this.state.hasError) {
-            return this.props.fallback;
+        if (this.state.hasError && this.state.error) {
+            if (this.props.renderFallback) {
+                return this.props.renderFallback(this.state.error);
+            }
+            return this.props.fallback || null;
         }
         return this.props.children;
     }
@@ -326,48 +387,35 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
         compileAsync();
     }, [code, framework]);
 
-    // Memoize error fallback
-    const errorFallback = useMemo(() => (
-        <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-center">
-            <p className="text-error-700 font-medium">Component Render Error</p>
-            <p className="text-error-600 text-sm mt-1">
-                The component crashed during rendering.
-            </p>
-        </div>
-    ), []);
 
-    // Container styles
+
+    // Container styles - sizes to content, parent handles centering
+    // CENTERING STRATEGY CITATIONS:
+    // 1. Apple HIG: Focus on content, use consistent alignment.
+    // 2. CSS Flexbox: 'justify-center items-center' provides robust centering for flexible content.
+    //    Ref: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Aligning_Items_in_a_Flex_Container
+    // 3. W3C: 'align-items: center' and 'justify-content: center' are the standard for 2D centering.
     const containerStyles = [
         'relative',
-        'min-h-[200px]',
-        'border',
-        'border-neutral-200',
-        'rounded-lg',
-        'overflow-hidden',
-        className,
-    ].filter(Boolean).join(' ');
-
-    const previewAreaStyles = [
-        'p-6',
         'flex',
         'items-center',
         'justify-center',
-        'bg-white',
-        'min-h-[200px]',
-    ].join(' ');
+        'h-full',
+        'w-full',
+        'overflow-auto', // Ensure content accessible if it exceeds bounds
+        className,
+    ].filter(Boolean).join(' ');
 
     // Loading state
     if (state.isCompiling) {
         return (
             <div className={containerStyles}>
-                <div className={previewAreaStyles}>
-                    <div className="flex items-center gap-2 text-neutral-500">
-                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
-                        <span>Compiling preview...</span>
-                    </div>
+                <div className="flex items-center gap-2 text-neutral-500">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    <span>Compiling preview...</span>
                 </div>
             </div>
         );
@@ -377,7 +425,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
     if (state.error) {
         return (
             <div className={containerStyles}>
-                <div className="p-4 bg-error-50 text-error-700">
+                <div className="p-4 bg-error-50 text-error-700 rounded-lg max-w-md">
                     <p className="font-medium mb-1">Preview Error</p>
                     <p className="text-sm font-mono whitespace-pre-wrap">{state.error}</p>
                 </div>
@@ -389,9 +437,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
     if (!state.Component) {
         return (
             <div className={containerStyles}>
-                <div className={previewAreaStyles}>
-                    <p className="text-neutral-400 text-sm">No component to preview</p>
-                </div>
+                <p className="text-neutral-400 text-sm">No component to preview</p>
             </div>
         );
     }
@@ -401,17 +447,18 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
 
     return (
         <div className={containerStyles}>
-            {/* Preview label */}
-            <div className="absolute top-2 right-2 px-2 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded z-10">
-                Live Preview
-            </div>
-
-            {/* Preview area */}
-            <div className={previewAreaStyles}>
-                <PreviewErrorBoundary fallback={errorFallback}>
-                    <Component />
-                </PreviewErrorBoundary>
-            </div>
+            <PreviewErrorBoundary
+                renderFallback={(err) => (
+                    <div className="p-4 bg-error-50 border border-error-200 rounded-lg text-center max-w-md mx-auto">
+                        <p className="text-error-700 font-medium">Runtime Error</p>
+                        <p className="text-error-600 text-sm mt-1 font-mono text-left whitespace-pre-wrap">
+                            {err.message}
+                        </p>
+                    </div>
+                )}
+            >
+                <Component />
+            </PreviewErrorBoundary>
         </div>
     );
 };

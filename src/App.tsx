@@ -76,10 +76,10 @@ const BlueprintIcon = ({ className }: { className?: string }) => (
 );
 
 // PreviewPanel and CanvasPreview removed - Canvas now has device viewport selector
-import { ComponentGenerator } from './components/ai/ComponentGenerator';
+import { ComponentGenerator, type GeneratedComponent } from './components/ai/ComponentGenerator';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
 import { SettingsPanel } from './components/ui/SettingsPanel';
-import { useComponentLibraryStore } from './stores/componentLibraryStore';
+import { useComponentLibraryStore, type ComponentCategory } from './stores/componentLibraryStore';
 import { ImportWizard, type ComponentManifest } from './components/wizard/ImportWizard';
 import { registerComponent } from './utils/ComponentRegistry';
 import { MuiButtonAdapter, DashboardStatsBlock, GitHubRepoPreview } from './components/external/ExternalWrappers';
@@ -447,7 +447,7 @@ const sampleComponents: ComponentInfo[] = [
     name: 'Fluid Container',
     category: 'containers',
     type: 'container',
-    description: 'Responsive container that fills 100% width and height',
+    description: 'Full-size responsive container',
     builtIn: true,
     tags: ['layout', 'fluid', 'full'],
     version: '1.0.0',
@@ -470,7 +470,7 @@ const sampleComponents: ComponentInfo[] = [
     name: 'Sidebar',
     category: 'containers',
     type: 'container',
-    description: 'Vertical sidebar container',
+    description: 'Vertical sidebar navigation container',
     builtIn: true,
     tags: ['layout', 'sidebar', 'nav'],
     version: '1.0.0',
@@ -481,7 +481,7 @@ const sampleComponents: ComponentInfo[] = [
     name: 'Footer',
     category: 'containers',
     type: 'container',
-    description: 'Bottom footer container',
+    description: 'Bottom footer container area',
     builtIn: true,
     tags: ['layout', 'footer'],
     version: '1.0.0',
@@ -492,7 +492,7 @@ const sampleComponents: ComponentInfo[] = [
     name: 'Card Container',
     category: 'containers',
     type: 'container',
-    description: 'Standard card container for grouping content',
+    description: 'Content box with standard layout',
     builtIn: true,
     tags: ['layout', 'card', 'box'],
     version: '1.0.0',
@@ -730,31 +730,86 @@ const AppHeader: React.FC<AppHeaderProps> = ({
  * Calculates the initial size of a component based on "Smart Rules" relative to canvas size.
  */
 const calculateInitialSize = (
-  component: { id: string; defaultSize?: { width: number; height: number } },
+  component: { id: string; type?: string; defaultSize?: { width: number; height: number }; category?: string },
   canvasWidth: number,
   canvasHeight: number
 ) => {
-  // Smart Rules based on component ID/Type
-  if (component.id.includes('sidebar')) {
-    return { width: Math.round(canvasWidth * 0.2), height: Math.round(canvasHeight * 0.8) };
-  }
-  if (component.id.includes('header')) {
-    return { width: canvasWidth, height: 64 };
-  }
-  if (component.id.includes('footer')) {
-    return { width: canvasWidth, height: 60 };
-  }
-  if (component.id.includes('fluid')) {
-    return { width: Math.round(canvasWidth * 0.9), height: Math.round(canvasHeight * 0.9) };
-  }
-  if (component.id.includes('card')) {
-    return { width: Math.round(canvasWidth * 0.3), height: Math.round(canvasHeight * 0.3) };
+  const normalizeId = (id: string) => id.toLowerCase();
+  const id = normalizeId(component.id);
+  const type = component.type?.toLowerCase();
+  const category = component.category?.toLowerCase();
+
+  // 1. Stats Card / Dashboard Block (Specific Fix for User)
+  if (id.includes('stats') || id.includes('dashboard_stats')) {
+    return { width: 340, height: 180 }; // Increased from 280x160 to prevent truncation
   }
 
-  // Fallback to defined default size or generic default
+  // 2. Navigation Components
+  if (type === 'navigation' || id.includes('nav')) {
+    if (id.includes('sidebar')) {
+      return { width: 250, height: Math.round(canvasHeight * 0.8) };
+    }
+    if (id.includes('header')) {
+      return { width: canvasWidth, height: 64 };
+    }
+  }
+
+  // 3. Form & Input Components
+  if (type === 'form' || id.includes('form')) {
+    return { width: 400, height: 500 };
+  }
+  if (type === 'input') {
+    if (id.includes('textarea') || id.includes('multiline')) {
+      return { width: 300, height: 120 };
+    }
+    return { width: 240, height: 48 }; // Standard input
+  }
+  if (type === 'select' || id.includes('dropdown')) {
+    return { width: 240, height: 48 };
+  }
+  if (type === 'checkbox' || type === 'radio') {
+    return { width: 160, height: 32 };
+  }
+
+  // 4. Buttons
+  if (type === 'button' || id.includes('btn') || id.includes('button')) {
+    return { width: 140, height: 44 };
+  }
+
+  // 5. Containers & Layouts
+  if (type === 'container' || category === 'layouts') {
+    if (id.includes('fluid')) {
+      return { width: Math.round(canvasWidth * 0.9), height: Math.round(canvasHeight * 0.9) };
+    }
+    if (id.includes('split')) {
+      return { width: Math.round(canvasWidth * 0.8), height: Math.round(canvasHeight * 0.6) };
+    }
+    return { width: Math.round(canvasWidth * 0.5), height: Math.round(canvasHeight * 0.5) };
+  }
+
+  // 6. Cards & Panels
+  if (type === 'card' || id.includes('card')) {
+    if (id.includes('media')) {
+      return { width: 320, height: 360 }; // Taller for media
+    }
+    return { width: 320, height: 220 }; // Generous default card
+  }
+  if (type === 'panel' || type === 'modal') {
+    return { width: 400, height: 300 };
+  }
+  if (type === 'list') {
+    return { width: 300, height: 400 };
+  }
+
+  // 7. Specific Library Components (MUI, etc)
+  if (id.includes('mui/monorepo') || id === 'github-repo') {
+    return { width: 340, height: 120 };
+  }
+
+  // 8. Fallback
   return {
-    width: component.defaultSize?.width || 120,
-    height: component.defaultSize?.height || 48
+    width: component.defaultSize?.width || 200, // Generous fallback
+    height: component.defaultSize?.height || 100
   };
 };
 
@@ -986,6 +1041,7 @@ export const App: React.FC = () => {
   // Component Generator state (UJ-1.1.3)
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const { state: generatorState, generate: generateComponent } = useComponentGenerator();
+  const addComponentToLibrary = useComponentLibraryStore((state) => state.addComponent);
 
   // Window Config State (for linking canvas size)
   const windowConfig = useWindowConfigStore((state) => state.config);
@@ -1036,6 +1092,30 @@ export const App: React.FC = () => {
   const handleToggleSettings = useCallback(() => {
     setIsSettingsOpen((prev) => !prev);
   }, []);
+
+  const handleAddGeneratedComponent = useCallback((component: GeneratedComponent) => {
+    const categoryMap: Record<GeneratedComponent['type'], ComponentCategory> = {
+      button: 'buttons',
+      input: 'forms',
+      card: 'cards',
+      form: 'forms',
+      list: 'other',
+      modal: 'modals',
+      navigation: 'navigation',
+      layout: 'layout',
+      custom: 'other',
+    };
+
+    addComponentToLibrary({
+      name: component.name,
+      code: component.code,
+      framework: component.framework,
+      description: component.prompt,
+      category: categoryMap[component.type],
+      tags: [component.type, component.framework],
+      prompt: component.prompt,
+    });
+  }, [addComponentToLibrary]);
 
   // Project loading handlers
   const handleSelectProject = useCallback((project: ProjectInfo) => {
@@ -1327,7 +1407,15 @@ export const App: React.FC = () => {
             },
           };
         }
-        return el;
+
+        // Update component props (for text, variant, etc.)
+        return {
+          ...el,
+          props: {
+            ...el.props,
+            [key]: value,
+          },
+        };
       })
     );
   }, [selectedElementIds]);
@@ -1508,14 +1596,15 @@ export const App: React.FC = () => {
                   <div className="space-y-3">
                     <ComponentGallery
                       key="containers"
-                      components={sampleComponents}
+                      components={sampleComponents.filter(c =>
+                        ['containers', 'layouts'].includes(c.category)
+                      )}
                       selectedIds={selectedComponentIds}
                       onSelectionChange={handleComponentSelectionChange}
                       onAdd={handleAddComponent}
                       gridColumns={2}
                       showViewToggle={false}
                       showFilters={false}
-                      initialFilters={{ category: 'containers' }}
                       draggable
                     />
                   </div>
@@ -1523,14 +1612,13 @@ export const App: React.FC = () => {
                   <div className="space-y-3">
                     <ComponentGallery
                       key="modals"
-                      components={sampleComponents}
+                      components={sampleComponents.filter(c => c.type === 'modal')}
                       selectedIds={selectedComponentIds}
                       onSelectionChange={handleComponentSelectionChange}
                       onAdd={handleAddComponent}
                       gridColumns={2}
                       showViewToggle={false}
                       showFilters={false}
-                      initialFilters={{ type: 'modal' }}
                       draggable
                     />
                   </div>
@@ -1562,8 +1650,10 @@ export const App: React.FC = () => {
                       Import Component
                     </button>
                     <ComponentGallery
-                      key="components-all"
-                      components={sampleComponents}
+                      key="components-filtered"
+                      components={sampleComponents.filter(c =>
+                        ['atoms', 'molecules', 'organisms'].includes(c.category) && c.type !== 'modal'
+                      )}
                       selectedIds={selectedComponentIds}
                       onSelectionChange={handleComponentSelectionChange}
                       onAdd={handleAddComponent}
@@ -1826,6 +1916,48 @@ export const App: React.FC = () => {
                               min: 1,
                               category: 'Size',
                             },
+                            // Add component-specific properties if available
+                            ...(selectedElement.type === 'component' ? [
+                              {
+                                key: 'children',
+                                label: 'Label/Content',
+                                type: 'string' as const,
+                                value: selectedElement.props?.children || selectedElement.props?.label || '',
+                                category: 'Content'
+                              },
+                              {
+                                key: 'variant',
+                                label: 'Variant',
+                                type: 'select' as const,
+                                value: selectedElement.props?.variant || 'contained',
+                                options: [
+                                  { label: 'Contained', value: 'contained' },
+                                  { label: 'Outlined', value: 'outlined' },
+                                  { label: 'Text', value: 'text' }
+                                ],
+                                category: 'Style'
+                              },
+                              {
+                                key: 'color',
+                                label: 'Color',
+                                type: 'select' as const,
+                                value: selectedElement.props?.color || 'primary',
+                                options: [
+                                  { label: 'Primary', value: 'primary' },
+                                  { label: 'Secondary', value: 'secondary' },
+                                  { label: 'Success', value: 'success' },
+                                  { label: 'Error', value: 'error' }
+                                ],
+                                category: 'Style'
+                              },
+                              // Stats Card Props
+                              ...(selectedElement.componentId?.includes('stats') ? [
+                                { key: 'title', label: 'Title', type: 'string' as const, value: selectedElement.props?.title || 'Total Revenue', category: 'Content' },
+                                { key: 'value', label: 'Value', type: 'string' as const, value: selectedElement.props?.value || '$45,231.89', category: 'Content' },
+                                { key: 'trend', label: 'Trend', type: 'string' as const, value: selectedElement.props?.trend || '+20.1%', category: 'Content' },
+                                { key: 'progress', label: 'Progress %', type: 'number' as const, value: selectedElement.props?.progress || 70, category: 'Content' }
+                              ] : [])
+                            ] : [])
                           ]
                           : []
                       }
@@ -1875,20 +2007,30 @@ export const App: React.FC = () => {
           position="right"
           width="380px"
         />
-        {/* Component Generator Modal (UJ-1.1.3) */}
+        {/* Component Generator Full-Screen Modal (UJ-1.1.3) */}
         <Modal
           isOpen={showGeneratorModal}
           onClose={() => setShowGeneratorModal(false)}
-          title="Generate New Component"
-          size="lg"
+          title="AI Component Generator"
+          size="full"
         >
-          <ComponentGenerator
-            onGenerate={async (prompt, type, framework) => {
-              const result = await generateComponent(prompt, type, framework);
-              return result;
-            }}
-            isGenerating={generatorState.isGenerating}
-          />
+          <div className="h-[80vh]">
+            <ComponentGenerator
+              onGenerate={async (prompt, type, framework) => {
+                const result = await generateComponent(prompt, type, framework);
+                return result;
+              }}
+              onSave={(component) => {
+                handleAddGeneratedComponent(component);
+                setShowGeneratorModal(false);
+              }}
+              onCopy={(code) => {
+                navigator.clipboard.writeText(code);
+              }}
+              isGenerating={generatorState.isGenerating}
+              className="h-full"
+            />
+          </div>
         </Modal>
         {/* Settings Panel */}
         <SettingsPanel

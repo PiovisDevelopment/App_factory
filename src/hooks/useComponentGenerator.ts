@@ -60,52 +60,73 @@ export interface UseComponentGeneratorReturn {
  * Traceability: EUR-1.1.3a, D070, C2
  */
 const DESIGN_TOKEN_REFERENCE = `
-DESIGN SYSTEM TOKENS - Use ONLY these Tailwind classes for styling:
+═══════════════════════════════════════════════════════════════════
+DESIGN SYSTEM - EXACT TOKENS (Use ONLY these - others will NOT render)
+═══════════════════════════════════════════════════════════════════
 
-COLORS (use shade 50-950):
-- Primary: bg-primary-[shade], text-primary-[shade], border-primary-[shade]
-  Examples: bg-primary-600, hover:bg-primary-700, text-primary-50, border-primary-500
-- Neutral: bg-neutral-[shade], text-neutral-[shade], border-neutral-[shade]
-  Examples: bg-neutral-100, text-neutral-900, border-neutral-300
-- Success: bg-success-[shade], text-success-[shade] (use 50, 500-700)
-- Warning: bg-warning-[shade], text-warning-[shade] (use 50, 500-700)
-- Error: bg-error-[shade], text-error-[shade] (use 50, 500-700)
+COLOR MAPPING (User words → Tailwind classes):
+┌─────────────┬────────────────────────────────────────────────────┐
+│ User says   │ Use these EXACT classes                            │
+├─────────────┼────────────────────────────────────────────────────┤
+│ blue        │ bg-primary-500, bg-primary-600 (bright blue)       │
+│ yellow      │ bg-amber-400, bg-amber-500, bg-yellow-400          │
+│ orange      │ bg-warning-500, bg-warning-600 (#f59e0b)           │
+│ red         │ bg-error-500, bg-error-600                         │
+│ green       │ bg-success-500, bg-success-600                     │
+│ gray/grey   │ bg-neutral-400, bg-neutral-500                     │
+│ white       │ bg-white, bg-neutral-50                            │
+│ black       │ bg-neutral-900, bg-neutral-950                     │
+│ purple      │ bg-purple-500, bg-purple-600                       │
+│ pink        │ bg-pink-500, bg-pink-600                           │
+└─────────────┴────────────────────────────────────────────────────┘
 
-SPACING (4px grid):
-- Padding: p-1 to p-12, px-1 to px-8, py-1 to py-4
-- Margin: m-1 to m-12, mx-auto, my-4
-- Gap: gap-1 to gap-8
+AVAILABLE COLOR SCALES:
+- primary: 50,100,200,300,400,500,600,700,800,900,950 (blue)
+- neutral: 50,100,200,300,400,500,600,700,800,900,950 (gray)
+- success: 50,500,600,700 (green)
+- warning: 50,500,600,700 (orange/amber)
+- error: 50,500,600,700 (red)
+- Standard Tailwind: amber, yellow, purple, pink, etc. all work
 
-TYPOGRAPHY:
-- Size: text-xs, text-sm, text-base, text-lg, text-xl, text-2xl
-- Weight: font-normal, font-medium, font-semibold, font-bold
-- Font: font-sans (default), font-mono
+TEXT ON COLORS:
+- On dark bg (500+): use text-white
+- On light bg (50-200): use text-neutral-900
 
-BORDERS & RADIUS:
-- Radius: rounded-sm, rounded-md, rounded-lg, rounded-xl, rounded-full
-- Border: border, border-2, border-neutral-200, border-primary-500
+SIZING:
+- Small: w-8 h-8, w-10 h-10
+- Medium: w-12 h-12, w-16 h-16
+- Large: w-20 h-20, w-24 h-24
 
-SHADOWS:
-- shadow-sm, shadow-md, shadow-lg, shadow-xl
+SHAPES:
+- Circle/round: rounded-full
+- Rounded square: rounded-lg, rounded-xl
+- Square: rounded-none
 
-EFFECTS:
-- Focus: focus:outline-none, focus:ring-2, focus:ring-primary-500, focus:ring-offset-2
-- Transitions: transition-all, transition-colors, duration-150, duration-200
-- Opacity: opacity-50, opacity-75
+SHADOWS & DEPTH:
+- Flat: (no shadow)
+- Subtle: shadow-sm
+- Elevated: shadow-md, shadow-lg
+- Dramatic: shadow-xl, shadow-2xl
+- Neumorphic: shadow-lg + border + slightly lighter bg
 
-LAYOUT:
-- Flex: flex, flex-col, items-center, justify-center, justify-between
-- Width: w-full, w-auto, min-w-0, max-w-md
-- Display: inline-flex, block, hidden
+ANIMATIONS (for hover/interaction requests):
+- Spin: transition-transform duration-500 hover:rotate-[360deg]
+- Pulse: hover:animate-pulse
+- Bounce: transition-transform duration-300 hover:animate-bounce
+- Jelly/bouncy: transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] hover:scale-110 active:scale-90
+- Scale up: transition-transform duration-200 hover:scale-110
+- Scale down (press): active:scale-95
+- Squish/squishy: transition-transform duration-150 hover:scale-110 active:scale-90
 
-ACCESSIBILITY (Apple HIG Compliance - MANDATORY):
-- All buttons: MUST include aria-label="descriptive text"
-- All inputs: MUST include aria-label OR a visible label with htmlFor
-- Icon-only buttons: MUST have aria-label (no text = no context for screen readers)
-- Interactive elements: add tabIndex={0} for keyboard navigation
-- Focus states: ALWAYS include focus:ring-2 focus:ring-offset-2
-- Disabled states: add disabled:opacity-50 disabled:cursor-not-allowed
-- Contrast: use primary-600+ on white, neutral-50 text on dark backgrounds (4.5:1 ratio)
+STATES (always include):
+- Hover: hover:bg-{color}-700, hover:scale-105
+- Focus: focus:outline-none focus:ring-2 focus:ring-{color}-500 focus:ring-offset-2
+- Active: active:scale-95
+- Disabled: disabled:opacity-50 disabled:cursor-not-allowed
+
+ACCESSIBILITY (MANDATORY):
+- Buttons: aria-label="description of what button does"
+- Good contrast: dark text on light bg, light text on dark bg
 `;
 
 /**
@@ -138,38 +159,98 @@ Use plain JavaScript that works directly in the browser.`,
     html: "Generate HTML with Tailwind CSS classes.",
   };
 
-  return `You are a UI component generator for the App Factory design system.
+  return `You are a world-class UI component generator. Your output is used in a live preview - it must be PIXEL PERFECT and FULLY FUNCTIONAL.
 
-Create a ${type} component based on this description:
-"${userPrompt}"
+REQUEST: "${userPrompt}"
 
-CRITICAL REQUIREMENTS:
-1. ${frameworkInstructions[framework]}
-2. Use Tailwind CSS classes for ALL styling - NO inline styles
-3. Use ONLY the design token classes listed below - this ensures visual consistency
-4. Do NOT include any import statements - React is available globally
-5. Do NOT wrap code in markdown code fences
-6. Make the component self-contained and immediately executable
-7. For React: use React.useState, React.useCallback directly (not destructured imports)
-8. Give the component a clear, descriptive PascalCase name
-9. For hover effects, use Tailwind hover: prefix (e.g., hover:bg-primary-700)
-10. ACCESSIBILITY: Include aria-label on ALL buttons and icon elements - this is MANDATORY
+═══════════════════════════════════════════════════════════════════
+STEP 1: PARSE THE REQUEST (extract ALL requirements)
+═══════════════════════════════════════════════════════════════════
+Before generating, identify:
+- SHAPE: round/circle → rounded-full, square → rounded-none, rounded → rounded-lg
+- COLOR: yellow → bg-yellow-400/bg-amber-400, blue → bg-primary-600, etc.
+- SIZE: small/large/specific dimensions
+- BEHAVIOR: hover effects, click actions, animations
+- CONTENT: text label, icon, etc.
+
+═══════════════════════════════════════════════════════════════════
+STEP 2: APPLY THESE NON-NEGOTIABLE RULES
+═══════════════════════════════════════════════════════════════════
+
+RULE 1 - SINGLE ELEMENT OUTPUT:
+Return ONLY the requested component. NO wrapper divs, containers, headers, descriptions, or demo UI.
+If user says "button" → return just a <button>
+If user says "card" → return just the card element
+
+RULE 2 - LITERAL IMPLEMENTATION:
+Every word in the request MUST be reflected in the output:
+- "yellow" → bg-yellow-400 or bg-amber-400 (NOT warning - use actual yellow)
+- "round/circle" → rounded-full
+- "spins on hover" → transition-transform duration-500 hover:rotate-[360deg]
+- "squishy/squish" → transition-transform duration-150 hover:scale-110 active:scale-90
+- "pulses" → hover:animate-pulse
+- "on click says X" → onClick={() => alert('X')}
+- "neomorphic/neumorphic" → shadow-lg bg-neutral-100 border border-neutral-200
+
+RULE 3 - TECHNICAL:
+- ${frameworkInstructions[framework]}
+- Tailwind CSS classes ONLY (no inline styles)
+- No imports (React is global)
+- No markdown code fences
+- Use React.useState, React.useCallback, React.useEffect directly
+
+RULE 4 - ACCESSIBILITY:
+- All buttons: aria-label="descriptive text"
+- Focus ring: focus:outline-none focus:ring-2 focus:ring-offset-2
+
+RULE 5 - NO UNWANTED ELEMENTS:
+- If user does NOT mention text/label → button must be EMPTY (no children, self-closing or empty)
+- If user does NOT mention background color → use the color they DID mention
+- ONLY add what is EXPLICITLY requested - nothing more
+- "jelly" or "bouncy" → MUST use elastic cubic-bezier: ease-[cubic-bezier(0.68,-0.55,0.265,1.55)]
 
 ${DESIGN_TOKEN_REFERENCE}
 
-EXAMPLE COMPONENT (Button with accessibility):
-const PrimaryButton = () => {
+═══════════════════════════════════════════════════════════════════
+EXAMPLES (study the pattern)
+═══════════════════════════════════════════════════════════════════
+
+REQUEST: "yellow neomorphic button that bounces like jelly on hover"
+const JellyNeomorphicButton = () => {
   return (
     <button
-      aria-label="Submit form"
-      className="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+      aria-label="Jelly neomorphic button"
+      className="w-16 h-16 rounded-xl bg-yellow-400 shadow-lg border border-yellow-300 transition-all duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] hover:scale-110 active:scale-90 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+    />
+  );
+};
+
+REQUEST: "small red circle"
+const SmallRedCircle = () => {
+  return (
+    <div
+      aria-label="Small red circle"
+      className="w-8 h-8 rounded-full bg-red-500"
+    />
+  );
+};
+
+REQUEST: "blue button that spins on hover, on click alerts hello"
+const SpinningBlueButton = () => {
+  return (
+    <button
+      aria-label="Click to say hello"
+      onClick={() => alert('hello')}
+      className="px-6 py-3 rounded-lg bg-primary-600 text-white font-semibold transition-transform duration-500 hover:rotate-[360deg] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
     >
-      Click Me
+      HELLO
     </button>
   );
 };
 
-Generate ONLY the component code. No explanations, no imports, no markdown.`;
+═══════════════════════════════════════════════════════════════════
+NOW GENERATE (code only, no explanation)
+═══════════════════════════════════════════════════════════════════`;
 }
 
 /**

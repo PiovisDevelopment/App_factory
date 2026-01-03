@@ -112,7 +112,7 @@ const statusLabels: Record<PluginStatus, string> = {
 /**
  * PluginGallery component props.
  */
-export interface PluginGalleryProps extends Omit<HTMLAttributes<HTMLDivElement>, "onSelect"> {
+export interface PluginGalleryProps extends Omit<HTMLAttributes<HTMLDivElement>, "onSelect" | "onLoad"> {
   /** Array of plugins to display */
   plugins: PluginInfo[];
   /** Currently selected plugin ID */
@@ -319,8 +319,8 @@ export const PluginGallery = forwardRef<HTMLDivElement, PluginGalleryProps>(
   ) => {
     // State
     const [filters, setFilters] = useState<GalleryFilters>(initialFilters);
-    const [sortBy, setSortBy] = useState<GallerySortBy>(initialSort.by);
-    const [sortOrder, setSortOrder] = useState<GallerySortOrder>(initialSort.order);
+    const [sortBy] = useState<GallerySortBy>(initialSort.by);
+    const [sortOrder] = useState<GallerySortOrder>(initialSort.order);
     const [viewMode, setViewMode] = useState<GalleryViewMode>(initialViewMode);
     const [showFilterPanel, setShowFilterPanel] = useState(false);
 
@@ -709,7 +709,7 @@ const PluginGalleryItem: React.FC<PluginGalleryItemProps> = ({
   };
 
   return (
-    <div className={itemStyles} onClick={handleClick} role="button" tabIndex={0}>
+    <div className={itemStyles} onClick={handleClick} role="button" tabIndex={0} title={plugin.description}>
       {/* Status indicator */}
       <div
         className={[

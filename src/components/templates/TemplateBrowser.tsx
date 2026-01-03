@@ -13,7 +13,8 @@ import { Input } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { layoutTemplates, type LayoutTemplate } from "./layoutTemplates";
 import { useTemplateStore, useFilteredTemplates, type FETemplate } from "../../stores/templateStore";
-import type { CanvasElement } from "../factory/CanvasEditor";
+import { TemplatePreview } from "./TemplatePreview";
+import type { CanvasElement } from "../factory/canvasTypes";
 
 // =============================================================================
 // TYPES
@@ -168,23 +169,50 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
     onLoad,
     onDelete,
 }) => {
-    const layoutTemplate = template as LayoutTemplate;
+    // Prepare data for preview
+    let elements: CanvasElement[] = [];
+    let windowSize = { width: 1920, height: 1080 };
+
+    if (isPrebuilt) {
+        const t = template as LayoutTemplate;
+        elements = t.elements || [];
+        if (t.windowSize) windowSize = t.windowSize;
+    } else {
+        const t = template as FETemplate;
+        if (t.components) {
+            elements = Object.values(t.components).map((comp) => ({
+                id: comp.id,
+                type: "component",
+                name: comp.name,
+                componentId: comp.type,
+                bounds: {
+                    x: comp.position?.x ?? 0,
+                    y: comp.position?.y ?? 0,
+                    width: comp.position?.width ?? 200,
+                    height: comp.position?.height ?? 100,
+                },
+                props: comp.props,
+                visible: true,
+                zIndex: 1, // Default zIndex
+            }));
+        }
+    }
 
     return (
-        <div className="group relative bg-white border border-neutral-200 rounded-xl overflow-hidden hover:border-primary-300 hover:shadow-md transition-all duration-200">
+        <div className="group relative bg-white border border-neutral-200 rounded-xl overflow-hidden hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-default" title={template.description}>
             {/* Preview Area */}
-            <div className="h-32 bg-gradient-to-br from-neutral-50 to-neutral-100 flex items-center justify-center relative">
-                {isPrebuilt && layoutTemplate.icon ? (
-                    <span className="text-4xl">{layoutTemplate.icon}</span>
-                ) : (
-                    <TemplateIcon className="h-12 w-12 text-neutral-300" />
-                )}
+            <div className="h-32 bg-neutral-100 flex items-center justify-center relative overflow-hidden">
+                <TemplatePreview
+                    elements={elements}
+                    windowSize={windowSize}
+                    containerHeight={128} // Matches h-32
+                />
 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-10">
                     <button
                         onClick={onLoad}
-                        className="px-4 py-2 bg-white text-neutral-900 rounded-lg text-sm font-medium shadow-lg hover:bg-neutral-50 transition-colors"
+                        className="px-4 py-2 bg-white text-neutral-900 rounded-lg text-sm font-medium shadow-lg hover:bg-neutral-50 transition-colors transform translate-y-2 group-hover:translate-y-0 duration-200"
                     >
                         Load Template
                     </button>

@@ -45,6 +45,41 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     const [testMessage, setTestMessage] = useState('');
     const [isLoadingModels, setIsLoadingModels] = useState(false);
 
+    // Local state for system prompt editing
+    const [localSystemPrompt, setLocalSystemPrompt] = useState(systemPrompt);
+    const [promptSaved, setPromptSaved] = useState(true);
+
+    // Default system prompt for Component Generator
+    const DEFAULT_SYSTEM_PROMPT = `You are a strict code compiler. Return ONLY valid React/Tailwind code.
+
+CRITICAL INSTRUCTIONS:
+1. OUTPUT FORMAT: Return ONLY the raw component code. NO markdown fences, NO explanations, NO imports, NO comments.
+2. ACCURACY: Implement EXACTLY what is requested. DO NOT hallucinate features.
+3. NEGATIVE CONSTRAINTS (DO NOT DO):
+   - DO NOT add background colors unless requested.
+   - DO NOT add filler text (Lorem Ipsum) unless requested.
+   - DO NOT add extra padding/margins unless necessary for layout.
+   - DO NOT wrap the component in a centered div (the previewer handles centering).
+
+ANIMATION RULES (Exact Implementation):
+- "jelly" / "bouncy" -> YOU MUST USE: transition-transform duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] hover:scale-110 active:scale-90
+- "spin" -> transition-transform duration-700 ease-in-out hover:rotate-[360deg]
+- "squishy" -> transition-all duration-200 hover:scale-x-125 hover:scale-y-75 active:scale-x-75 active:scale-y-125
+
+STYLING:
+- Use Tailwind CSS for EVERYTHING.
+- For "modern" look: use 'ring-1 ring-white/10' for borders in dark mode if needed.
+- Interactive elements MUST have 'focus:ring-2 focus:outline-none'.
+
+BROWNFIELD PATTERNS (MANDATORY overrides):
+- If user says "HEXAGON" -> className="aspect-square bg-primary-500 [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]"
+- If user says "SPARKLES" -> Use a wrapper div with 'relative'. Add absolute positioned spans for 'sparkles' with 'animate-ping' or 'animate-pulse'.
+- If user says "NEOMORPHIC" -> DO NOT use 'shadow-lg'. YOU MUST USE: shadow-[6px_6px_10px_0px_rgba(0,0,0,0.1),-6px_-6px_10px_0px_rgba(255,255,255,0.8)]
+
+FINAL CHECK:
+- Did you add a background color? If user didn't ask, REMOVE IT.
+- Did you add text inside the button? If user didn't ask, make it empty.`;
+
     // Fetch Ollama models when provider is ollama
     useEffect(() => {
         if (provider === 'ollama' && isOpen) {
@@ -108,6 +143,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             setTestMessage(result.error || 'Connection failed.');
         }
     }, []);
+
+    // Handle system prompt change (local only)
+    const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setLocalSystemPrompt(e.target.value);
+        setPromptSaved(false);
+    }, []);
+
+    // Save system prompt to store
+    const handleSavePrompt = useCallback(() => {
+        setSystemPrompt(localSystemPrompt);
+        setPromptSaved(true);
+    }, [localSystemPrompt, setSystemPrompt]);
+
+    // Load default system prompt
+    const handleLoadDefault = useCallback(() => {
+        setLocalSystemPrompt(DEFAULT_SYSTEM_PROMPT);
+        setPromptSaved(false);
+    }, [DEFAULT_SYSTEM_PROMPT]);
 
     if (!isOpen) return null;
 
@@ -216,17 +269,39 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
                     {/* System Prompt */}
                     <div>
-                        <label htmlFor="systemPrompt" className="block text-sm font-medium text-neutral-700 mb-1">
-                            System Prompt
-                        </label>
+                        <div className="flex items-center justify-between mb-1">
+                            <label htmlFor="systemPrompt" className="block text-sm font-medium text-neutral-700">
+                                System Prompt
+                            </label>
+                            <button
+                                type="button"
+                                onClick={handleLoadDefault}
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                            >
+                                Load Default
+                            </button>
+                        </div>
                         <textarea
                             id="systemPrompt"
-                            value={systemPrompt}
-                            onChange={(e) => setSystemPrompt(e.target.value)}
-                            rows={4}
+                            value={localSystemPrompt}
+                            onChange={handlePromptChange}
+                            rows={6}
                             placeholder="Enter system instructions for the AI..."
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none"
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none text-sm"
                         />
+                        <div className="flex items-center justify-between mt-2">
+                            <span className={`text-xs ${promptSaved ? 'text-green-600' : 'text-amber-600'}`}>
+                                {promptSaved ? '✓ Saved' : '• Unsaved changes'}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={handleSavePrompt}
+                                disabled={promptSaved}
+                                className="px-3 py-1 text-sm font-medium text-white bg-primary-500 rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Save Prompt
+                            </button>
+                        </div>
                     </div>
 
                     {/* Test Connection */}

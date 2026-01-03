@@ -635,7 +635,90 @@ ComponentGallery.displayName = "ComponentGallery";
 /**
  * Component preview renderer - renders actual component from registry for thumbnails.
  */
-const ComponentPreviewRenderer: React.FC<{ type: string }> = ({ type }) => {
+const ComponentPreviewRenderer: React.FC<{ component: ComponentInfo }> = ({ component }) => {
+  const { id, type } = component;
+
+  // Specific visual previews for Containers & Layouts
+  if (id === 'container_fluid') {
+    return (
+      <div className="w-full h-full bg-indigo-50 border-2 border-dashed border-indigo-200 flex items-center justify-center rounded">
+        <span className="text-[10px] font-medium text-indigo-400">Fluid</span>
+      </div>
+    );
+  }
+
+  if (id === 'container_header') {
+    return (
+      <div className="w-full h-full bg-neutral-50 border border-neutral-200 rounded flex flex-col overflow-hidden">
+        <div className="h-6 w-full bg-indigo-100 border-b border-indigo-200 flex items-center px-1 gap-1">
+          <div className="w-2 h-2 rounded-full bg-indigo-300"></div>
+          <div className="w-8 h-1.5 bg-indigo-200 rounded-sm"></div>
+        </div>
+        <div className="flex-1 bg-white"></div>
+      </div>
+    );
+  }
+
+  if (id === 'container_sidebar') {
+    return (
+      <div className="w-full h-full bg-neutral-50 border border-neutral-200 rounded flex overflow-hidden">
+        <div className="w-6 h-full bg-indigo-100 border-r border-indigo-200 flex flex-col items-center py-1 gap-1">
+          <div className="w-3 h-3 rounded bg-indigo-300 mb-1"></div>
+          <div className="w-3 h-0.5 bg-indigo-200"></div>
+          <div className="w-3 h-0.5 bg-indigo-200"></div>
+        </div>
+        <div className="flex-1 bg-white"></div>
+      </div>
+    );
+  }
+
+  if (id === 'container_footer') {
+    return (
+      <div className="w-full h-full bg-neutral-50 border border-neutral-200 rounded flex flex-col justify-end overflow-hidden">
+        <div className="flex-1 bg-white"></div>
+        <div className="h-6 w-full bg-indigo-100 border-t border-indigo-200 flex items-center justify-center">
+          <div className="w-12 h-1.5 bg-indigo-200 rounded-sm"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'container_card' || id === 'card_basic' || id === 'card_media') {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-neutral-50 p-2">
+        <div className="w-full h-full bg-white border border-neutral-200 rounded shadow-sm flex flex-col overflow-hidden">
+          {id === 'card_media' ? (
+            <div className="h-1/2 bg-neutral-100 border-b border-neutral-100 flex items-center justify-center">
+              <div className="w-4 h-4 text-neutral-300">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+              </div>
+            </div>
+          ) : (
+            <div className="h-5 border-b border-neutral-100 bg-neutral-50"></div>
+          )}
+          <div className="flex-1 p-1">
+            <div className="w-3/4 h-1.5 bg-neutral-100 rounded-sm mb-1"></div>
+            <div className="w-1/2 h-1.5 bg-neutral-100 rounded-sm"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (id === 'layout_split') {
+    return (
+      <div className="w-full h-full bg-white border border-neutral-200 rounded flex overflow-hidden">
+        <div className="w-1/2 h-full bg-indigo-50 border-r border-indigo-100 flex items-center justify-center">
+          <span className="text-[9px] text-indigo-300">1</span>
+        </div>
+        <div className="w-1/2 h-full bg-white flex items-center justify-center">
+          <span className="text-[9px] text-neutral-300">2</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback to Component Registry
   const Component = getComponent(type);
 
   // Provide sample props based on component type
@@ -771,6 +854,7 @@ const ComponentGalleryItem: React.FC<ComponentGalleryItemProps> = ({
         }
       }}
       aria-label={`${component.name} - ${component.description}`}
+      title={component.description}
     >
       {/* Multi-select checkbox (UJ-1.1.2) */}
       {isMultiSelect && (
@@ -817,8 +901,8 @@ const ComponentGalleryItem: React.FC<ComponentGalleryItemProps> = ({
             className="h-full w-full object-contain p-2"
           />
         ) : isComponentRegistered(component.type) ? (
-          <div className="transform scale-75 pointer-events-none">
-            <ComponentPreviewRenderer type={component.type} />
+          <div className="w-full h-full transform scale-90 pointer-events-none flex items-center justify-center">
+            <ComponentPreviewRenderer component={component} />
           </div>
         ) : (
           <ComponentIcon className={isGrid ? "h-10 w-10 text-neutral-300" : "h-6 w-6 text-neutral-300"} />

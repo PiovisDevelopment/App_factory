@@ -20,22 +20,30 @@ export const MuiButtonAdapter = (props: any) => {
 // =============================================================================
 // 2. REACT COMPONENTS BLOCK ADAPTER (Simulating Block 1056)
 // =============================================================================
-export const DashboardStatsBlock = () => {
+export const DashboardStatsBlock = (props: any) => {
     return (
-        <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 font-sans h-full flex flex-col justify-center">
-            <div className="flex justify-between items-start mb-2">
-                <div>
-                    <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                    <h3 className="text-2xl font-bold text-gray-900 mt-1">$45,231.89</h3>
+        <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-100 font-sans h-full flex flex-col justify-center overflow-hidden">
+            <div className="flex justify-between items-start mb-2 w-full">
+                <div className="min-w-0 flex-1 mr-2">
+                    <p className="text-sm font-medium text-gray-500 truncate">{props.title || 'Total Revenue'}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-1 truncate" title={props.value || '$45,231.89'}>
+                        {props.value || '$45,231.89'}
+                    </h3>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 h-6">
-                    +20.1%
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium h-6 whitespace-nowrap ${(props.trend || '+20.1%').startsWith('+')
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                    {props.trend || '+20.1%'}
                 </span>
             </div>
-            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-2">
-                <div className="h-full bg-blue-500 w-[70%]" />
+            <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden mt-2 shrink-0">
+                <div
+                    className="h-full bg-blue-500"
+                    style={{ width: props.progress ? `${props.progress}%` : '70%' }}
+                />
             </div>
-            <p className="text-xs text-gray-400 mt-2">Compared to last month</p>
+            <p className="text-xs text-gray-400 mt-2 truncate">{props.footer || 'Compared to last month'}</p>
         </div>
     );
 };

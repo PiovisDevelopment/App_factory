@@ -92,6 +92,11 @@ async function generateWithGemini(
     // Initialize the GoogleGenAI client with the API key
     const ai = new GoogleGenAI({ apiKey });
 
+    // Log the request for debugging
+    console.log(`[LLM Service] Sending request to Gemini (${modelId})`);
+    console.log(`[LLM Service] System Prompt:`, systemPrompt);
+    console.log(`[LLM Service] User Prompt:`, userPrompt);
+
     // Generate content using the new SDK pattern
     const response = await ai.models.generateContent({
         model: modelId,
@@ -104,6 +109,7 @@ async function generateWithGemini(
 
     // Extract text from response
     const text = response.text;
+    console.log(`[LLM Service] Received response length: ${text?.length} chars`);
 
     return { success: true, text };
 }

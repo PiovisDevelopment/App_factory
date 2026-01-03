@@ -1,7 +1,9 @@
 /**
  * D070 - src/components/ai/ComponentGenerator.tsx
  * ================================================
- * AI-powered component generation interface.
+ * AI-powered component generation interface with single-screen layout.
+ *
+ * Layout: 30% left chat panel | 70% right (preview top + code bottom)
  *
  * Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
  * Dependencies: D006, D007, D010, D011, D012, D014, D015
@@ -11,12 +13,9 @@
  *   - ALL styling via Tailwind classes referencing design tokens
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "../ui/Button";
 import { Select, type SelectOption } from "../ui/Select";
-import { Panel } from "../ui/Panel";
-import { Modal } from "../ui/Modal";
-import { Input } from "../ui/Input";
 import { LiveComponentPreview } from "./LiveComponentPreview";
 import { generateText } from "../../services/llmService";
 import { DESIGN_TOKEN_REFERENCE } from "../../hooks/useComponentGenerator";
@@ -54,12 +53,22 @@ export interface GeneratedComponent {
 }
 
 /**
+ * Chat message structure for conversation history.
+ */
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+}
+
+/**
  * Component generator props.
  */
 export interface ComponentGeneratorProps {
   /** Callback when component is generated */
   onGenerate: (prompt: string, type: ComponentType, framework: FrameworkTarget) => Promise<GeneratedComponent>;
-  /** Callback when user wants to save/export generated component */
+  /** Callback when user wants to add the generated component to the library */
   onSave?: (component: GeneratedComponent) => void;
   /** Callback when user copies code to clipboard */
   onCopy?: (code: string) => void;
@@ -146,9 +155,9 @@ const CopyIcon: React.FC = () => (
 );
 
 /**
- * Save icon.
+ * Add-to-library icon.
  */
-const SaveIcon: React.FC = () => (
+const PlusIcon: React.FC = () => (
   <svg
     className="h-4 w-4"
     xmlns="http://www.w3.org/2000/svg"
@@ -160,9 +169,49 @@ const SaveIcon: React.FC = () => (
     strokeLinejoin="round"
     aria-hidden="true"
   >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-    <polyline points="17 21 17 13 7 13 7 21" />
-    <polyline points="7 3 7 8 15 8" />
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
+/**
+ * Send icon for chat.
+ */
+const SendIcon: React.FC = () => (
+  <svg
+    className="h-4 w-4"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
+
+/**
+ * Clear/Reset icon.
+ */
+const ClearIcon: React.FC = () => (
+  <svg
+    className="h-4 w-4"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
   </svg>
 );
 
@@ -173,36 +222,41 @@ const CodePreview: React.FC<{
   code: string;
   language: string;
   onCopy?: () => void;
-}> = ({ code, language, onCopy }) => {
+  maxHeight?: string;
+}> = ({ code, language, onCopy, maxHeight = "300px" }) => {
   const containerStyles = [
     "relative",
     "bg-neutral-900",
     "rounded-lg",
     "overflow-hidden",
+    "flex",
+    "flex-col",
   ].join(" ");
 
   const headerStyles = [
     "flex",
     "items-center",
     "justify-between",
-    "px-4",
+    "px-3",
     "py-2",
     "bg-neutral-800",
     "border-b",
     "border-neutral-700",
+    "flex-shrink-0",
   ].join(" ");
 
   const codeStyles = [
-    "p-4",
-    "overflow-x-auto",
-    "text-sm",
+    "p-3",
+    "overflow-auto",
+    "text-xs",
     "font-mono",
     "text-neutral-100",
-    "whitespace-pre",
+    "whitespace-pre-wrap",
+    "flex-1",
   ].join(" ");
 
   return (
-    <div className={containerStyles}>
+    <div className={containerStyles} style={{ maxHeight }}>
       <div className={headerStyles}>
         <span className="text-xs text-neutral-400 uppercase tracking-wide">
           {language}
@@ -229,21 +283,8 @@ const CodePreview: React.FC<{
 /**
  * ComponentGenerator component.
  *
- * An AI-powered interface for generating UI components from natural language
- * descriptions. Supports multiple component types and framework targets.
- *
- * @example
- * ```tsx
- * const handleGenerate = async (prompt, type, framework) => {
- *   const result = await aiService.generateComponent(prompt, type, framework);
- *   return result;
- * };
- *
- * <ComponentGenerator
- *   onGenerate={handleGenerate}
- *   onSave={(component) => saveToProject(component)}
- * />
- * ```
+ * Single-screen AI-powered interface for generating UI components.
+ * Layout: 30% left (chat) | 70% right (preview top + code bottom)
  */
 export const ComponentGenerator: React.FC<ComponentGeneratorProps> = ({
   onGenerate,
@@ -254,32 +295,65 @@ export const ComponentGenerator: React.FC<ComponentGeneratorProps> = ({
   isGenerating = false,
   className = "",
 }) => {
+  // Generation state
   const [prompt, setPrompt] = useState("");
   const [componentType, setComponentType] = useState<ComponentType>("button");
   const [framework, setFramework] = useState<FrameworkTarget>("react");
   const [generatedComponent, setGeneratedComponent] = useState<GeneratedComponent | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [previewTab, setPreviewTab] = useState<'preview' | 'code' | 'refine'>('preview');
 
-  // Chat refinement state
-  const [refinementInput, setRefinementInput] = useState("");
+  // Chat state
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isRefining, setIsRefining] = useState(false);
-  const [refinementHistory, setRefinementHistory] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
+  // Refs
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-scroll chat to bottom on new messages
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
+
+  // Generate new component
   const handleGenerate = useCallback(async () => {
     if (!prompt.trim()) {
       setError("Please enter a description for the component you want to generate.");
       return;
     }
+    if (framework !== "react") {
+      setError("Live preview is only supported for React. Select React to generate a demoable component.");
+      return;
+    }
 
     setError(null);
+
+    // Add user message to chat
+    const userMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content: prompt,
+      timestamp: new Date(),
+    };
+    setChatHistory(prev => [...prev, userMessage]);
+    setPrompt("");
+
     try {
       const result = await onGenerate(prompt, componentType, framework);
       setGeneratedComponent(result);
-      setShowPreviewModal(true);
+
+      // Add success message to chat
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: `Generated "${result.name}" component. Check the preview panel on the right to see it in action.`,
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, assistantMessage]);
     } catch (err) {
-      // Handle various error types: Error instances, Tauri CommandError objects, strings
       let errorMsg = "Failed to generate component";
       if (err instanceof Error) {
         errorMsg = err.message;
@@ -292,63 +366,56 @@ export const ComponentGenerator: React.FC<ComponentGeneratorProps> = ({
         errorMsg = err;
       }
       setError(errorMsg);
+
+      // Add error message to chat
+      const errorMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: `Error: ${errorMsg}`,
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, errorMessage]);
     }
   }, [prompt, componentType, framework, onGenerate]);
 
-  const handleCopy = useCallback(() => {
-    if (generatedComponent) {
-      navigator.clipboard.writeText(generatedComponent.code);
-      onCopy?.(generatedComponent.code);
-    }
-  }, [generatedComponent, onCopy]);
-
-  const handleSave = useCallback(() => {
-    if (generatedComponent && onSave) {
-      onSave(generatedComponent);
-      setShowPreviewModal(false);
-    }
-  }, [generatedComponent, onSave]);
-
-  /**
-   * Handle component refinement via chat.
-   */
+  // Refine existing component
   const handleRefinement = useCallback(async () => {
-    if (!refinementInput.trim() || !generatedComponent) return;
+    if (!prompt.trim() || !generatedComponent) return;
 
-    const userMessage = refinementInput.trim();
-    setRefinementInput("");
+    const userMessage = prompt.trim();
+    setPrompt("");
     setIsRefining(true);
 
-    // Add user message to history
-    setRefinementHistory(prev => [...prev, { role: 'user', content: userMessage }]);
+    // Add user message to chat
+    const chatUserMessage: ChatMessage = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date(),
+    };
+    setChatHistory(prev => [...prev, chatUserMessage]);
 
     try {
-      // Build refinement prompt - uses same design tokens as initial generation (EUR-1.1.3a, C2)
-      const refinementPrompt = `You are refining an existing ${generatedComponent.framework} component for the App Factory design system.
+      const refinementPrompt = `REFINE this component. Apply the user's changes EXACTLY.
 
-CURRENT COMPONENT CODE:
-\`\`\`
+CURRENT CODE:
 ${generatedComponent.code}
-\`\`\`
 
-USER REFINEMENT REQUEST:
-"${userMessage}"
+USER CHANGE REQUEST: "${userMessage}"
 
-CRITICAL REQUIREMENTS:
-1. Output ONLY the complete updated component code
-2. Do NOT include any TypeScript syntax (type annotations, interfaces, generics)
-3. Use Tailwind CSS classes for ALL styling - NO inline styles
-4. Use ONLY the design token classes listed below - this ensures visual consistency
-5. Do NOT include any import statements - React is available globally
-6. Do NOT wrap code in markdown code fences
-7. For React: use React.useState, React.useCallback directly
-8. Keep the same component name
-9. Apply the user's requested changes while preserving existing functionality
-10. For hover effects, use Tailwind hover: prefix (e.g., hover:bg-primary-700)
+RULES:
+1. Keep component name: ${generatedComponent.name}
+2. Output ONLY the component - no wrappers, no explanations
+3. Implement EVERY requested change literally:
+   - "yellow" → bg-yellow-400 or bg-amber-400
+   - "make it spin" → transition-transform duration-500 hover:rotate-[360deg]
+   - "squishy" → transition-transform duration-150 hover:scale-110 active:scale-90
+4. No TypeScript syntax, no imports, no markdown
+5. Keep aria-label and focus ring styles
 
 ${DESIGN_TOKEN_REFERENCE}
 
-Generate ONLY the updated component code. No explanations.`;
+OUTPUT THE REFINED CODE ONLY:`;
 
       const result = await generateText(refinementPrompt);
 
@@ -356,61 +423,219 @@ Generate ONLY the updated component code. No explanations.`;
         throw new Error(result.error || 'Refinement failed');
       }
 
-      // Update the generated component with refined code
       const refinedCode = result.text;
       setGeneratedComponent(prev => prev ? {
         ...prev,
         code: refinedCode,
-        updatedAt: new Date(),
+        generatedAt: new Date(),
       } as GeneratedComponent : null);
 
-      // Add assistant response to history
-      setRefinementHistory(prev => [...prev, {
+      // Add success message to chat
+      const assistantMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: 'Component updated! Check the Preview tab to see the changes.'
-      }]);
+        content: 'Component updated! The preview has been refreshed with your changes.',
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, assistantMessage]);
 
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Refinement failed';
-      setRefinementHistory(prev => [...prev, {
+
+      const errorMessage: ChatMessage = {
+        id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: `Error: ${errorMsg}`
-      }]);
+        content: `Error: ${errorMsg}`,
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, errorMessage]);
     } finally {
       setIsRefining(false);
     }
-  }, [refinementInput, generatedComponent]);
+  }, [prompt, generatedComponent]);
 
+  // Handle send action (generate or refine based on state)
+  const handleSend = useCallback(() => {
+    if (generatedComponent) {
+      handleRefinement();
+    } else {
+      handleGenerate();
+    }
+  }, [generatedComponent, handleRefinement, handleGenerate]);
+
+  // Handle keyboard submit
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
+  // Copy code to clipboard
+  const handleCopy = useCallback(() => {
+    if (generatedComponent) {
+      navigator.clipboard.writeText(generatedComponent.code);
+      onCopy?.(generatedComponent.code);
+      setCopyFeedback(true);
+      setTimeout(() => setCopyFeedback(false), 2000);
+    }
+  }, [generatedComponent, onCopy]);
+
+  // Save to library
+  const handleSave = useCallback(() => {
+    if (generatedComponent && onSave) {
+      onSave(generatedComponent);
+
+      const successMessage: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        role: 'system',
+        content: `"${generatedComponent.name}" has been added to your component library.`,
+        timestamp: new Date(),
+      };
+      setChatHistory(prev => [...prev, successMessage]);
+    }
+  }, [generatedComponent, onSave]);
+
+  // Clear/reset conversation
+  const handleClear = useCallback(() => {
+    setChatHistory([]);
+    setGeneratedComponent(null);
+    setPrompt("");
+    setError(null);
+  }, []);
+
+  // Container styles for the full-screen layout
   const containerStyles = [
-    "space-y-6",
+    "flex",
+    "h-full",
+    "w-full",
+    "bg-neutral-50",
+    "rounded-lg",
+    "overflow-hidden",
+    "border",
+    "border-neutral-200",
     className,
   ].filter(Boolean).join(" ");
 
   return (
-    <div className={containerStyles}>
-      <Panel
-        variant="default"
-        padding="lg"
-        radius="lg"
-        header="AI Component Generator"
-        showHeaderDivider
-      >
-        <div className="space-y-4">
-          {/* Component description input */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Describe your component
-            </label>
+    <div className={containerStyles} style={{ minHeight: "600px" }}>
+      {/* Left Panel - Chat (30%) */}
+      <div className="w-[30%] min-w-[280px] flex flex-col border-r border-neutral-200 bg-white">
+        {/* Chat Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-neutral-50">
+          <div className="flex items-center gap-2">
+            <WandIcon />
+            <span className="font-semibold text-sm text-neutral-800">AI Component Generator</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+            title="Clear conversation"
+          >
+            <ClearIcon />
+          </button>
+        </div>
+
+        {/* Configuration Options */}
+        <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50 space-y-3">
+          <Select
+            label="Component Type"
+            options={componentTypes}
+            value={componentType}
+            onChange={(e) => setComponentType(e.target.value as ComponentType)}
+            fullWidth
+            size="sm"
+          />
+          <Select
+            label="Framework"
+            options={frameworkOptions}
+            value={framework}
+            onChange={(e) => setFramework(e.target.value as FrameworkTarget)}
+            fullWidth
+            size="sm"
+          />
+        </div>
+
+        {/* Chat Messages */}
+        <div
+          ref={chatContainerRef}
+          className="flex-1 overflow-y-auto p-4 space-y-3"
+        >
+          {chatHistory.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 mb-3">
+                <WandIcon />
+              </div>
+              <p className="text-sm text-neutral-600 mb-2">
+                Describe the component you want to create
+              </p>
+              <p className="text-xs text-neutral-400">
+                e.g., "A card with image, title, and action button"
+              </p>
+            </div>
+          ) : (
+            chatHistory.map((msg) => (
+              <div
+                key={msg.id}
+                className={[
+                  'p-3 rounded-lg text-sm',
+                  msg.role === 'user'
+                    ? 'bg-primary-100 text-primary-900 ml-4'
+                    : msg.role === 'system'
+                      ? 'bg-success-50 text-success-700 border border-success-200'
+                      : 'bg-neutral-100 text-neutral-800 mr-4',
+                ].join(' ')}
+              >
+                {msg.role === 'user' && (
+                  <span className="text-xs font-medium text-primary-600 block mb-1">You</span>
+                )}
+                {msg.role === 'assistant' && (
+                  <span className="text-xs font-medium text-neutral-500 block mb-1">AI</span>
+                )}
+                {msg.content}
+              </div>
+            ))
+          )}
+
+          {/* Loading indicator */}
+          {(isGenerating || isRefining) && (
+            <div className="flex items-center gap-2 p-3 bg-neutral-100 rounded-lg mr-4">
+              <div className="flex space-x-1">
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span className="text-sm text-neutral-500">
+                {isGenerating ? 'Generating component...' : 'Refining component...'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mx-4 mb-2 p-2 bg-error-50 border border-error-200 rounded-lg text-xs text-error-700">
+            {error}
+          </div>
+        )}
+
+        {/* Chat Input */}
+        <div className="p-4 border-t border-neutral-200 bg-white">
+          <div className="flex gap-2">
             <textarea
+              ref={inputRef}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., A card component with an image on top, title, description, and two action buttons at the bottom"
-              rows={4}
+              onKeyDown={handleKeyDown}
+              placeholder={generatedComponent ? "Describe changes to refine..." : "Describe your component..."}
+              rows={2}
+              disabled={isGenerating || isRefining}
               className={[
-                "w-full",
-                "px-4",
-                "py-3",
-                "text-base",
+                "flex-1",
+                "px-3",
+                "py-2",
+                "text-sm",
                 "text-neutral-900",
                 "placeholder:text-neutral-400",
                 "border",
@@ -423,287 +648,132 @@ Generate ONLY the updated component code. No explanations.`;
                 "resize-none",
                 "transition-colors",
                 "duration-150",
+                "disabled:bg-neutral-50",
+                "disabled:text-neutral-400",
               ].join(" ")}
             />
-          </div>
-
-          {/* Configuration row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              label="Component Type"
-              options={componentTypes}
-              value={componentType}
-              onChange={(e) => setComponentType(e.target.value as ComponentType)}
-              fullWidth
-            />
-            <Select
-              label="Target Framework"
-              options={frameworkOptions}
-              value={framework}
-              onChange={(e) => setFramework(e.target.value as FrameworkTarget)}
-              fullWidth
-            />
-          </div>
-
-          {/* Error display */}
-          {error && (
-            <div className="p-3 bg-error-50 border border-error-200 rounded-lg text-sm text-error-700">
-              {error}
-            </div>
-          )}
-
-          {/* Generate button */}
-          <div className="flex justify-end">
             <Button
               variant="primary"
-              size="lg"
-              onClick={handleGenerate}
-              loading={isGenerating}
+              size="md"
+              onClick={handleSend}
+              loading={isGenerating || isRefining}
               disabled={!prompt.trim()}
-              leftIcon={<WandIcon />}
+              className="self-end"
+              title={generatedComponent ? "Refine component" : "Generate component"}
             >
-              Generate Component
+              <SendIcon />
             </Button>
           </div>
+          {generatedComponent && (
+            <p className="text-xs text-neutral-400 mt-2">
+              Describe changes to refine the component, or clear to start fresh.
+            </p>
+          )}
         </div>
-      </Panel>
+      </div>
 
-      {/* Generated component preview */}
-      {generatedComponent && (
-        <Panel
-          variant="elevated"
-          padding="lg"
-          radius="lg"
-          header={
-            <div className="flex items-center justify-between w-full">
-              <span>Generated: {generatedComponent.name}</span>
-              <span className="text-xs text-neutral-500">
-                {generatedComponent.generatedAt.toLocaleString()}
-              </span>
-            </div>
-          }
-          showHeaderDivider
-        >
-          <div className="space-y-4">
-            {/* Code preview */}
-            <CodePreview
-              code={generatedComponent.code}
-              language={generatedComponent.framework}
-              onCopy={handleCopy}
-            />
-
-            {/* Types preview (if available) */}
-            {generatedComponent.types && (
-              <CodePreview
-                code={generatedComponent.types}
-                language="typescript"
-              />
-            )}
-
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={handleCopy}
-                leftIcon={<CopyIcon />}
-              >
-                Copy Code
-              </Button>
-              {onSave && (
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleSave}
-                  leftIcon={<SaveIcon />}
-                >
-                  Save to Project
-                </Button>
-              )}
-            </div>
-          </div>
-        </Panel>
-      )}
-
-      <Modal
-        isOpen={showPreviewModal}
-        onClose={() => setShowPreviewModal(false)}
-        title="Generated Component Preview"
-        size="4xl"
-        footer={
+      {/* Right Panel - Preview & Code (70%) */}
+      <div className="flex-1 flex flex-col bg-neutral-100 min-w-0 overflow-hidden">
+        {generatedComponent ? (
           <>
-            <Button
-              variant="secondary"
-              onClick={() => setShowPreviewModal(false)}
-            >
-              Close
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleCopy}
-              leftIcon={<CopyIcon />}
-            >
-              Copy Code
-            </Button>
-            {onSave && (
-              <Button
-                variant="primary"
-                onClick={handleSave}
-                leftIcon={<SaveIcon />}
-              >
-                Save to Project
-              </Button>
-            )}
-          </>
-        }
-      >
-        {generatedComponent && (
-          <div className="space-y-4">
-            {/* Component metadata */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-neutral-700">Name:</span>{" "}
-                <span className="text-neutral-900">{generatedComponent.name}</span>
-              </div>
-              <div>
-                <span className="font-medium text-neutral-700">Type:</span>{" "}
-                <span className="text-neutral-900">{generatedComponent.type}</span>
-              </div>
-              <div>
-                <span className="font-medium text-neutral-700">Framework:</span>{" "}
-                <span className="text-neutral-900">{generatedComponent.framework}</span>
-              </div>
-              <div>
-                <span className="font-medium text-neutral-700">Generated:</span>{" "}
-                <span className="text-neutral-900">
-                  {generatedComponent.generatedAt.toLocaleString()}
+            {/* Toolbar */}
+            <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-200 bg-white">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-sm text-neutral-800">
+                  {generatedComponent.name}
+                </span>
+                <span className="text-xs text-neutral-400">
+                  {generatedComponent.type} • {generatedComponent.framework}
                 </span>
               </div>
-            </div>
-
-            {/* Original prompt */}
-            <div className="border-t border-neutral-200 pt-4">
-              <h4 className="text-sm font-medium text-neutral-700 mb-2">Original Prompt</h4>
-              <p className="text-sm text-neutral-600 bg-neutral-50 p-3 rounded-lg">
-                {generatedComponent.prompt}
-              </p>
-            </div>
-
-            {/* Tab switcher */}
-            <div className="border-t border-neutral-200 pt-4">
-              <div className="flex gap-1 mb-4 bg-neutral-100 p-1 rounded-lg w-fit">
-                <button
-                  onClick={() => setPreviewTab('preview')}
-                  className={[
-                    'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                    previewTab === 'preview'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900',
-                  ].join(' ')}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCopy}
+                  leftIcon={<CopyIcon />}
                 >
-                  Preview
-                </button>
-                <button
-                  onClick={() => setPreviewTab('code')}
-                  className={[
-                    'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                    previewTab === 'code'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900',
-                  ].join(' ')}
-                >
-                  Code
-                </button>
-                <button
-                  onClick={() => setPreviewTab('refine')}
-                  className={[
-                    'px-4 py-2 text-sm font-medium rounded-md transition-colors',
-                    previewTab === 'refine'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900',
-                  ].join(' ')}
-                >
-                  Refine
-                </button>
+                  {copyFeedback ? 'Copied!' : 'Copy Code'}
+                </Button>
+                {onSave && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleSave}
+                    leftIcon={<PlusIcon />}
+                  >
+                    Add to Library
+                  </Button>
+                )}
               </div>
+            </div>
 
-              {/* Preview tab content */}
-              {previewTab === 'preview' && (
-                <LiveComponentPreview
-                  code={generatedComponent.code}
-                  framework={generatedComponent.framework}
-                  className="min-h-[300px]"
-                />
-              )}
-
-              {/* Code tab content */}
-              {previewTab === 'code' && (
-                <CodePreview
-                  code={generatedComponent.code}
-                  language={generatedComponent.framework}
-                />
-              )}
-
-              {/* Refine tab content */}
-              {previewTab === 'refine' && (
-                <div className="space-y-4">
-                  {/* Refinement history */}
-                  <div className="max-h-[200px] overflow-y-auto space-y-3 p-3 bg-neutral-50 rounded-lg">
-                    {refinementHistory.length === 0 ? (
-                      <p className="text-sm text-neutral-500 text-center py-4">
-                        Describe changes you'd like to make to this component.
-                        The AI will update the code accordingly.
-                      </p>
-                    ) : (
-                      refinementHistory.map((msg, idx) => (
-                        <div
-                          key={idx}
-                          className={[
-                            'p-3 rounded-lg text-sm',
-                            msg.role === 'user'
-                              ? 'bg-primary-100 text-primary-900 ml-8'
-                              : 'bg-white border border-neutral-200 mr-8',
-                          ].join(' ')}
-                        >
-                          <span className="font-medium">
-                            {msg.role === 'user' ? 'You: ' : 'AI: '}
-                          </span>
-                          {msg.content}
-                        </div>
-                      ))
-                    )}
-                  </div>
-
-                  {/* Refinement input */}
-                  <div className="flex gap-2">
-                    <Input
-                      value={refinementInput}
-                      onChange={(e) => setRefinementInput(e.target.value)}
-                      placeholder="e.g., Make the button larger, add a hover effect, change the color to blue..."
-                      className="flex-1"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleRefinement();
-                        }
-                      }}
-                      disabled={isRefining}
-                    />
-                    <Button
-                      variant="primary"
-                      onClick={handleRefinement}
-                      loading={isRefining}
-                      disabled={!refinementInput.trim()}
-                    >
-                      Refine
-                    </Button>
-                  </div>
+            {/* Upper Section - Preview */}
+            <div className="flex-1 min-h-0 p-4 overflow-auto">
+              <div className="h-full bg-white rounded-lg border border-neutral-200 overflow-hidden">
+                <div className="px-3 py-2 border-b border-neutral-200 bg-neutral-50">
+                  <span className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                    Live Preview
+                  </span>
                 </div>
-              )}
+                <div className="h-[calc(100%-36px)] w-full flex items-center justify-center">
+                  <LiveComponentPreview
+                    code={generatedComponent.code}
+                    framework={generatedComponent.framework}
+                    className="h-full w-full"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Lower Section - Code */}
+            <div className="h-[40%] min-h-[200px] p-4 pt-0">
+              <CodePreview
+                code={generatedComponent.code}
+                language={generatedComponent.framework}
+                onCopy={handleCopy}
+                maxHeight="100%"
+              />
+            </div>
+          </>
+        ) : (
+          /* Empty State */
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-md px-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-200 mb-4">
+                <svg className="w-8 h-8 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="9" x2="15" y2="9" />
+                  <line x1="9" y1="13" x2="15" y2="13" />
+                  <line x1="9" y1="17" x2="13" y2="17" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-neutral-700 mb-2">
+                No Component Generated Yet
+              </h3>
+              <p className="text-sm text-neutral-500 mb-4">
+                Use the chat panel on the left to describe the component you want to create.
+                The AI will generate the code and show a live preview here.
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {['Button', 'Card', 'Form', 'Modal'].map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => {
+                      setPrompt(`A ${example.toLowerCase()} component with modern styling`);
+                      inputRef.current?.focus();
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-full hover:bg-primary-100 transition-colors"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
-      </Modal>
+      </div>
     </div>
   );
 };
