@@ -203,7 +203,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
 
     // Render the component tree with theme applied
     return (
-        <ThemedCanvasWrapper className={className} applyBackground={false}>
+        <ThemedCanvasWrapper className={className} applyBackground={false} data-ui-ref="component-live-preview">
             <LivePreviewChild
                 componentId={rootId}
                 components={components}

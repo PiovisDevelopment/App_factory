@@ -16,6 +16,7 @@ import { CanvasEditor, type CanvasElement, type ElementBounds } from './componen
 import { PropertyInspector } from './components/factory/PropertyInspector';
 import { ProjectLoader, type ProjectInfo } from './components/project/ProjectLoader';
 import { useProjectStore, type ProjectFile } from './stores/projectStore';
+import { type ComponentFramework } from './stores/componentLibraryStore';
 import { isTauri } from './utils/tauriUtils';
 import { ThemeCustomizationPanel } from './components/ui/ThemeCustomizationPanel';
 import { WindowConfigPanel, useWindowConfigStore } from './components/ui/WindowConfigPanel';
@@ -75,6 +76,16 @@ const BlueprintIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// Running Man Icon for User Request
+const RunningIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18.5 12.5L14.5 16.5L18.5 20.5" />
+    <circle cx="13" cy="4" r="2.5" />
+    <path d="M4 17L9 11L13 14L15 8" />
+    <path d="M13 8H9L5 11" />
+  </svg>
+);
+
 // PreviewPanel and CanvasPreview removed - Canvas now has device viewport selector
 import { ComponentGenerator, type GeneratedComponent } from './components/ai/ComponentGenerator';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
@@ -85,7 +96,9 @@ import { registerComponent } from './utils/ComponentRegistry';
 import { MuiButtonAdapter, DashboardStatsBlock, GitHubRepoPreview } from './components/external/ExternalWrappers';
 import { TemplateBrowser } from './components/templates/TemplateBrowser';
 import { BackendBlueprintPanel, type PluginSlot } from './components/factory/BackendBlueprintPanel';
+import { AiTeamVisualization } from './components/ai/AiTeamVisualization';
 import { PluginConfigPanel, type PluginConfigOption } from './components/factory/PluginConfigPanel';
+
 import { AiAppChatPanel, AiAppChatIcon } from './components/ai/AiAppChatPanel';
 
 /**
@@ -521,8 +534,11 @@ interface AppHeaderProps {
   onTogglePreview?: () => void;
   showBackendBlueprint?: boolean;
   onToggleBackendBlueprint?: () => void;
+  showAiTeam?: boolean;
+  onToggleAiTeam?: () => void;
   onToggleSettings?: () => void;
   onSaveProject?: () => void;
+
   onSaveProjectAs?: () => void;
 }
 
@@ -538,8 +554,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onTogglePreview,
   showBackendBlueprint = false,
   onToggleBackendBlueprint,
+  showAiTeam = false,
+  onToggleAiTeam,
   onToggleSettings,
   onSaveProject,
+
   onSaveProjectAs,
 }) => (
   <div className="flex items-center justify-between w-full">
@@ -817,7 +836,7 @@ export const App: React.FC = () => {
   // Application mode state (launcher vs editor)
   const [appMode, setAppMode] = useState<AppMode>('launcher');
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
-  const saveNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveNoticeTimerRef = useRef<number | null>(null);
 
   const showSaveNotice = useCallback((filePath: string) => {
     const fileName = filePath.replace(/\\/g, "/").split("/").pop() || filePath;
@@ -847,6 +866,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     setProjectTheme(theme);
   }, [theme, setProjectTheme]);
+
 
   // Project store actions
   const saveProject = useProjectStore((state) => state.saveProject);
@@ -1042,6 +1062,8 @@ export const App: React.FC = () => {
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const { state: generatorState, generate: generateComponent } = useComponentGenerator();
   const addComponentToLibrary = useComponentLibraryStore((state) => state.addComponent);
+  // Subscribe to components array to trigger re-renders when AI updates library
+  const libraryComponents = useComponentLibraryStore((state) => state.components);
 
   // Window Config State (for linking canvas size)
   const windowConfig = useWindowConfigStore((state) => state.config);
@@ -1061,6 +1083,10 @@ export const App: React.FC = () => {
 
   // Backend Blueprint state (EUR-1.2.10)
   const [showBackendBlueprint, setShowBackendBlueprint] = useState(false);
+
+  // AI Team Visualization state
+  const [isAiTeamOpen, setIsAiTeamOpen] = useState(false);
+
 
   // Settings panel state
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -1116,6 +1142,156 @@ export const App: React.FC = () => {
       prompt: component.prompt,
     });
   }, [addComponentToLibrary]);
+
+  /**
+   * Handle applying AI-generated code from Chat to canvas.
+   * Parses component name, adds to library, and places on canvas.
+   */
+  const handleApplyAiCode = useCallback((code: string, language: string) => {
+    // Parse component name from code
+    const nameMatch = code.match(/(?:const|function)\s+(\w+)/);
+    const componentName = nameMatch?.[1] || `AiComponent_${Date.now()}`;
+
+    // Add to component library
+    const componentId = `ai-chat-${Date.now()}`;
+    addComponentToLibrary({
+      name: componentName,
+      code: code,
+      framework: language === 'tsx' || language === 'jsx' || language === 'javascript' || language === 'react' ? 'react' : 'html',
+      description: 'Generated by AI Chat',
+      category: 'other',
+      tags: ['ai-generated', language],
+      prompt: 'AI Chat generated component',
+    });
+
+    // Add to canvas
+    const newElement: CanvasElement = {
+      id: `element-${Date.now()}`,
+      type: 'component',
+      name: componentName,
+      componentId: componentId,
+      bounds: {
+        x: 100 + (canvasElements.length * 20),
+        y: 100 + (canvasElements.length * 20),
+        width: 200,
+        height: 100,
+      },
+      zIndex: canvasElements.length + 1,
+    };
+
+    setCanvasElements((prev) => [...prev, newElement]);
+    setSelectedElementIds([newElement.id]);
+
+    console.log('[App] Applied AI code to canvas:', componentName);
+  }, [addComponentToLibrary, canvasElements.length]);
+
+  /**
+   * Handle applying structured canvas changes from AI.
+   * Updates existing components in-place or adds new ones.
+   */
+  const handleApplyCanvasChanges = useCallback((changes: Array<{
+    elementId?: string;
+    action?: 'add' | 'update' | 'delete';
+    name?: string;
+    code: string;
+  }>) => {
+    const { updateComponent, addComponent } = useComponentLibraryStore.getState();
+
+    changes.forEach(change => {
+      // Validate code is present and is a string
+      if (!change.code || typeof change.code !== 'string') {
+        console.error('[App] Invalid change code:', change);
+        alert(`Failed to apply changes: Invalid code generated for ${change.name || change.elementId}`);
+        return;
+      }
+
+      if (change.elementId) {
+        // Try exact ID match first
+        let element = canvasElements.find(el => el.id === change.elementId);
+
+        // Fallback: try matching by element name (case-insensitive partial match)
+        if (!element) {
+          const searchTerm = change.elementId.toLowerCase().replace(/[^a-z0-9]/g, '');
+          element = canvasElements.find(el => {
+            const elName = el.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            return elName.includes(searchTerm) || searchTerm.includes(elName);
+          });
+          if (element) {
+            console.log('[App] Found element by name fallback:', element.name, 'for:', change.elementId);
+          }
+        }
+
+        if (element?.componentId) {
+          // Check if component exists in library
+          const { getComponentById } = useComponentLibraryStore.getState();
+          const existingComponent = getComponentById(element.componentId);
+
+          if (existingComponent) {
+            // Update the component code in the library
+            updateComponent(element.componentId, { code: change.code });
+            console.log('[App] ✅ Updated component:', element.componentId, 'for element:', element.id);
+            // Temporary debug alert
+            alert(`Updated component for ${element.name}`);
+          } else {
+            // Component not in library (built-in/template) -> Create new AI component (Fork)
+            console.log('[App] Component not in library, creating fork:', element.componentId);
+
+            const newComp = addComponent({
+              name: `${element.name} (AI)`,
+              code: change.code,
+              framework: 'react',
+              description: `AI modification of ${element.name}`,
+              category: 'other',
+              tags: ['ai-generated', 'fork'],
+              prompt: 'AI Chat modification'
+            });
+
+            // Update element to point to new component
+            setCanvasElements(prev => prev.map(el =>
+              el.id === change.elementId ? { ...el, componentId: newComp.id } : el
+            ));
+
+            alert(`Converted ${element.name} to custom AI component and applied changes.`);
+          }
+        } else {
+          console.warn('[App] ❌ Element not found:', change.elementId);
+          console.log('[App] Available elements:', canvasElements.map(el => ({ id: el.id, name: el.name })));
+
+          // Alert user if element not found
+          alert(`Could not find element to update:\nID: ${change.elementId}\n\nTry selecting the component first, or checking the name.`);
+        }
+      } else if (change.action === 'add' && change.code) {
+        // Add new component
+        const newComp = addComponent({
+          name: change.name || `AiComponent_${Date.now()}`,
+          code: change.code,
+          framework: 'react',
+          description: 'Generated by AI Chat',
+          category: 'other',
+          tags: ['ai-generated'],
+        });
+
+        // Add to canvas
+        const newElement: CanvasElement = {
+          id: `element-${Date.now()}`,
+          type: 'component',
+          name: newComp.name,
+          componentId: newComp.id,
+          bounds: {
+            x: 100 + (canvasElements.length * 20),
+            y: 100 + (canvasElements.length * 20),
+            width: 200,
+            height: 100,
+          },
+          zIndex: canvasElements.length + 1,
+        };
+
+        setCanvasElements((prev) => [...prev, newElement]);
+        setSelectedElementIds([newElement.id]);
+        console.log('[App] Added new AI component to canvas:', newComp.name);
+      }
+    });
+  }, [canvasElements]);
 
   // Project loading handlers
   const handleSelectProject = useCallback((project: ProjectInfo) => {
@@ -1445,7 +1621,7 @@ export const App: React.FC = () => {
 
   // Get component code by ID for live canvas preview
   // Checks both componentLibraryStore (AI-generated) and sampleComponents (built-in)
-  const getComponentCode = useCallback((componentId: string) => {
+  const getComponentCode = useCallback((componentId: string): { code: string; framework: ComponentFramework } | null => {
     // First check componentLibraryStore for AI-generated components
     const libraryComponent = useComponentLibraryStore.getState().getComponentById(componentId);
     if (libraryComponent) {
@@ -1453,14 +1629,14 @@ export const App: React.FC = () => {
     }
 
     // Then check sampleComponents for built-in components
+    // Return undefined so CanvasEditor falls back to TemplateComponentRenderer using componentId
     const sampleComponent = sampleComponents.find(c => c.id === componentId);
     if (sampleComponent) {
-      // Return componentType for registry-based rendering
-      return { componentType: sampleComponent.type };
+      return null;
     }
 
     return null;
-  }, []);
+  }, [libraryComponents]); // Re-create when components change to pick up AI updates
 
   // Get selected element for property inspector
   const selectedElement = canvasElements.find((el) => selectedElementIds.includes(el.id));
@@ -1519,6 +1695,7 @@ export const App: React.FC = () => {
               showBackendBlueprint={showBackendBlueprint}
               onToggleBackendBlueprint={handleToggleBackendBlueprint}
               onToggleSettings={handleToggleSettings}
+
               onSaveProject={handleSaveProject}
               onSaveProjectAs={handleSaveProjectAs}
             />
@@ -1536,26 +1713,36 @@ export const App: React.FC = () => {
                     { id: 'templates', label: 'Tmpl', icon: TemplateIcon },
                     { id: 'plugins', label: 'Plug', icon: PluginIcon },
                     { id: 'aichat', label: 'AI', icon: AiAppChatIcon },
+                    { id: 'aiteam', label: 'Team', icon: RunningIcon },
                   ].map((tab) => {
                     const Icon = tab.icon;
                     const isActive = activeSidebarTab === tab.id;
+                    const isAiTeam = tab.id === 'aiteam';
+
                     return (
                       <button
                         key={tab.id}
                         type="button"
-                        onClick={() => setActiveSidebarTab(tab.id as any)}
+                        onClick={() => {
+                          if (isAiTeam) {
+                            setIsAiTeamOpen(true);
+                          } else {
+                            setActiveSidebarTab(tab.id as any);
+                          }
+                        }}
                         className={[
                           "flex-1 min-w-[3rem] px-2 py-1.5 flex flex-col items-center justify-center gap-1 text-[10px] font-medium rounded-md transition-colors",
                           isActive
                             ? "bg-white text-neutral-900 shadow-sm"
                             : "text-neutral-500 hover:text-neutral-700 hover:bg-neutral-200/50",
                         ].join(" ")}
-                        title={tab.label}
+                        title={isAiTeam ? "AI Team Visualization" : tab.label}
                       >
                         <Icon className="h-5 w-5" />
                         <span>{tab.label}</span>
                       </button>
                     );
+
                   })}
                 </div>
               </div>
@@ -1686,7 +1873,13 @@ export const App: React.FC = () => {
                   />
                 ) : activeSidebarTab === 'aichat' ? (
                   // AI App Chat panel - full panel takeover
-                  <AiAppChatPanel className="h-full -m-3" />
+                  <AiAppChatPanel
+                    className="h-full -m-3"
+                    onApplyCode={handleApplyAiCode}
+                    canvasElements={canvasElements}
+                    getComponentCode={getComponentCode}
+                    onApplyCanvasChanges={handleApplyCanvasChanges}
+                  />
                 ) : (
                   // Default or 'project' tab content - shows loaded project details
                   <div className="p-3 space-y-4">
@@ -1812,7 +2005,7 @@ export const App: React.FC = () => {
               canvasWidth={windowConfig.width}
               canvasHeight={windowConfig.height}
               getComponentCode={getComponentCode}
-              templateName={loadedTemplateName}
+              templateName={loadedTemplateName ?? undefined}
               className="bg-neutral-100" // Add a background to distinguish the canvas area
               initialZoom={0.6}
               gridSettings={{ size: 16, snap: true, visible: true }}
@@ -2037,6 +2230,15 @@ export const App: React.FC = () => {
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
         />
+        {/* AI Team Visualization Modal (New) */}
+        <Modal
+          isOpen={isAiTeamOpen}
+          onClose={() => setIsAiTeamOpen(false)}
+          title="AI Agent Team"
+          size="4xl"
+        >
+          <AiTeamVisualization />
+        </Modal>
         {/* Import Wizard (EUR-1.1.3b) */}
         <ImportWizard
           isOpen={showImportWizard}

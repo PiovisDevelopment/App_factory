@@ -53,8 +53,9 @@ export async function compileTsx(code: string): Promise<CompileResult> {
     }
 
     try {
-        console.log('[compilerService] Tauri mode: Using backend SWC compiler');
+        console.log('[compilerService] Tauri mode: Using backend SWC compiler. Input length:', code.length);
         const result = await invoke<CompileResult>('compile_tsx', { code });
+        console.log('[compilerService] Backend compilation success:', result.success, 'Error:', result.error);
         return result;
     } catch (err) {
         // If backend compilation fails, log and return error

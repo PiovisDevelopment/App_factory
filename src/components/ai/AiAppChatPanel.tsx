@@ -16,9 +16,11 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import html2canvas from 'html2canvas';
 import { useAiChatStore, type AiChatScope } from '../../stores/aiChatStore';
 import { generateWithConfig, type ChatMessage } from '../../services/aiChatLlmService';
 import { AiChatSettingsModal } from './AiChatSettingsModal';
+import type { CanvasElement } from '../factory/canvasTypes';
 
 /**
  * Brain with Speech Bubble icon for AI App Chat.
@@ -148,62 +150,169 @@ const SCOPE_CONFIG: Record<AiChatScope, { label: string; short: string; color: s
 };
 
 /**
+ * Canvas change from AI response.
+ */
+export interface CanvasChange {
+    elementId?: string;
+    action?: 'add' | 'update' | 'delete';
+    name?: string;
+    code: string;
+}
+
+/**
  * Props for AiAppChatPanel.
  */
 export interface AiAppChatPanelProps {
     /** Custom className */
     className?: string;
+    /** Callback to apply generated code to the canvas (legacy) */
+    onApplyCode?: (code: string, language: string) => void;
+    /** Canvas elements for context injection */
+    canvasElements?: CanvasElement[];
+    /** Function to get component code by ID */
+    getComponentCode?: (componentId: string) => { code?: string;[key: string]: unknown } | null;
+    /** Callback to apply structured canvas changes */
+    onApplyCanvasChanges?: (changes: CanvasChange[]) => void;
 }
 
 /**
- * Single chat message component.
+ * Single chat message component with code block detection and Apply button.
  */
-const ChatMessageItem: React.FC<{ message: ChatMessage; showTimestamp?: boolean }> = ({
+const ChatMessageItem: React.FC<{
+    message: ChatMessage;
+    showTimestamp?: boolean;
+    onApplyCode?: (code: string, language: string) => void;
+    onApplyCanvasChanges?: (changes: CanvasChange[]) => void;
+}> = ({
     message,
     showTimestamp = true,
+    onApplyCode,
+    onApplyCanvasChanges,
 }) => {
-    const isUser = message.role === 'user';
-    const isSystem = message.role === 'system';
+        const isUser = message.role === 'user';
+        const isSystem = message.role === 'system';
 
-    const containerStyles = [
-        'flex gap-2 p-2 rounded-lg text-sm',
-        isUser ? 'bg-primary-50' : isSystem ? 'bg-amber-50' : 'bg-neutral-50',
-    ].join(' ');
+        const containerStyles = [
+            'flex gap-2 p-2 rounded-lg text-sm',
+            isUser ? 'bg-primary-50' : isSystem ? 'bg-amber-50' : 'bg-neutral-50',
+        ].join(' ');
 
-    const avatarStyles = [
-        'flex items-center justify-center w-6 h-6 rounded-full shrink-0',
-        isUser ? 'bg-primary-100 text-primary-600' : isSystem ? 'bg-amber-100 text-amber-600' : 'bg-neutral-200 text-neutral-600',
-    ].join(' ');
+        const avatarStyles = [
+            'flex items-center justify-center w-6 h-6 rounded-full shrink-0',
+            isUser ? 'bg-primary-100 text-primary-600' : isSystem ? 'bg-amber-100 text-amber-600' : 'bg-neutral-200 text-neutral-600',
+        ].join(' ');
 
-    return (
-        <div className={containerStyles}>
-            <div className={avatarStyles}>
-                {isUser ? <UserIcon className="h-3.5 w-3.5" /> : <AssistantIcon className="h-3.5 w-3.5" />}
-            </div>
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs font-medium text-neutral-700">
-                        {isUser ? 'You' : isSystem ? 'System' : 'AI'}
-                    </span>
-                    {showTimestamp && (
-                        <span className="text-[10px] text-neutral-400">
-                            {new Date(message.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+        // Parse content to detect code blocks
+        const renderContent = (content: string) => {
+            // Regex to detect ```language\n...code...\n``` blocks
+            const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g;
+            const parts: React.ReactNode[] = [];
+            let lastIndex = 0;
+            let match;
+
+            while ((match = codeBlockRegex.exec(content)) !== null) {
+                // Text before the code block
+                if (match.index > lastIndex) {
+                    parts.push(<span key={`text-${lastIndex}`}>{content.slice(lastIndex, match.index)}</span>);
+                }
+
+                const language = match[1] || 'javascript';
+                const code = match[2];
+
+                parts.push(
+                    <div key={`code-${match.index}`} className="my-2 rounded-md overflow-hidden border border-neutral-200">
+                        <div className="flex items-center justify-between px-2 py-1 bg-neutral-800 text-xs">
+                            <span className="text-neutral-300 uppercase">{language}</span>
+                            {language === 'json' && onApplyCanvasChanges ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        // Debugging: Alert start
+                                        alert('Clicked Apply Changes');
+                                        try {
+                                            const parsed = JSON.parse(code.trim());
+                                            if (parsed.changes && Array.isArray(parsed.changes)) {
+                                                if (onApplyCanvasChanges) {
+                                                    // alert('Calling onApplyCanvasChanges with ' + parsed.changes.length + ' changes');
+                                                    onApplyCanvasChanges(parsed.changes);
+                                                } else {
+                                                    alert('Error: onApplyCanvasChanges prop is missing!');
+                                                }
+                                            } else {
+                                                console.warn('[ChatMessageItem] JSON does not contain valid changes array');
+                                                alert('Error: JSON missing "changes" array');
+                                            }
+                                        } catch (e) {
+                                            console.error('[ChatMessageItem] Failed to parse JSON changes', e);
+                                            alert('Error parsing JSON changes:\n' + (e instanceof Error ? e.message : String(e)));
+                                        }
+                                    }}
+                                    className="px-2 py-0.5 bg-green-600 text-white rounded text-[10px] font-medium hover:bg-green-700 transition-colors"
+                                >
+                                    Apply Changes
+                                </button>
+                            ) : onApplyCode ? (
+                                <button
+                                    type="button"
+                                    onClick={() => onApplyCode(code.trim(), language)}
+                                    className="px-2 py-0.5 bg-primary-500 text-white rounded text-[10px] font-medium hover:bg-primary-600 transition-colors"
+                                >
+                                    Apply to Canvas
+                                </button>
+                            ) : null}
+                        </div>
+                        <pre className="p-2 bg-neutral-900 text-neutral-100 text-xs overflow-x-auto">
+                            <code>{code}</code>
+                        </pre>
+                    </div>
+                );
+
+                lastIndex = match.index + match[0].length;
+            }
+
+            // Remaining text after the last code block
+            if (lastIndex < content.length) {
+                parts.push(<span key={`text-${lastIndex}`}>{content.slice(lastIndex)}</span>);
+            }
+
+            return parts.length > 0 ? parts : content;
+        };
+
+        return (
+            <div className={containerStyles}>
+                <div className={avatarStyles}>
+                    {isUser ? <UserIcon className="h-3.5 w-3.5" /> : <AssistantIcon className="h-3.5 w-3.5" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-medium text-neutral-700">
+                            {isUser ? 'You' : isSystem ? 'System' : 'AI'}
                         </span>
-                    )}
-                </div>
-                <div className="text-neutral-800 whitespace-pre-wrap break-words">
-                    {message.content}
+                        {showTimestamp && (
+                            <span className="text-[10px] text-neutral-400">
+                                {new Date(message.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
+                    </div>
+                    <div className="text-neutral-800 whitespace-pre-wrap break-words">
+                        {renderContent(message.content)}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-};
+        );
+    };
 
 /**
  * AI App Chat Panel component.
  * Replaces left sidebar content when AI Chat tab is active.
  */
-export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({ className = '' }) => {
+export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({
+    className = '',
+    onApplyCode,
+    canvasElements = [],
+    getComponentCode,
+    onApplyCanvasChanges,
+}) => {
     // Store state
     const {
         mode,
@@ -308,6 +417,7 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({ className = '' }
 
         // Generate response
         setIsGenerating(true);
+        console.log('[AiAppChatPanel] Starting generation for prompt:', trimmed);
         try {
             // Convert ChatMessage[] to expected format
             const history = messages.map(m => ({
@@ -315,11 +425,83 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({ className = '' }
                 timestamp: m.timestamp instanceof Date ? m.timestamp : new Date(m.timestamp),
             }));
 
-            const result = await generateWithConfig(config, trimmed, history);
+            // Capture canvas if frontend/full scope
+            const images: string[] = [];
+            // Build canvas context for AI
+            let canvasContext = '';
+
+            if (scope === 'frontend' || scope === 'full') {
+                // Build structured canvas context with element codes
+                if (canvasElements.length > 0 && getComponentCode) {
+                    canvasContext = '\n\n--- CANVAS_CONTEXT ---\n';
+                    canvasElements.forEach((el, idx) => {
+                        const codeInfo = el.componentId ? getComponentCode(el.componentId) : null;
+                        canvasContext += `### Element ${idx + 1}: ${el.name} (ID: ${el.id})\n`;
+                        canvasContext += `- Type: ${el.type}\n`;
+                        canvasContext += `- Position: (${el.bounds.x}, ${el.bounds.y}) Size: ${el.bounds.width}x${el.bounds.height}\n`;
+                        if (codeInfo?.code) {
+                            canvasContext += '```jsx\n' + codeInfo.code + '\n```\n\n';
+                        } else {
+                            canvasContext += '(No code available)\n\n';
+                        }
+                    });
+                    canvasContext += '--- END CANVAS_CONTEXT ---\n';
+                    console.log('[AiAppChatPanel] Canvas context built for', canvasElements.length, 'elements');
+                }
+
+                // Also capture screenshot
+                const canvasElement = document.getElementById('canvas-editor');
+                if (canvasElement) {
+                    console.log('[AiAppChatPanel] Capturing canvas...', {
+                        width: canvasElement.clientWidth,
+                        height: canvasElement.clientHeight
+                    });
+                    try {
+                        const canvas = await html2canvas(canvasElement, {
+                            useCORS: true,
+                            logging: false,
+                            ignoreElements: (element) => element.classList.contains('canvas-controls')
+                        });
+                        const base64Image = canvas.toDataURL('image/png');
+                        images.push(base64Image);
+                        console.log(`[AiAppChatPanel] Canvas captured. Size: ~${Math.round(base64Image.length / 1024)}KB`);
+                    } catch (captureErr) {
+                        console.error('[AiAppChatPanel] Failed to capture canvas:', captureErr);
+                    }
+                } else {
+                    console.warn('[AiAppChatPanel] #canvas-editor element not found');
+                }
+            }
+
+            // Build final prompt with canvas context
+            const finalPrompt = canvasContext ? `${trimmed}\n${canvasContext}` : trimmed;
+
+            console.log('[AiAppChatPanel] Calling generateWithConfig with history:', history.length, 'images:', images.length);
+            const result = await generateWithConfig(config, finalPrompt, history, images);
+            console.log('[AiAppChatPanel] Result:', result.success);
 
             if (result.success && result.text) {
                 addMessage({ role: 'assistant', content: result.text });
+
+                // Try to parse JSON changes from AI response
+                if (onApplyCanvasChanges && mode === 'change') {
+                    try {
+                        // Extract JSON from code block if present
+                        const jsonMatch = result.text.match(/```json\s*([\s\S]*?)\s*```/);
+                        if (jsonMatch) {
+                            const parsed = JSON.parse(jsonMatch[1]);
+                            if (parsed.changes && Array.isArray(parsed.changes)) {
+                                console.log('[AiAppChatPanel] Parsed', parsed.changes.length, 'changes from AI response');
+                                // Auto-apply in change mode - could add confirmation UI later
+                                onApplyCanvasChanges(parsed.changes);
+                            }
+                        }
+                    } catch (parseErr) {
+                        console.log('[AiAppChatPanel] No JSON changes in response (chat mode or plain text)');
+                    }
+                }
             } else {
+                console.error('[AiAppChatPanel] Generation failed:', result.error);
                 setError(result.error || 'Failed to generate response');
             }
         } catch (err) {
@@ -328,7 +510,7 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({ className = '' }
         } finally {
             setIsGenerating(false);
         }
-    }, [inputValue, isGenerating, messages, addMessage, getCurrentConfig, setIsGenerating, setError]);
+    }, [inputValue, isGenerating, messages, addMessage, getCurrentConfig, setIsGenerating, setError, scope, canvasElements, getComponentCode, mode, onApplyCanvasChanges]);
 
     /**
      * Handle key press in textarea.
@@ -424,6 +606,8 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({ className = '' }
                                 key={msg.id}
                                 message={msg}
                                 showTimestamp
+                                onApplyCode={onApplyCode}
+                                onApplyCanvasChanges={onApplyCanvasChanges}
                             />
                         ))}
                         {isGenerating && (

@@ -28,6 +28,10 @@ interface LiveComponentPreviewProps {
     framework: 'react' | 'vue' | 'svelte' | 'html';
     /** Preview container className */
     className?: string;
+    /** Optional scope for injected dependencies (components, utils, icons) */
+    scope?: Record<string, any>;
+    /** Optional props to pass to the rendered component */
+    props?: Record<string, any>;
 }
 
 interface PreviewState {
@@ -233,20 +237,30 @@ async function compileCode(code: string): Promise<{ compiledCode: string; error:
  */
 function createComponent(
     compiledCode: string,
-    componentName: string
+    componentName: string,
+    scope: Record<string, any> = {}
 ): { Component: React.ComponentType | null; error: string | null } {
     try {
+        // Merge default React scope with provided scope
+        // CRITICAL FIX: Filter out keys that are not valid JS identifiers (e.g., 'theme-customization')
+        // failing to do so causes 'new Function' to throw SyntaxErrors.
+        const finalScope = { React, ...scope };
+        const validScopeEntries = Object.entries(finalScope).filter(([key]) => /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key));
+
+        const scopeKeys = validScopeEntries.map(([key]) => key);
+        const scopeValues = validScopeEntries.map(([, value]) => value);
+
         // Create a function that returns the component
-        // We provide React as a dependency
+        // We provide React and all scope items as dependencies
         const createFn = new Function(
-            'React',
+            ...scopeKeys,
             `
       ${compiledCode}
       return ${componentName};
       `
         );
 
-        const Component = createFn(React);
+        const Component = createFn(...scopeValues);
 
         if (typeof Component !== 'function') {
             return { Component: null, error: `${componentName} is not a valid React component` };
@@ -314,6 +328,8 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
     code,
     framework,
     className = '',
+    scope = {},
+    props = {},
 }) => {
     const [state, setState] = useState<PreviewState>({
         Component: null,
@@ -331,7 +347,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
 
     // Compile and create component when code changes
     useEffect(() => {
-        if (!code.trim()) {
+        if (!code || typeof code !== 'string' || !code.trim()) {
             setState({ Component: null, error: 'No code provided', isCompiling: false });
             return;
         }
@@ -347,6 +363,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
         }
 
         setState(prev => ({ ...prev, isCompiling: true }));
+        console.log('[LiveComponentPreview] Starting compilation for:', code.slice(0, 50) + '...');
 
         // Async compilation function
         const compileAsync = async () => {
@@ -365,15 +382,20 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
 
             // Compile code using backend SWC compiler
             const { compiledCode, error: compileError } = await compileCode(code);
+            console.log('[LiveComponentPreview] Compiled Code:', compiledCode);
+            console.log('[LiveComponentPreview] Compilation result:', { success: !compileError, error: compileError, codeLength: compiledCode?.length });
+
             if (!isMountedRef.current) return;
 
             if (compileError) {
+                console.error('[LiveComponentPreview] Compilation failed:', compileError);
                 setState({ Component: null, error: compileError, isCompiling: false });
                 return;
             }
 
             // Create component
-            const { Component, error: createError } = createComponent(compiledCode, componentName);
+            const { Component, error: createError } = createComponent(compiledCode, componentName, framework === 'react' ? { ...scope } : {});
+
             if (!isMountedRef.current) return;
 
             if (createError) {
@@ -385,7 +407,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
         };
 
         compileAsync();
-    }, [code, framework]);
+    }, [code, framework, scope]);
 
 
 
@@ -457,7 +479,7 @@ export const LiveComponentPreview: React.FC<LiveComponentPreviewProps> = ({
                     </div>
                 )}
             >
-                <Component />
+                <Component {...props} />
             </PreviewErrorBoundary>
         </div>
     );

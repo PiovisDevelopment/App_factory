@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Factory - Architecture Specification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        @keyframes flowPulse {
+            0% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.3;
+            }
+        }
+
+        .animate-flow {
+            animation: flowPulse 2s infinite;
+        }
+
+        @keyframes ping-slow {
+
+            75%,
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .animate-ping-slow {
+            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 h-screen w-screen overflow-hidden text-slate-800 flex flex-col">
+
+    <div id="root" class="h-full w-full flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef, useMemo } = React;
+
+        // ===================================
+        // SPECIFICATION DATA (Verified)
+        // ===================================
+
+        const SPEC_DATA = {
+            supervision: {
+                title: "Process Supervision & Lifecycle",
+                color: "purple",
+                icon: "🛡️",
+                items: [
+                    { name: "Process Supervision", pattern: "Rust IpcManagerState", loc: "src-tauri/src/ipc/manager.rs", risk: "Low" },
+                    { name: "Sidecar Allowlisting", pattern: "shell.sidecar: true", loc: "tauri.conf.json", risk: "Low" },
+                    { name: "Persistent Intent", pattern: "auto_respawn: true", loc: "IpcConfig::default()", risk: "Low" },
+                    { name: "Crash Recovery", pattern: "Max 3 Attempts", loc: "HealthMonitor::needs_respawn", risk: "Medium (Limited)" },
+                    { name: "Orphan Cleanup", pattern: "Drop Trait / Kill", loc: "IpcManagerState::shutdown", risk: "Low" },
+                    { name: "STDIO Pollution", pattern: "Dedicated Stderr Thread", loc: "manager::stderr_task", risk: "Low" },
+                    { name: "Heartbeat Detection", pattern: "Ping/Pong Cycle", loc: "HealthMonitor::record_success", risk: "Low" }
+                ]
+            },
+            registry: {
+                title: "Plugin Registry & Discovery",
+                color: "amber",
+                icon: "📦",
+                items: [
+                    { name: "Deployment Registry", pattern: "Filesystem Scan", loc: "plugins/ directory", risk: "Low" },
+                    { name: "Plugin Discovery", pattern: "Manifest Parsing", loc: "plugins/**/manifest.json", risk: "Low" },
+                    { name: "Runtime Registry", pattern: "Python Dict Memory", loc: "PluginManager._plugins", risk: "Medium (Memory)" },
+                    { name: "Plugin Identity", pattern: "Manifest 'name'", loc: "manifest.json", risk: "Low" },
+                    { name: "Capability Declaration", pattern: "Contracts Array", loc: "manifest.json ['llm', 'tts']", risk: "Low" },
+                    { name: "Operator Control", pattern: "Config File Edit", loc: "Manual / No GUI", risk: "Medium (UX)" },
+                    { name: "Dependency Check", pattern: "Import Check Only", loc: "Python Runtime", risk: "Medium" }
+                ]
+            },
+            protocol: {
+                title: "Communication & Protocol",
+                color: "blue",
+                icon: "🔌",
+                items: [
+                    { name: "Protocol Framing", pattern: "Newline Delimited", loc: "BufRead::lines()", risk: "Low" },
+                    { name: "Logic Routing", pattern: "JsonRpcRouter", loc: "plugins/_host/protocol.py", risk: "Low" },
+                    { name: "Backpressure", pattern: "mpsc::channel(100)", loc: "manager.rs", risk: "Low (Drop on overflow)" },
+                    { name: "Safety: Partial Read", pattern: "BufReader Protection", loc: "std::io::BufReader", risk: "Low" },
+                    { name: "Handshake", pattern: "None (Static v2.0)", loc: "Implied", risk: "Low" },
+                    { name: "Timeout Strategy", pattern: "60s Default", loc: "IpcConfig", risk: "Medium" },
+                    { name: "Circuit Breaker", pattern: "State: Degraded", loc: "HealthMonitor", risk: "Low" }
+                ]
+            }
+        };
+
+        const GAPS_RISKS = [
+            { title: "Shared Fate", desc: "Single PID for all plugins. One SEGV kills all.", severity: "High" },
+            { title: "Soft Isolation", desc: "Python-only isolation. No memory protection.", severity: "High" },
+            { title: "Static Protocol", desc: "No dynamic version negotiation.", severity: "Medium" },
+            { title: "Manual Versions", desc: "No semantic version enforcement logic.", severity: "Medium" }
+        ];
+
+        // ===================================
+        // DIAGRAM COMPONENTS
+        // ===================================
+
+        const FlowLine = ({ active, color }) => (
+            <div className="flex-1 h-0.5 relative bg-slate-200 mx-2">
+                {active && (
+                    <div className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-${color}-500 shadow-sm animate-ping-slow`} style={{ left: '50%' }}></div>
+                )}
+                {active && (
+                    <div className={`absolute top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-${color}-500 transition-all duration-1000`} style={{ left: '50%' }}></div>
+                )}
+            </div>
+        );
+
+        const SpecTable = ({ category }) => (
+            <div className={`h-full flex flex-col rounded-xl border border-${category.color}-200 bg-white shadow-sm overflow-hidden`}>
+                <div className={`px-4 py-3 border-b border-${category.color}-100 bg-${category.color}-50 flex items-center gap-2`}>
+                    <span className="text-xl">{category.icon}</span>
+                    <h3 className={`font-bold text-${category.color}-900 text-sm uppercase tracking-wide`}>{category.title}</h3>
+                </div>
+                <div className="flex-1 overflow-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 sticky top-0 z-10 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <tr>
+                                <th className="px-3 py-2 border-b">Feature</th>
+                                <th className="px-3 py-2 border-b">Verified Pattern</th>
+                                <th className="px-3 py-2 border-b">Location</th>
+                                <th className="px-3 py-2 border-b">Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-[11px]">
+                            {category.items.map((item, i) => (
+                                <tr key={i} className="hover:bg-slate-50 border-b border-slate-50 last:border-0">
+                                    <td className="px-3 py-2 font-medium text-slate-700">{item.name}</td>
+                                    <td className="px-3 py-2 font-mono text-slate-600 bg-slate-50/50">{item.pattern}</td>
+                                    <td className="px-3 py-2 text-slate-500 max-w-[120px] truncate" title={item.loc}>{item.loc}</td>
+                                    <td className={`px-3 py-2 font-medium ${item.risk.includes('High') ? 'text-rose-600' : item.risk.includes('Medium') ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                        {item.risk}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+
+        const App = () => {
+            const [pulse, setPulse] = useState(false);
+
+            // Ticking Heartbeat Animation
+            useEffect(() => {
+                const interval = setInterval(() => setPulse(p => !p), 2000);
+                return () => clearInterval(interval);
+            }, []);
+
+            return (
+                <div className="flex flex-col h-full bg-slate-100">
+
+                    {/* TOP: ARCHITECTURE DIAGRAM (Fixed Height) */}
+                    <div className="h-[320px] bg-slate-50 border-b border-slate-200 shrink-0 flex flex-col">
+                        <div className="px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-white">
+                            <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span className="p-1 bg-indigo-600 text-white rounded text-xs px-2">ARCH-BLUEPRINT</span>
+                                App Factory Architecture <span className="text-xs font-normal text-slate-400">Ver 1.2 (Deep Dive)</span>
+                            </h1>
+                            <div className="flex gap-4 text-xs font-mono">
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-purple-50 rounded text-purple-700 border border-purple-100">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></div>
+                                    RUST SUPERVISOR
+                                </div>
+                                <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded text-amber-700 border border-amber-100">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                                    PYTHON HOST (PID 8675)
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 px-12 py-6 flex items-center justify-between gap-8 relative overflow-hidden">
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#64748b_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+                            {/* LEFT: SUPERVISOR */}
+                            <div className="w-[280px] h-full flex flex-col border-2 border-purple-200 bg-purple-50/30 rounded-2xl relative shadow-sm">
+                                <div className="absolute -top-3 left-4 bg-purple-600 text-white px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">SUPERVISOR</div>
+                                <div className="flex-1 p-4 flex flex-col justify-center gap-3">
+                                    <div className="p-3 bg-white border border-purple-100 rounded-lg shadow-sm">
+                                        <div className="text-[10px] uppercase font-bold text-purple-400 mb-1">Status</div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-bold text-purple-900">HealthMonitor</span>
+                                            <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">ACTIVE</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 bg-white border border-purple-100 rounded-lg shadow-sm text-[10px] font-mono text-slate-600">
+                                        <div>Auto-Respawn: ON</div>
+                                        <div>Max Attempts: 3</div>
+                                        <div>Timeout: 60s</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* CENTER: PIPE */}
+                            <div className="flex-1 flex flex-col items-center justify-center relative">
+                                <div className="w-full h-12 flex items-center relative">
+                                    <div className="w-full border-t-2 border-dashed border-slate-300"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="bg-white border border-blue-200 text-blue-600 px-3 py-1 rounded-full text-[10px] font-mono shadow-sm">
+                                            JSON-RPC 2.0 (STDIO)
+                                        </div>
+                                    </div>
+                                    {/* Packet Animation */}
+                                    <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full blur-[1px]" style={{ left: pulse ? '80%' : '20%', transition: 'left 1.5s ease-in-out' }}></div>
+                                </div>
+                            </div>
+
+                            {/* RIGHT: HOST */}
+                            <div className="w-[280px] h-full flex flex-col border-2 border-amber-200 bg-amber-50/30 rounded-2xl relative shadow-sm">
+                                <div className="absolute -top-3 right-4 bg-amber-600 text-white px-3 py-0.5 rounded-full text-[10px] font-bold tracking-wider">HOST PROCESS</div>
+                                <div className="absolute -bottom-3 right-4 bg-slate-800 text-slate-200 px-2 py-0.5 rounded-md text-[10px] font-mono">PID: 8675</div>
+
+                                <div className="flex-1 p-4 flex flex-col gap-2 overflow-hidden">
+                                    <div className="text-[10px] text-center font-bold text-amber-800/60 uppercase tracking-widest mb-1">Shared Fate Container</div>
+
+                                    <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar p-1">
+                                        <div className="bg-white border border-amber-200 p-2 rounded flex items-center gap-2 shadow-sm">
+                                            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                                            <div className="text-xs font-bold text-slate-700">llm_ollama</div>
+                                        </div>
+                                        <div className="bg-white border border-amber-200 p-2 rounded flex items-center gap-2 shadow-sm">
+                                            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                                            <div className="text-xs font-bold text-slate-700">stt_whisper</div>
+                                        </div>
+                                        <div className="bg-white border border-amber-200 p-2 rounded flex items-center gap-2 shadow-sm">
+                                            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                                            <div className="text-xs font-bold text-slate-700">tts_kokoro</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* BOTTOM: SPECIFICATION GRID (Scrollable if needed) */}
+                    <div className="flex-1 p-6 overflow-hidden">
+                        <div className="grid grid-cols-3 gap-6 h-full">
+
+                            {/* COL 1: Supervision */}
+                            <SpecTable category={SPEC_DATA.supervision} />
+
+                            {/* COL 2: Protocol + GAPS (Stacked) */}
+                            <div className="flex flex-col gap-6 h-full">
+                                <SpecTable category={SPEC_DATA.protocol} />
+
+                                {/* GAP ANALYSIS CARD */}
+                                <div className="flex-[0.4] bg-rose-50 border border-rose-200 rounded-xl p-4 overflow-auto custom-scrollbar">
+                                    <h3 className="text-xs font-bold text-rose-800 uppercase tracking-wide mb-3 flex items-center gap-2">
+                                        <span>⚠️ Verified Gaps & Risks</span>
+                                        <span className="flex-1 h-px bg-rose-200"></span>
+                                    </h3>
+                                    <div className="space-y-2">
+                                        {GAPS_RISKS.map((gap, i) => (
+                                            <div key={i} className="flex gap-3 items-start">
+                                                <div className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${gap.severity === 'High' ? 'bg-rose-600 text-white' : 'bg-amber-100 text-amber-700'}`}>{gap.severity}</div>
+                                                <div>
+                                                    <div className="text-[11px] font-bold text-rose-900">{gap.title}</div>
+                                                    <div className="text-[10px] text-rose-700">{gap.desc}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* COL 3: Registry */}
+                            <SpecTable category={SPEC_DATA.registry} />
+
+                        </div>
+                    </div>
+
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

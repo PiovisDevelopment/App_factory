@@ -12,6 +12,7 @@ import { GoogleGenAI } from '@google/genai';
 import { useApiKeyStore, type ApiKeyService } from '../stores/apiKeyStore';
 import { generateWithOllama } from './ollamaService';
 import type { LLMResult } from './llmService';
+import Anthropic from '@anthropic-ai/sdk';
 
 /**
  * Supported LLM providers for AI Chat.
@@ -126,6 +127,75 @@ async function generateWithGeminiConfig(
 }
 
 /**
+ * Generate text using Anthropic with specific config.
+ */
+async function generateWithAnthropicConfig(
+    apiKey: string,
+    config: LLMInstanceConfig,
+    prompt: string,
+    conversationHistory?: ChatMessage[],
+    images?: string[]
+): Promise<LLMResult> {
+    const anthropic = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
+
+    const messages: Anthropic.MessageParam[] = [];
+
+    // Add history
+    if (conversationHistory && conversationHistory.length > 0) {
+        conversationHistory.forEach(msg => {
+            if (msg.role === 'user' || msg.role === 'assistant') {
+                messages.push({
+                    role: msg.role,
+                    content: msg.content
+                });
+            }
+        });
+    }
+
+    // Prepare current message content
+    const currentContent: Anthropic.ContentBlockParam[] = [];
+
+    // Add images if present
+    if (images && images.length > 0) {
+        images.forEach(img => {
+            // Strip header if present
+            const base64Data = img.replace(/^data:image\/\w+;base64,/, '');
+            currentContent.push({
+                type: 'image',
+                source: {
+                    type: 'base64',
+                    media_type: 'image/png', // Assuming PNG from html2canvas
+                    data: base64Data
+                }
+            });
+        });
+    }
+
+    // Add text prompt
+    currentContent.push({ type: 'text', text: prompt });
+
+    messages.push({
+        role: 'user',
+        content: currentContent
+    });
+
+    const response = await anthropic.messages.create({
+        model: config.model || 'claude-3-opus-20240229',
+        max_tokens: 4096,
+        messages,
+        system: config.systemPrompt,
+        temperature: config.temperature,
+    });
+
+    // Extract text from response
+    const textContent = response.content.find(c => c.type === 'text');
+    return {
+        success: true,
+        text: textContent?.type === 'text' ? textContent.text : ''
+    };
+}
+
+/**
  * Generate text using a specific LLM configuration.
  * Does NOT use global settings - uses provided config only.
  * 
@@ -169,8 +239,10 @@ export async function generateWithConfig(
     try {
         if (config.provider === 'gemini') {
             return await generateWithGeminiConfig(apiKey, config, prompt, conversationHistory, images);
+        } else if (config.provider === 'anthropic') {
+            return await generateWithAnthropicConfig(apiKey, config, prompt, conversationHistory, images);
         } else {
-            // Placeholder for OpenAI and Anthropic
+            // Placeholder for OpenAI
             // TODO: Implement when needed
             return {
                 success: false,
@@ -224,24 +296,49 @@ Rules:
 
     frontend: `You are a Frontend UI expert following Apple Human Interface Guidelines (HIG).
 Your scope: Canvas elements, themes, window config, FE component library.
+
+CRITICAL: To modify canvas elements, you MUST use the EXACT element ID from CANVAS_CONTEXT.
+Element IDs look like "element-1735934876543" - copy them EXACTLY, do not invent names.
+
+Output format for changes:
+\`\`\`json
+{
+  "changes": [
+    {"elementId": "element-COPY_EXACT_ID_FROM_CONTEXT", "code": "const ComponentName = () => { return <div>...</div>; }"}
+  ],
+  "explanation": "Description of changes made"
+}
+\`\`\`
+
 Rules:
-- All UI must be production-ready, accessible, WCAG 2.1 compliant
-- Use design tokens exclusively - no hardcoded colors/sizes
-- Follow HIG principles for animations, layouts, interactions
-- You CANNOT modify App Factory code - only loaded app files
+- ALWAYS copy the exact elementId from the CANVAS_CONTEXT block
+- Generate complete, self-contained React functional components
+- Use Tailwind classes for styling
 - In Chat mode: Analyze and answer questions only
-- In Change mode: Follow debugging-workflow (plan → approval → execute)`,
+- In Change mode: Output JSON with changes array`,
 
     full: `You are an Architect AI orchestrating Frontend and Backend solutions.
 Your role: Coordinate between FE and BE scopes to create end-to-end solutions.
 Your scope: All loaded app resources.
+
+CRITICAL: To modify canvas elements, you MUST use the EXACT element ID from CANVAS_CONTEXT.
+Element IDs look like "element-1735934876543" - copy them EXACTLY, do not invent names.
+
+Output format for changes:
+\`\`\`json
+{
+  "changes": [
+    {"elementId": "element-COPY_EXACT_ID_FROM_CONTEXT", "code": "const ComponentName = () => { return <div>...</div>; }"}
+  ],
+  "explanation": "Description of changes made"
+}
+\`\`\`
+
 Rules:
+- ALWAYS copy the exact elementId from the CANVAS_CONTEXT block
 - Delegate FE concerns to Frontend patterns, BE concerns to Backend patterns
-- Ensure consistency across the full stack
-- You CANNOT modify App Factory code - only loaded app files
 - In Chat mode: Analyze and answer questions only
-- In Change mode: Follow debugging-workflow (plan → approval → execute)
-- Always ask clarifying questions when requirements are ambiguous`,
+- In Change mode: Output JSON with changes array`,
 };
 
 /**
@@ -250,21 +347,21 @@ Rules:
 export const DEFAULT_SCOPE_CONFIGS: Record<'backend' | 'frontend' | 'full', LLMInstanceConfig> = {
     backend: {
         provider: 'gemini',
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash-preview',
         apiKeyId: '',
         systemPrompt: DEFAULT_SYSTEM_PROMPTS.backend,
         temperature: 0.3,
     },
     frontend: {
         provider: 'gemini',
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash-preview',
         apiKeyId: '',
         systemPrompt: DEFAULT_SYSTEM_PROMPTS.frontend,
         temperature: 0.3,
     },
     full: {
         provider: 'gemini',
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash-preview',
         apiKeyId: '',
         systemPrompt: DEFAULT_SYSTEM_PROMPTS.full,
         temperature: 0.2,

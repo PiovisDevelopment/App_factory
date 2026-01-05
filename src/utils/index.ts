@@ -7,7 +7,7 @@
  */
 
 // Exporter utilities
-export { exporter } from './exporter';
+export { default as exporter } from './exporter';
 
 // UJ-B1.1: Backup and restore utilities
 export * from './backup';

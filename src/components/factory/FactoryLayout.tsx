@@ -379,7 +379,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
       >
         {/* Header */}
         {header && (
-          <div className="flex items-center h-12 px-4 bg-white border-b border-neutral-200 shrink-0">
+          <div className="flex items-center h-12 px-4 bg-white border-b border-neutral-200 shrink-0" data-ui-ref="layout-header">
             {header}
           </div>
         )}
@@ -391,6 +391,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
             <div
               className={sidebarStyles(leftVisible, "left")}
               style={{ width: leftVisible ? leftSize : 0 }}
+              data-ui-ref="layout-sidebar-left"
             >
               {/* Sidebar content */}
               <div className="flex-1 overflow-hidden">{leftSidebar}</div>
@@ -427,7 +428,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
           {/* Center content area */}
           <div className="flex flex-col flex-1 overflow-hidden">
             {/* Main canvas/content */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative" data-ui-ref="layout-center-canvas">
               {mainContent || (
                 <div className="flex items-center justify-center h-full text-neutral-400">
                   <div className="text-center">
@@ -452,6 +453,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
               <div
                 className="relative bg-white border-t border-neutral-200 shrink-0"
                 style={{ height: bottomSize }}
+                data-ui-ref="layout-panel-bottom"
               >
                 {/* Resize handle */}
                 {resizable && (
@@ -491,6 +493,7 @@ export const FactoryLayout = forwardRef<HTMLDivElement, FactoryLayoutProps>(
             <div
               className={sidebarStyles(rightVisible, "right")}
               style={{ width: rightVisible ? rightSize : 0 }}
+              data-ui-ref="layout-sidebar-right"
             >
               {/* Resize handle */}
               {resizable && rightVisible && (

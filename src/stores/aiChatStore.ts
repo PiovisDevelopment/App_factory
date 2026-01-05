@@ -192,6 +192,7 @@ export const useAiChatStore = create<AiChatState & AiChatActions>()(
         }),
         {
             name: 'ai-chat-store',
+            version: 3, // Increment when system prompts change
             // Only persist configs and history, not transient state
             partialize: (state) => ({
                 mode: state.mode,
@@ -201,6 +202,21 @@ export const useAiChatStore = create<AiChatState & AiChatActions>()(
                 fullConfig: state.fullConfig,
                 chatHistory: state.chatHistory,
             }),
+            // Migrate old versions to apply updated system prompts
+            migrate: (persistedState: unknown, version: number) => {
+                const state = persistedState as AiChatState;
+                if (version < 3) {
+                    // Force update system prompts to new defaults
+                    console.log('[aiChatStore] Migrating to v3: updating system prompts with exact ID emphasis');
+                    return {
+                        ...state,
+                        backendConfig: { ...state.backendConfig, systemPrompt: DEFAULT_SCOPE_CONFIGS.backend.systemPrompt },
+                        frontendConfig: { ...state.frontendConfig, systemPrompt: DEFAULT_SCOPE_CONFIGS.frontend.systemPrompt },
+                        fullConfig: { ...state.fullConfig, systemPrompt: DEFAULT_SCOPE_CONFIGS.full.systemPrompt },
+                    };
+                }
+                return state;
+            },
         }
     )
 );

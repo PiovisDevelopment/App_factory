@@ -1,0 +1,115 @@
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ========================================
+  # Gate 1: TypeScript Type Safety
+  # ========================================
+  typescript-types:
+    name: "Gate: TypeScript Types"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run ci:js:types
+
+  # ========================================
+  # Gate 2: TypeScript ESLint
+  # ========================================
+  typescript-lint:
+    name: "Gate: TypeScript Lint"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run ci:js:lint
+
+  # ========================================
+  # Gate 3: Vite Build
+  # ========================================
+  build:
+    name: "Gate: Vite Build"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+
+  # ========================================
+  # Gate 4: Python Ruff
+  # ========================================
+  python-ruff:
+    name: "Gate: Python Ruff"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ruff==0.14.9
+      - run: ruff check .
+
+  # ========================================
+  # Gate 5: Python Mypy
+  # ========================================
+  python-mypy:
+    name: "Gate: Python Mypy"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install mypy>=1.9
+      - run: mypy .
+
+  # ========================================
+  # Gate 6: Rust Clippy
+  # ========================================
+  rust-clippy:
+    name: "Gate: Rust Clippy"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.92.0
+        with:
+          components: clippy
+      - run: cargo clippy -- -D warnings
+
+  # ========================================
+  # Gate 7: Rust Build
+  # ========================================
+  rust-build:
+    name: "Gate: Rust Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.92.0
+      - run: cargo build --release

@@ -24,8 +24,9 @@ import React, {
 import { LiveComponentPreview } from "../ai/LiveComponentPreview";
 import { generateThemeCSSProperties } from "../../hooks/useThemedStyles";
 import { resolveColor, resolveBorder } from "../../utils/tokenMap";
-import { getComponent, isComponentRegistered } from "../../utils/ComponentRegistry";
+import { getComponent, isComponentRegistered, getRegistry } from "../../utils/ComponentRegistry";
 import type { ThemeConfig } from "../../context/ThemeProvider";
+import * as LucideIcons from "lucide-react";
 
 /**
  * Canvas element types.
@@ -189,6 +190,36 @@ const UndoIcon: React.FC<{ className?: string }> = ({ className }) => (
     <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
   </svg>
 );
+
+/**
+ * CanvasEditor props.
+ */
+export interface CanvasEditorProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onDrop' | 'onSelect'> {
+  elements: CanvasElement[];
+  selectedIds?: string[];
+  canvasWidth?: number;
+  canvasHeight?: number;
+  initialZoom?: number;
+  gridSettings?: { size: number; snap: boolean; visible: boolean };
+  editable?: boolean;
+  showRulers?: boolean;
+  showGuides?: boolean;
+  onSelect?: (ids: string[]) => void;
+  onMove?: (id: string, bounds: ElementBounds) => void;
+  onResize?: (id: string, bounds: ElementBounds) => void;
+  onDelete?: (ids: string[]) => void;
+  onDrop?: (component: any, position: { x: number; y: number }) => void;
+  onZoomChange?: (zoom: number) => void;
+  onCanvasSizeChange?: (width: number, height: number) => void;
+  getComponentCode?: (id: string) => { code: string; framework?: string } | null;
+  templateName?: string;
+  demoMode?: boolean;
+  onDemoModeChange?: (isDemo: boolean) => void;
+  canvasTheme?: ThemeConfig;
+  onClear?: () => void;
+  onUndo?: () => void;
+  canUndo?: boolean;
+}
 
 export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
   (
@@ -650,11 +681,16 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
           {/* Live component preview for component-type elements */}
           <div className={`absolute inset-0 overflow-hidden flex items-center justify-center ${isDemoMode ? "pointer-events-auto" : ""}`}>
             {componentData?.code ? (
-              // AI-generated component: use LiveComponentPreview
+              // AI-generated component: use LiveComponentPreview with injected scope
               <LiveComponentPreview
                 code={componentData.code}
-                framework={componentData.framework || 'react'}
+                framework={(componentData.framework as 'react' | 'vue' | 'svelte' | 'html') || 'react'}
                 className="w-full h-full"
+                scope={{
+                  ...getRegistry(), // Inject all registered UI components
+                  ...LucideIcons,   // Inject all Lucide icons
+                }}
+                props={element.props}
               />
             ) : element.componentId ? (
               // Template/built-in component: use TemplateComponentRenderer

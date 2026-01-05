@@ -5,5 +5,5 @@
 //! Architecture: Plugin Option C (Tauri + React + Python subprocess via stdio IPC)
 
 fn main() {
-    tauri_build::build()
+    tauri_build::build();
 }

@@ -17,3 +17,7 @@ jsonschema>=4.0
 # - pathlib: Path handling
 # - logging: Structured logging
 # - importlib: Plugin dynamic loading
+
+# QA Tools (Pinned)
+ruff==0.14.9
+mypy>=1.9,<2.0

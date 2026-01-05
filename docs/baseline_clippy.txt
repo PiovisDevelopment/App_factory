@@ -1,0 +1,55 @@
+    Checking swc_common v18.0.1
+    Checking wry v0.24.11
+    Checking tauri-runtime v0.14.6
+   Compiling app-factory v1.0.0 (C:\Users\anujd\Documents\01_AI\173_piovisstudio\app_factory\src-tauri)
+   Compiling tauri-macros v1.4.7
+    Checking swc_ecma_ast v19.0.0
+    Checking tauri-runtime-wry v0.14.11
+error: lint group `all` has the same priority (0) as a lint
+  --> Cargo.toml:65:1
+   |
+65 | all = "warn"
+   | ^^^   ------ has an implicit priority of 0
+...
+70 | too_many_lines = "allow"
+   | -------------- has the same priority as this lint
+   |
+   = note: the order of the lints in the table is ignored by Cargo
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#lint_groups_priority
+   = note: `-D clippy::lint-groups-priority` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::lint_groups_priority)]`
+help: to have lints override the group set `all` to a lower priority
+   |
+65 - all = "warn"
+65 + all = { level = "warn", priority = -1 }
+   |
+
+error: lint group `pedantic` has the same priority (0) as a lint
+  --> Cargo.toml:66:1
+   |
+66 | pedantic = "warn"
+   | ^^^^^^^^   ------ has an implicit priority of 0
+...
+70 | too_many_lines = "allow"
+   | -------------- has the same priority as this lint
+   |
+   = note: the order of the lints in the table is ignored by Cargo
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#lint_groups_priority
+help: to have lints override the group set `pedantic` to a lower priority
+   |
+66 - pedantic = "warn"
+66 + pedantic = { level = "warn", priority = -1 }
+   |
+
+error: consider adding a `;` to the last statement for consistent formatting
+ --> build.rs:8:5
+  |
+8 |     tauri_build::build()
+  |     ^^^^^^^^^^^^^^^^^^^^ help: add a `;` here: `tauri_build::build();`
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#semicolon_if_nothing_returned
+  = note: `-D clippy::semicolon-if-nothing-returned` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::semicolon_if_nothing_returned)]`
+
+error: could not compile `app-factory` (build script) due to 3 previous errors
+warning: build failed, waiting for other jobs to finish...

@@ -1,0 +1,4 @@
+skills\ppf_create_application\config.py: error: Duplicate module named "config" (also at ".\skills\ppf_build_application\config.py")
+skills\ppf_create_application\config.py: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#mapping-file-paths-to-modules for more info
+skills\ppf_create_application\config.py: note: Common resolutions include: a) using `--exclude` to avoid checking one of them, b) adding `__init__.py` somewhere, c) using `--explicit-package-bases` or adjusting MYPYPATH
+Found 1 error in 1 file (errors prevented further checking)
