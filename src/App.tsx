@@ -2235,9 +2235,11 @@ export const App: React.FC = () => {
           isOpen={isAiTeamOpen}
           onClose={() => setIsAiTeamOpen(false)}
           title="AI Agent Team"
-          size="4xl"
+          size="full"
         >
-          <AiTeamVisualization />
+          <div className="h-[80vh]">
+            <AiTeamVisualization />
+          </div>
         </Modal>
         {/* Import Wizard (EUR-1.1.3b) */}
         <ImportWizard

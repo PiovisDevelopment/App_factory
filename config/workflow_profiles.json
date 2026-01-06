@@ -1,0 +1,76 @@
+{
+    "profiles": [
+        {
+            "id": "fe",
+            "name": "Frontend Only",
+            "description": "Focus on UI/UX design and frontend components",
+            "agents": {
+                "orchestrator": true,
+                "researcher": true,
+                "designer": true,
+                "developer": false,
+                "qa": false
+            }
+        },
+        {
+            "id": "be",
+            "name": "Backend Only",
+            "description": "Focus on API and backend logic development",
+            "agents": {
+                "orchestrator": true,
+                "researcher": true,
+                "designer": false,
+                "developer": true,
+                "qa": true
+            }
+        },
+        {
+            "id": "fullstack",
+            "name": "Full Stack",
+            "description": "Complete end-to-end application development",
+            "agents": {
+                "orchestrator": true,
+                "researcher": true,
+                "designer": true,
+                "developer": true,
+                "qa": true
+            }
+        },
+        {
+            "id": "research",
+            "name": "Pre-project Research",
+            "description": "Research and analysis before starting development",
+            "agents": {
+                "orchestrator": true,
+                "researcher": true,
+                "designer": false,
+                "developer": false,
+                "qa": false
+            }
+        },
+        {
+            "id": "debug",
+            "name": "Debug",
+            "description": "Debugging and troubleshooting existing code",
+            "agents": {
+                "orchestrator": true,
+                "researcher": true,
+                "designer": false,
+                "developer": true,
+                "qa": true
+            }
+        },
+        {
+            "id": "test",
+            "name": "Test",
+            "description": "Testing and quality assurance focus",
+            "agents": {
+                "orchestrator": true,
+                "researcher": false,
+                "designer": false,
+                "developer": false,
+                "qa": true
+            }
+        }
+    ]
+}

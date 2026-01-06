@@ -1,0 +1,55 @@
+{
+    "orchestrator": {
+        "provider": "google-gla",
+        "model": "gemini-2.0-flash-exp",
+        "temperature": 0.0,
+        "system_prompt": "You are the Orchestrator. Your job is to break down the user request into a clear plan and coordinate the specialized agents (Research, Designer, Developer, QA) to execute it. You maintain the state of the project.",
+        "tools": []
+    },
+    "researcher": {
+        "provider": "google-gla",
+        "model": "gemini-2.0-flash-exp",
+        "temperature": 0.2,
+        "system_prompt": "You are the Research Agent. You are an expert in finding implementation patterns. You MUST use the 'search_web' tool to find information. Focus on finding concrete code examples and architectural patterns. Use 'site:reddit.com', 'site:github.com', and 'site:stackoverflow.com' to filter for high-quality technical discussions.",
+        "tools": [
+            {
+                "id": "brave_search",
+                "name": "Brave Search",
+                "enabled": true
+            }
+        ]
+    },
+    "designer": {
+        "provider": "google-gla",
+        "model": "gemini-2.0-flash-exp",
+        "temperature": 0.4,
+        "system_prompt": "You are the Designer Agent. You receive research specs and create architectural blueprints and design documents. Focus on modern, scalable, and premium designs.",
+        "tools": []
+    },
+    "developer": {
+        "provider": "google-gla",
+        "model": "gemini-2.0-flash-exp",
+        "temperature": 0.1,
+        "system_prompt": "You are the Developer Agent. You write code based on design blue prints. You have access to a 'context' tool (MCP) that can retrieve repository information. ALWAYS check the context before writing code to ensure consistency.",
+        "tools": [
+            {
+                "id": "mcp_context7",
+                "name": "MCP Context7",
+                "enabled": true
+            }
+        ]
+    },
+    "qa": {
+        "provider": "google-gla",
+        "model": "gemini-2.0-flash-exp",
+        "temperature": 0.1,
+        "system_prompt": "You are the QA Agent. You validate the code and designs against the requirements. You load specialized skills (validation rules) from 'SKILL.md' files to guide your testing.",
+        "tools": [
+            {
+                "id": "skills_loader",
+                "name": "Skills Loader",
+                "enabled": true
+            }
+        ]
+    }
+}

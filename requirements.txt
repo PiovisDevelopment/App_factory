@@ -21,3 +21,9 @@ jsonschema>=4.0
 # QA Tools (Pinned)
 ruff==0.14.9
 mypy>=1.9,<2.0
+
+# AI Team Dependencies
+pydantic-ai
+pydantic-graph
+python-dotenv
+httpx
