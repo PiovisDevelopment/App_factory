@@ -5,9 +5,11 @@ Description: Local LLM inference via Ollama with fallback mock mode.
 
 import json
 import time
-import urllib.request
 import urllib.error
+import urllib.request
+
 from plugins._host import PluginBase
+
 
 class Plugin(PluginBase):
     def initialize(self):
@@ -49,16 +51,10 @@ class Plugin(PluginBase):
 
         # Try Ollama first
         try:
-            data = json.dumps({
-                "model": model,
-                "prompt": prompt,
-                "stream": False
-            }).encode()
+            data = json.dumps({"model": model, "prompt": prompt, "stream": False}).encode()
 
             req = urllib.request.Request(
-                "http://localhost:11434/api/generate",
-                data=data,
-                headers={"Content-Type": "application/json"}
+                "http://localhost:11434/api/generate", data=data, headers={"Content-Type": "application/json"}
             )
 
             with urllib.request.urlopen(req, timeout=30) as response:
@@ -69,7 +65,7 @@ class Plugin(PluginBase):
             self.logger.warning(f"Ollama connection failed: {e}. Using mock fallback.")
 
         # Fallback Mock Mode
-        time.sleep(1) # Simulate latency
+        time.sleep(1)  # Simulate latency
 
         # Simple heuristic to generate relevant mock code
         if "button" in prompt.lower():
@@ -109,10 +105,7 @@ export const GeneratedComponent = () => {
   );
 };"""
 
-        return {
-            "text": code,
-            "mock": True
-        }
+        return {"text": code, "mock": True}
 
     def complete_stream(self, prompt: str, model: str = "llama3"):
         """Stream a completion (Generator)."""

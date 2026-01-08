@@ -1,0 +1,121 @@
+{
+  "@mui/material": {
+    "current": "7.3.6",
+    "wanted": "7.3.7",
+    "latest": "7.3.7",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@mui\\material"
+  },
+  "@tauri-apps/api": {
+    "current": "1.6.0",
+    "wanted": "1.6.0",
+    "latest": "2.9.1",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@tauri-apps\\api"
+  },
+  "@tauri-apps/cli": {
+    "current": "1.6.3",
+    "wanted": "1.6.3",
+    "latest": "2.9.6",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@tauri-apps\\cli"
+  },
+  "@types/react": {
+    "current": "18.3.27",
+    "wanted": "18.3.27",
+    "latest": "19.2.7",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@types\\react"
+  },
+  "@types/react-dom": {
+    "current": "18.3.7",
+    "wanted": "18.3.7",
+    "latest": "19.2.3",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@types\\react-dom"
+  },
+  "@typescript-eslint/eslint-plugin": {
+    "current": "8.51.0",
+    "wanted": "8.52.0",
+    "latest": "8.52.0",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@typescript-eslint\\eslint-plugin"
+  },
+  "@typescript-eslint/parser": {
+    "current": "8.51.0",
+    "wanted": "8.52.0",
+    "latest": "8.52.0",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@typescript-eslint\\parser"
+  },
+  "@vitejs/plugin-react": {
+    "current": "4.7.0",
+    "wanted": "4.7.0",
+    "latest": "5.1.2",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\@vitejs\\plugin-react"
+  },
+  "eslint": {
+    "current": "9.6.0",
+    "wanted": "9.39.2",
+    "latest": "9.39.2",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\eslint"
+  },
+  "oxlint": {
+    "current": "1.0.0",
+    "wanted": "1.0.0",
+    "latest": "1.38.0",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\oxlint"
+  },
+  "react": {
+    "current": "18.3.1",
+    "wanted": "18.3.1",
+    "latest": "19.2.3",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\react"
+  },
+  "react-dom": {
+    "current": "18.3.1",
+    "wanted": "18.3.1",
+    "latest": "19.2.3",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\react-dom"
+  },
+  "reactflow": {
+    "current": "11.10.1",
+    "wanted": "11.11.4",
+    "latest": "11.11.4",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\reactflow"
+  },
+  "tailwindcss": {
+    "current": "3.4.19",
+    "wanted": "3.4.19",
+    "latest": "4.1.18",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\tailwindcss"
+  },
+  "typescript-eslint": {
+    "current": "8.51.0",
+    "wanted": "8.52.0",
+    "latest": "8.52.0",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\typescript-eslint"
+  },
+  "vite": {
+    "current": "5.4.21",
+    "wanted": "5.4.21",
+    "latest": "7.3.1",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\vite"
+  },
+  "zustand": {
+    "current": "4.5.7",
+    "wanted": "4.5.7",
+    "latest": "5.0.9",
+    "dependent": "app_factory",
+    "location": "C:\\Users\\anujd\\Documents\\01_AI\\173_piovisstudio\\app_factory\\node_modules\\zustand"
+  }
+}

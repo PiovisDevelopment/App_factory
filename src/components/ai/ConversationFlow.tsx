@@ -190,7 +190,7 @@ const StepRenderer: React.FC<{
   step: ConversationStep;
   value: unknown;
   onChange: (value: unknown) => void;
-  error?: string | null;
+  error?: string | null | undefined;
 }> = ({ step, value, onChange, error }) => {
   const renderInput = () => {
     switch (step.type) {
@@ -564,8 +564,8 @@ export const ConversationFlow: React.FC<ConversationFlowProps> = ({
               index === currentStepIndex
                 ? "bg-primary-500"
                 : index < currentStepIndex
-                ? "bg-primary-300 hover:bg-primary-400 cursor-pointer"
-                : "bg-neutral-200 cursor-not-allowed",
+                  ? "bg-primary-300 hover:bg-primary-400 cursor-pointer"
+                  : "bg-neutral-200 cursor-not-allowed",
             ].join(" ")}
             aria-label={`Step ${index + 1}: ${step.prompt}`}
           />

@@ -4,7 +4,7 @@
  * Renders a scaled-down live preview of a template for the thumbnail view.
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 import { TemplateComponentRenderer } from "../factory/TemplateComponentRenderer";
 import type { CanvasElement } from "../factory/canvasTypes";
 

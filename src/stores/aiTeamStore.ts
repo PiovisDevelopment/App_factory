@@ -63,7 +63,7 @@ const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
         model: 'gemini-2.0-flash-exp',
         temperature: 0.0,
         systemPrompt: 'You are the Orchestrator. Your job is to break down the user request into a clear plan and coordinate the specialized agents.',
-        tools: DEFAULT_AGENT_TOOLS.orchestrator,
+        tools: DEFAULT_AGENT_TOOLS.orchestrator ?? [],
         enabled: true,
     },
     {
@@ -73,7 +73,7 @@ const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
         model: 'gemini-2.0-flash-exp',
         temperature: 0.2,
         systemPrompt: 'You are the Research Agent. You are an expert in finding implementation patterns.',
-        tools: DEFAULT_AGENT_TOOLS.researcher,
+        tools: DEFAULT_AGENT_TOOLS.researcher ?? [],
         enabled: true,
     },
     {
@@ -83,7 +83,7 @@ const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
         model: 'gemini-2.0-flash-exp',
         temperature: 0.4,
         systemPrompt: 'You are the Designer Agent. You create architectural blueprints and design documents.',
-        tools: DEFAULT_AGENT_TOOLS.designer,
+        tools: DEFAULT_AGENT_TOOLS.designer ?? [],
         enabled: true,
     },
     {
@@ -93,7 +93,7 @@ const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
         model: 'gemini-2.0-flash-exp',
         temperature: 0.1,
         systemPrompt: 'You are the Developer Agent. You write code based on design blueprints.',
-        tools: DEFAULT_AGENT_TOOLS.developer,
+        tools: DEFAULT_AGENT_TOOLS.developer ?? [],
         enabled: true,
     },
     {
@@ -103,7 +103,7 @@ const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
         model: 'gemini-2.0-flash-exp',
         temperature: 0.1,
         systemPrompt: 'You are the QA Agent. You validate the code and designs against the requirements.',
-        tools: DEFAULT_AGENT_TOOLS.qa,
+        tools: DEFAULT_AGENT_TOOLS.qa ?? [],
         enabled: true,
     },
 ];

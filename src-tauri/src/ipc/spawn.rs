@@ -9,16 +9,16 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - SubprocessConfig for configurable spawn parameters
-//! - Sidecar-style spawn using tauri::api::process::Command
+//! - `SubprocessConfig` for configurable spawn parameters
+//! - Sidecar-style spawn using `tauri::api::process::Command`
 //! - Environment setup for unbuffered Python output
 //! - Graceful shutdown with timeout
 //! - Process state tracking
 //!
 //! Dependencies:
-//!     - D030: mod.rs (IpcError, constants)
+//!     - D030: mod.rs (`IpcError`, constants)
 //!
-//! Reference: https://v1.tauri.app/v1/guides/building/sidecar/
+//! Reference: <https://v1.tauri.app/v1/guides/building/sidecar>/
 //!
 //! Usage:
 //!     ```rust
@@ -410,35 +410,32 @@ impl SubprocessHandle {
         // Try to send shutdown request via stdin
         if let Some(ref mut stdin) = self.stdin {
             let shutdown_request = r#"{"jsonrpc":"2.0","id":0,"method":"shutdown","params":{}}"#;
-            if let Err(e) = writeln!(stdin, "{}", shutdown_request) {
-                log::warn!("Failed to send shutdown request: {}", e);
+            if let Err(e) = writeln!(stdin, "{shutdown_request}") {
+                log::warn!("Failed to send shutdown request: {e}");
             } else if let Err(e) = stdin.flush() {
-                log::warn!("Failed to flush shutdown request: {}", e);
+                log::warn!("Failed to flush shutdown request: {e}");
             }
         }
 
         // Wait for graceful exit with timeout
         let start = Instant::now();
         loop {
-            match self.try_wait()? {
-                Some(status) => {
-                    log::info!(
-                        "Subprocess exited gracefully (PID: {}, status: {:?})",
-                        self.pid,
-                        status
+            if let Some(status) = self.try_wait()? {
+                log::info!(
+                    "Subprocess exited gracefully (PID: {}, status: {:?})",
+                    self.pid,
+                    status
+                );
+                return Ok(());
+            } else {
+                if start.elapsed() >= timeout {
+                    log::warn!(
+                        "Graceful shutdown timeout exceeded, killing subprocess (PID: {})",
+                        self.pid
                     );
-                    return Ok(());
+                    return self.kill();
                 }
-                None => {
-                    if start.elapsed() >= timeout {
-                        log::warn!(
-                            "Graceful shutdown timeout exceeded, killing subprocess (PID: {})",
-                            self.pid
-                        );
-                        return self.kill();
-                    }
-                    std::thread::sleep(Duration::from_millis(50));
-                }
+                std::thread::sleep(Duration::from_millis(50));
             }
         }
     }
@@ -458,7 +455,7 @@ impl SubprocessHandle {
 
         self.child
             .kill()
-            .map_err(|e| IpcError::IoError(format!("Failed to kill subprocess: {}", e)))?;
+            .map_err(|e| IpcError::IoError(format!("Failed to kill subprocess: {e}")))?;
 
         // Wait for process to actually exit
         let _ = self.child.wait();
@@ -535,7 +532,7 @@ pub fn spawn_plugin_host(config: SubprocessConfig) -> Result<SubprocessHandle, I
 
     // Set working directory if configured
     if let Some(ref dir) = config.working_dir {
-        log::debug!("Working directory: {:?}", dir);
+        log::debug!("Working directory: {dir:?}");
         cmd.current_dir(dir);
     }
 
@@ -554,17 +551,17 @@ pub fn spawn_plugin_host(config: SubprocessConfig) -> Result<SubprocessHandle, I
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
         cmd.creation_flags(CREATE_NO_WINDOW);
     }
 
     // Spawn the process
     let mut child = cmd
         .spawn()
-        .map_err(|e| IpcError::SpawnError(format!("Failed to spawn subprocess: {}", e)))?;
+        .map_err(|e| IpcError::SpawnError(format!("Failed to spawn subprocess: {e}")))?;
 
     let pid = child.id();
-    log::info!("Plugin host spawned with PID: {}", pid);
+    log::info!("Plugin host spawned with PID: {pid}");
 
     // Extract stdio handles
     let stdin = child.stdin.take();
@@ -649,12 +646,12 @@ pub fn respawn_with_backoff(
 /// * `Ok(())` if write successful
 /// * `Err(IpcError)` if write failed
 pub fn write_request(stdin: &mut ChildStdin, json: &str) -> Result<(), IpcError> {
-    writeln!(stdin, "{}", json)
-        .map_err(|e| IpcError::SendError(format!("Failed to write to stdin: {}", e)))?;
+    writeln!(stdin, "{json}")
+        .map_err(|e| IpcError::SendError(format!("Failed to write to stdin: {e}")))?;
 
     stdin
         .flush()
-        .map_err(|e| IpcError::SendError(format!("Failed to flush stdin: {}", e)))?;
+        .map_err(|e| IpcError::SendError(format!("Failed to flush stdin: {e}")))?;
 
     Ok(())
 }

@@ -1,0 +1,41 @@
+src/components/factory/TemplateComponentRenderer.tsx(345,21): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/gallery/GalleryManager.tsx(1281,14): error TS2375: Type '{ key: string; item: GalleryItem; onSelect: (() => void) | undefined; onEdit: (() => void) | undefined; onDelete: (() => void) | undefined; onInstall: (() => Promise<void>) | undefined; readOnly: boolean; isSelected: boolean; onToggleSelect: () => void; showCheckbox: boolean; }' is not assignable to type '{ item: GalleryItem; onSelect?: () => void; onEdit?: () => void; onDelete?: () => void; onInstall?: () => void; readOnly?: boolean; isSelected?: boolean; onToggleSelect?: () => void; showCheckbox?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onSelect' are incompatible.
+    Type '(() => void) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/gallery/GalleryManager.tsx(1298,14): error TS2375: Type '{ key: string; item: GalleryItem; onSelect: (() => void) | undefined; onEdit: (() => void) | undefined; onDelete: (() => void) | undefined; onInstall: (() => Promise<void>) | undefined; readOnly: boolean; isSelected: boolean; onToggleSelect: () => void; showCheckbox: boolean; }' is not assignable to type '{ item: GalleryItem; onSelect?: () => void; onEdit?: () => void; onDelete?: () => void; onInstall?: () => void; readOnly?: boolean; isSelected?: boolean; onToggleSelect?: () => void; showCheckbox?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onSelect' are incompatible.
+    Type '(() => void) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/gallery/GalleryManager.tsx(1315,8): error TS2375: Type '{ isOpen: boolean; onClose: () => void; item: GalleryItem | undefined; onSave: (data: Partial<GalleryItem>) => Promise<void>; categories: SelectOption[]; isLoading: boolean; }' is not assignable to type '{ isOpen: boolean; onClose: () => void; item?: GalleryItem; onSave: (data: Partial<GalleryItem>) => void; categories: SelectOption[]; isLoading?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'item' are incompatible.
+    Type 'GalleryItem | undefined' is not assignable to type 'GalleryItem'.
+      Type 'undefined' is not assignable to type 'GalleryItem'.
+src/components/project/ComponentEditor.tsx(276,9): error TS18048: 'groups.required' is possibly 'undefined'.
+src/components/project/ComponentEditor.tsx(278,9): error TS18048: 'groups.optional' is possibly 'undefined'.
+src/components/templates/TemplatePreview.tsx(66,18): error TS2375: Type '{ componentId: string; props: Record<string, unknown> | undefined; bounds: ElementBounds; }' is not assignable to type 'TemplateComponentRendererProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'props' are incompatible.
+    Type 'Record<string, unknown> | undefined' is not assignable to type 'Record<string, unknown>'.
+      Type 'undefined' is not assignable to type 'Record<string, unknown>'.
+src/components/testing/HealthDashboard.tsx(229,7): error TS6133: '_statusBorderColors' is declared but its value is never read.
+src/components/testing/LogViewer.tsx(191,7): error TS6133: '_levelBgColors' is declared but its value is never read.
+src/components/testing/MethodInvoker.tsx(160,10): error TS6133: '_generateId' is declared but its value is never read.
+src/components/testing/PluginTester.tsx(621,25): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/ui/SettingsPanel.tsx(94,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/ui/ThemePreview.tsx(175,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/ui/ThemePreview.tsx(176,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/wizard/DependencySelector.tsx(174,14): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/wizard/ImportWizard.tsx(403,20): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string | null>'.
+src/hooks/useIpc.ts(193,7): error TS6133: '_DEFAULT_STATS' is declared but its value is never read.
+src/hooks/useIpc.ts(317,9): error TS6133: '_addNotification' is declared but its value is never read.
+src/hooks/usePlugin.ts(325,9): error TS6133: '_clearPlugins' is declared but its value is never read.
+src/hooks/usePlugin.ts(903,5): error TS2322: Type 'Plugin | null | undefined' is not assignable to type 'Plugin | null'.
+  Type 'undefined' is not assignable to type 'Plugin | null'.
+src/stores/projectStore.ts(1278,17): error TS2322: Type '{ children: string[]; id?: string; type?: string; name?: string; props?: Record<string, unknown>; parentId?: string | null; position?: { x: number; y: number; width: number; height: number; }; ... 4 more ...; locked?: boolean; }' is not assignable to type 'ProjectComponent'.
+  Property 'id' is optional in type '{ children: string[]; id?: string; type?: string; name?: string; props?: Record<string, unknown>; parentId?: string | null; position?: { x: number; y: number; width: number; height: number; }; slots?: ComponentSlot[]; styles?: Record<...>; events?: Record<...>; visible?: boolean; locked?: boolean; }' but required in type 'ProjectComponent'.
+src/stores/projectStore.ts(1280,29): error TS2532: Object is possibly 'undefined'.

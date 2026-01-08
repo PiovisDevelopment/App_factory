@@ -13,7 +13,7 @@
  *   - Accessible by default (ARIA, labels, error states)
  */
 
-import React, {
+import {
   forwardRef,
   useId,
   type InputHTMLAttributes,
@@ -72,11 +72,11 @@ export interface InputProps
   /** Error state */
   error?: boolean;
   /** Error message to display */
-  errorMessage?: string;
+  errorMessage?: string | undefined;
   /** Label text (recommended for accessibility) */
-  label?: string;
+  label?: string | undefined;
   /** Helper text displayed below input */
-  helperText?: string;
+  helperText?: string | undefined;
   /** Icon or element on the left side */
   leftElement?: ReactNode;
   /** Icon or element on the right side */
@@ -163,11 +163,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     // Error state styles
     const errorStyles = error
       ? [
-          "border-error-500",
-          "focus:border-error-500",
-          "focus:ring-error-500",
-          "text-error-900",
-        ].join(" ")
+        "border-error-500",
+        "focus:border-error-500",
+        "focus:ring-error-500",
+        "text-error-900",
+      ].join(" ")
       : "";
 
     // Padding adjustments for left/right elements

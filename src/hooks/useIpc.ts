@@ -190,7 +190,7 @@ const DEFAULT_HEALTH: IpcHealthStatus = {
   lastError: null,
 };
 
-const DEFAULT_STATS: IpcManagerStats = {
+const _DEFAULT_STATS: IpcManagerStats = {
   lifecycleState: "uninitialized",
   healthStatus: DEFAULT_HEALTH,
   totalRequests: 0,
@@ -314,7 +314,7 @@ export function useIpc(): UseIpcReturn {
 
   // Factory store integration
   const setFactoryLoading = useFactoryStore((state) => state.setLoading);
-  const addNotification = useFactoryStore((state) => state.addNotification);
+  const _addNotification = useFactoryStore((state) => state.addNotification);
 
   /**
    * Start the IPC manager.

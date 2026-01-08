@@ -1,0 +1,169 @@
+src/components/ai/AiAppChatPanel.tsx(233,71): error TS18048: 'code' is possibly 'undefined'.
+src/components/ai/AiAppChatPanel.tsx(257,64): error TS18048: 'code' is possibly 'undefined'.
+src/components/ai/AiAppChatPanel.tsx(492,55): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/ai/AiAppChatPanel.tsx(605,30): error TS2375: Type '{ key: string; message: ChatMessage; showTimestamp: true; onApplyCode: ((code: string, language: string) => void) | undefined; onApplyCanvasChanges: ((changes: CanvasChange[]) => void) | undefined; }' is not assignable to type '{ message: ChatMessage; showTimestamp?: boolean; onApplyCode?: (code: string, language: string) => void; onApplyCanvasChanges?: (changes: CanvasChange[]) => void; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onApplyCode' are incompatible.
+    Type '((code: string, language: string) => void) | undefined' is not assignable to type '(code: string, language: string) => void'.
+      Type 'undefined' is not assignable to type '(code: string, language: string) => void'.
+src/components/ai/ConversationFlow.tsx(499,12): error TS2375: Type '{ step: ConversationStep; value: unknown; onChange: (value: unknown) => void; error: string | null | undefined; }' is not assignable to type '{ step: ConversationStep; value: unknown; onChange: (value: unknown) => void; error?: string | null; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'error' are incompatible.
+    Type 'string | null | undefined' is not assignable to type 'string | null'.
+      Type 'undefined' is not assignable to type 'string | null'.
+src/components/ai/FixSuggestions.tsx(542,18): error TS2375: Type '{ key: string; suggestion: FixSuggestion; onApply: (() => Promise<void>) | undefined; isApplying: boolean; }' is not assignable to type '{ suggestion: FixSuggestion; onApply?: () => void; isApplying?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onApply' are incompatible.
+    Type '(() => Promise<void>) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/ai/FixSuggestions.tsx(681,12): error TS2375: Type '{ key: string; issue: Issue; onGetSuggestions: () => Promise<FixSuggestion[]>; onApplyFix: ((suggestion: FixSuggestion) => Promise<void>) | undefined; onDismiss: (() => void) | undefined; }' is not assignable to type '{ issue: Issue; onGetSuggestions: () => Promise<FixSuggestion[]>; onApplyFix?: (suggestion: FixSuggestion) => Promise<void>; onDismiss?: () => void; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onApplyFix' are incompatible.
+    Type '((suggestion: FixSuggestion) => Promise<void>) | undefined' is not assignable to type '(suggestion: FixSuggestion) => Promise<void>'.
+      Type 'undefined' is not assignable to type '(suggestion: FixSuggestion) => Promise<void>'.
+src/components/ai/LiveComponentPreview.tsx(54,21): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/components/ai/LiveComponentPreview.tsx(58,20): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/components/ai/LiveComponentPreview.tsx(62,22): error TS2322: Type 'string | undefined' is not assignable to type 'string | null'.
+  Type 'undefined' is not assignable to type 'string | null'.
+src/components/ai/LiveComponentPreview.tsx(102,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: string | undefined, index: number, array: (string | undefined)[]) => value is string | undefined, thisArg?: any): (string | undefined)[]', gave the following error.
+    Argument of type '(p: string) => boolean' is not assignable to parameter of type '(value: string | undefined, index: number, array: (string | undefined)[]) => value is string | undefined'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(predicate: (value: string | undefined, index: number, array: (string | undefined)[]) => unknown, thisArg?: any): (string | undefined)[]', gave the following error.
+    Argument of type '(p: string) => boolean' is not assignable to parameter of type '(value: string | undefined, index: number, array: (string | undefined)[]) => unknown'.
+      Types of parameters 'p' and 'value' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/components/ai/RegisterContractWizard.tsx(619,22): error TS2532: Object is possibly 'undefined'.
+src/components/ai/RegisterContractWizard.tsx(627,22): error TS2532: Object is possibly 'undefined'.
+src/components/ai/RegisterContractWizard.tsx(662,11): error TS2375: Type '{ prefix: string; contractName: string; description: string; requiredMethods: ContractMethod[]; smokeTest: SmokeTestConfig | undefined; }' is not assignable to type 'NewContractType' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'smokeTest' are incompatible.
+    Type 'SmokeTestConfig | undefined' is not assignable to type 'SmokeTestConfig'.
+      Type 'undefined' is not assignable to type 'SmokeTestConfig'.
+src/components/factory/BackendBlueprintPanel.tsx(82,3): error TS2322: Type '(PluginSlot | { id: string; contract: string; name: string; pluginName: string | undefined; status: "healthy" | "empty"; })[]' is not assignable to type 'PluginSlot[]'.
+  Type 'PluginSlot | { id: string; contract: string; name: string; pluginName: string | undefined; status: "healthy" | "empty"; }' is not assignable to type 'PluginSlot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; contract: string; name: string; pluginName: string | undefined; status: "healthy" | "empty"; }' is not assignable to type 'PluginSlot' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'pluginName' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string'.
+          Type 'undefined' is not assignable to type 'string'.
+src/components/factory/BackendBlueprintPanel.tsx(194,30): error TS2532: Object is possibly 'undefined'.
+src/components/factory/Sidebar.tsx(146,12): error TS2375: Type '{ plugins: PluginInfo[]; selectedId: string | undefined; onSelect: ((plugin: PluginInfo) => void) | undefined; onLoad: ((plugin: PluginInfo) => void) | undefined; onUnload: ((plugin: PluginInfo) => void) | undefined; gridColumns: 2; showViewToggle: false; }' is not assignable to type 'PluginGalleryProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'selectedId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/components/factory/Sidebar.tsx(168,14): error TS2375: Type '{ components: ComponentInfo[]; selectedIds: string[]; onSelectionChange: ((component: ComponentInfo, selected: boolean) => void) | undefined; gridColumns: 2; showViewToggle: false; showFilters: false; draggable: true; }' is not assignable to type 'ComponentGalleryProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onSelectionChange' are incompatible.
+    Type '((component: ComponentInfo, selected: boolean) => void) | undefined' is not assignable to type '(component: ComponentInfo, selected: boolean) => void'.
+      Type 'undefined' is not assignable to type '(component: ComponentInfo, selected: boolean) => void'.
+src/components/factory/TemplateComponentRenderer.tsx(345,21): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/gallery/GalleryManager.tsx(1281,14): error TS2375: Type '{ key: string; item: GalleryItem; onSelect: (() => void) | undefined; onEdit: (() => void) | undefined; onDelete: (() => void) | undefined; onInstall: (() => Promise<void>) | undefined; readOnly: boolean; isSelected: boolean; onToggleSelect: () => void; showCheckbox: boolean; }' is not assignable to type '{ item: GalleryItem; onSelect?: () => void; onEdit?: () => void; onDelete?: () => void; onInstall?: () => void; readOnly?: boolean; isSelected?: boolean; onToggleSelect?: () => void; showCheckbox?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onSelect' are incompatible.
+    Type '(() => void) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/gallery/GalleryManager.tsx(1298,14): error TS2375: Type '{ key: string; item: GalleryItem; onSelect: (() => void) | undefined; onEdit: (() => void) | undefined; onDelete: (() => void) | undefined; onInstall: (() => Promise<void>) | undefined; readOnly: boolean; isSelected: boolean; onToggleSelect: () => void; showCheckbox: boolean; }' is not assignable to type '{ item: GalleryItem; onSelect?: () => void; onEdit?: () => void; onDelete?: () => void; onInstall?: () => void; readOnly?: boolean; isSelected?: boolean; onToggleSelect?: () => void; showCheckbox?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'onSelect' are incompatible.
+    Type '(() => void) | undefined' is not assignable to type '() => void'.
+      Type 'undefined' is not assignable to type '() => void'.
+src/components/gallery/GalleryManager.tsx(1315,8): error TS2375: Type '{ isOpen: boolean; onClose: () => void; item: GalleryItem | undefined; onSave: (data: Partial<GalleryItem>) => Promise<void>; categories: SelectOption[]; isLoading: boolean; }' is not assignable to type '{ isOpen: boolean; onClose: () => void; item?: GalleryItem; onSave: (data: Partial<GalleryItem>) => void; categories: SelectOption[]; isLoading?: boolean; }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'item' are incompatible.
+    Type 'GalleryItem | undefined' is not assignable to type 'GalleryItem'.
+      Type 'undefined' is not assignable to type 'GalleryItem'.
+src/components/project/ComponentEditor.tsx(276,9): error TS18048: 'groups.required' is possibly 'undefined'.
+src/components/project/ComponentEditor.tsx(278,9): error TS18048: 'groups.optional' is possibly 'undefined'.
+src/components/templates/TemplatePreview.tsx(66,18): error TS2375: Type '{ componentId: string; props: Record<string, unknown> | undefined; bounds: ElementBounds; }' is not assignable to type 'TemplateComponentRendererProps' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'props' are incompatible.
+    Type 'Record<string, unknown> | undefined' is not assignable to type 'Record<string, unknown>'.
+      Type 'undefined' is not assignable to type 'Record<string, unknown>'.
+src/components/testing/HealthDashboard.tsx(229,7): error TS6133: '_statusBorderColors' is declared but its value is never read.
+src/components/testing/LogViewer.tsx(191,7): error TS6133: '_levelBgColors' is declared but its value is never read.
+src/components/testing/MethodInvoker.tsx(160,10): error TS6133: '_generateId' is declared but its value is never read.
+src/components/testing/PluginTester.tsx(621,25): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/ui/SettingsPanel.tsx(94,30): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/ui/ThemePreview.tsx(175,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/ui/ThemePreview.tsx(176,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/wizard/DependencySelector.tsx(174,14): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/wizard/ImportWizard.tsx(403,20): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string | null>'.
+src/hooks/useComponentGenerator.ts(271,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useComponentGenerator.ts(279,5): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useIpc.ts(193,7): error TS6133: '_DEFAULT_STATS' is declared but its value is never read.
+src/hooks/useIpc.ts(317,9): error TS6133: '_addNotification' is declared but its value is never read.
+src/hooks/usePlugin.ts(325,9): error TS6133: '_clearPlugins' is declared but its value is never read.
+src/hooks/usePlugin.ts(903,5): error TS2322: Type 'Plugin | null | undefined' is not assignable to type 'Plugin | null'.
+  Type 'undefined' is not assignable to type 'Plugin | null'.
+src/services/aiChatLlmService.ts(126,5): error TS2375: Type '{ success: true; text: string | undefined; }' is not assignable to type 'LLMResult' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'text' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/services/llmService.ts(114,5): error TS2375: Type '{ success: true; text: string | undefined; }' is not assignable to type 'LLMResult' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'text' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/stores/aiTeamStore.ts(66,9): error TS2322: Type 'AgentToolConfig[] | undefined' is not assignable to type 'AgentToolConfig[]'.
+  Type 'undefined' is not assignable to type 'AgentToolConfig[]'.
+src/stores/aiTeamStore.ts(76,9): error TS2322: Type 'AgentToolConfig[] | undefined' is not assignable to type 'AgentToolConfig[]'.
+  Type 'undefined' is not assignable to type 'AgentToolConfig[]'.
+src/stores/aiTeamStore.ts(86,9): error TS2322: Type 'AgentToolConfig[] | undefined' is not assignable to type 'AgentToolConfig[]'.
+  Type 'undefined' is not assignable to type 'AgentToolConfig[]'.
+src/stores/aiTeamStore.ts(96,9): error TS2322: Type 'AgentToolConfig[] | undefined' is not assignable to type 'AgentToolConfig[]'.
+  Type 'undefined' is not assignable to type 'AgentToolConfig[]'.
+src/stores/aiTeamStore.ts(106,9): error TS2322: Type 'AgentToolConfig[] | undefined' is not assignable to type 'AgentToolConfig[]'.
+  Type 'undefined' is not assignable to type 'AgentToolConfig[]'.
+src/stores/componentLibraryStore.ts(182,21): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/stores/componentLibraryStore.ts(185,20): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/stores/componentLibraryStore.ts(229,23): error TS2375: Type '{ id: string; name: string; description: string | undefined; code: string; framework: ComponentFramework; category: ComponentCategory; tags: string[]; ... 4 more ...; isFavorite: false; }' is not assignable to type 'LibraryComponent' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'description' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/stores/componentLibraryStore.ts(273,54): error TS2379: Argument of type '{ name: string; code: string; framework: ComponentFramework; description: string | undefined; category: ComponentCategory; tags: string[]; thumbnail: string | undefined; prompt: string | undefined; }' is not assignable to parameter of type 'AddComponentInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'description' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/stores/factoryStore.ts(546,9): error TS2322: Type '() => HistoryEntry | null | undefined' is not assignable to type '() => HistoryEntry | null'.
+  Type 'HistoryEntry | null | undefined' is not assignable to type 'HistoryEntry | null'.
+    Type 'undefined' is not assignable to type 'HistoryEntry | null'.
+src/stores/factoryStore.ts(552,13): error TS2345: Argument of type '(state: FactoryState & FactoryActions) => { history: { past: HistoryEntry[]; future: (HistoryEntry | undefined)[]; maxSize: number; }; }' is not assignable to parameter of type '(FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions> | ((state: FactoryState & FactoryActions) => (FactoryState & FactoryActions) | Partial<...>)'.
+  Type '(state: FactoryState & FactoryActions) => { history: { past: HistoryEntry[]; future: (HistoryEntry | undefined)[]; maxSize: number; }; }' is not assignable to type '(state: FactoryState & FactoryActions) => (FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions>'.
+    Type '{ history: { past: HistoryEntry[]; future: (HistoryEntry | undefined)[]; maxSize: number; }; }' is not assignable to type '(FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions>'.
+      Type '{ history: { past: HistoryEntry[]; future: (HistoryEntry | undefined)[]; maxSize: number; }; }' is not assignable to type 'Partial<FactoryState & FactoryActions>'.
+        The types of 'history.future' are incompatible between these types.
+          Type '(HistoryEntry | undefined)[]' is not assignable to type 'HistoryEntry[]'.
+            Type 'HistoryEntry | undefined' is not assignable to type 'HistoryEntry'.
+              Type 'undefined' is not assignable to type 'HistoryEntry'.
+src/stores/factoryStore.ts(565,9): error TS2322: Type '() => HistoryEntry | null | undefined' is not assignable to type '() => HistoryEntry | null'.
+  Type 'HistoryEntry | null | undefined' is not assignable to type 'HistoryEntry | null'.
+    Type 'undefined' is not assignable to type 'HistoryEntry | null'.
+src/stores/factoryStore.ts(571,13): error TS2345: Argument of type '(state: FactoryState & FactoryActions) => { history: { past: (HistoryEntry | undefined)[]; future: HistoryEntry[]; maxSize: number; }; }' is not assignable to parameter of type '(FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions> | ((state: FactoryState & FactoryActions) => (FactoryState & FactoryActions) | Partial<...>)'.
+  Type '(state: FactoryState & FactoryActions) => { history: { past: (HistoryEntry | undefined)[]; future: HistoryEntry[]; maxSize: number; }; }' is not assignable to type '(state: FactoryState & FactoryActions) => (FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions>'.
+    Type '{ history: { past: (HistoryEntry | undefined)[]; future: HistoryEntry[]; maxSize: number; }; }' is not assignable to type '(FactoryState & FactoryActions) | Partial<FactoryState & FactoryActions>'.
+      Type '{ history: { past: (HistoryEntry | undefined)[]; future: HistoryEntry[]; maxSize: number; }; }' is not assignable to type 'Partial<FactoryState & FactoryActions>'.
+        The types of 'history.past' are incompatible between these types.
+          Type '(HistoryEntry | undefined)[]' is not assignable to type 'HistoryEntry[]'.
+            Type 'HistoryEntry | undefined' is not assignable to type 'HistoryEntry'.
+              Type 'undefined' is not assignable to type 'HistoryEntry'.
+src/stores/projectStore.ts(1278,17): error TS2322: Type '{ children: string[]; id?: string; type?: string; name?: string; props?: Record<string, unknown>; parentId?: string | null; position?: { x: number; y: number; width: number; height: number; }; ... 4 more ...; locked?: boolean; }' is not assignable to type 'ProjectComponent'.
+  Property 'id' is optional in type '{ children: string[]; id?: string; type?: string; name?: string; props?: Record<string, unknown>; parentId?: string | null; position?: { x: number; y: number; width: number; height: number; }; slots?: ComponentSlot[]; styles?: Record<...>; events?: Record<...>; visible?: boolean; locked?: boolean; }' but required in type 'ProjectComponent'.
+src/stores/projectStore.ts(1280,29): error TS2532: Object is possibly 'undefined'.
+src/utils/backup.ts(174,11): error TS2375: Type '{ id: string; projectPath: string; projectName: string; timestamp: string; backupPath: string; sizeBytes: number; version: string; description: string | undefined; }' is not assignable to type 'BackupMetadata' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'description' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/utils/exporter.ts(426,11): error TS18048: 'p' is possibly 'undefined'.
+src/utils/exporter.ts(427,13): error TS18048: 'p' is possibly 'undefined'.
+src/utils/exporter.ts(428,16): error TS18048: 'p' is possibly 'undefined'.
+src/utils/exporter.ts(429,17): error TS18048: 'p' is possibly 'undefined'.
+src/utils/exporter.ts(443,7): error TS2322: Type 'ThemeConfig | { name: string; primaryColor: string; secondaryColor: string; accentColor: string; backgroundColor: string; textColor: string; borderRadius: string; fontFamily: string; darkMode: false; customVariables: {}; }' is not assignable to type 'ThemeConfig'.
+  Object literal may only specify known properties, and 'primaryColor' does not exist in type 'ThemeConfig'.
+src/utils/exporter.ts(716,18): error TS2379: Argument of type '{ step: number; totalSteps: number; description: string; percentage: number; currentFile: string | undefined; }' is not assignable to parameter of type 'ExportProgress' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'currentFile' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.

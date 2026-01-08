@@ -548,6 +548,8 @@ export const useFactoryStore = create<FactoryState & FactoryActions>()(
           if (history.past.length === 0) return null;
 
           const entry = history.past[history.past.length - 1];
+          if (!entry) return null;
+
           set(
             (state) => ({
               history: {
@@ -567,6 +569,8 @@ export const useFactoryStore = create<FactoryState & FactoryActions>()(
           if (history.future.length === 0) return null;
 
           const entry = history.future[0];
+          if (!entry) return null;
+
           set(
             (state) => ({
               history: {

@@ -184,7 +184,8 @@ const ContractIcons: Record<string, React.FC<{ className?: string }>> = {
  * Get icon for contract type.
  */
 const getContractIcon = (contractId: string): React.FC<{ className?: string }> => {
-  return ContractIcons[contractId] || ContractIcons.debug;
+  // Non-null assertion safe: ContractIcons.debug is always defined
+  return ContractIcons[contractId] ?? ContractIcons.debug!;
 };
 
 /**
@@ -236,7 +237,8 @@ const contractColors: Record<string, { bg: string; border: string; text: string;
 };
 
 const getContractColors = (contractId: string) => {
-  return contractColors[contractId] || contractColors.debug;
+  // Non-null assertion safe: contractColors.debug is always defined
+  return contractColors[contractId] ?? contractColors.debug!;
 };
 
 /**

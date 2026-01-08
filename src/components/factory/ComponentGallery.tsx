@@ -250,37 +250,37 @@ export interface ComponentGalleryProps extends Omit<HTMLAttributes<HTMLDivElemen
   /** Array of components to display */
   components: ComponentInfo[];
   /** Currently selected component ID (single-select mode - deprecated, use selectedIds) */
-  selectedId?: string;
+  selectedId?: string | undefined;
   /** Currently selected component IDs (multi-select mode) */
-  selectedIds?: string[];
+  selectedIds?: string[] | undefined;
   /** Callback when a component is selected (single-select mode - deprecated) */
-  onSelect?: (component: ComponentInfo) => void;
+  onSelect?: ((component: ComponentInfo) => void) | undefined;
   /** Callback when a component selection changes (multi-select mode) */
-  onSelectionChange?: (component: ComponentInfo, selected: boolean) => void;
+  onSelectionChange?: ((component: ComponentInfo, selected: boolean) => void) | undefined;
   /** Callback when a component is added to canvas */
-  onAdd?: (component: ComponentInfo) => void;
+  onAdd?: ((component: ComponentInfo) => void) | undefined;
   /** Callback when component info is requested */
-  onInfo?: (component: ComponentInfo) => void;
+  onInfo?: ((component: ComponentInfo) => void) | undefined;
   /** Initial filters */
-  initialFilters?: ComponentFilters;
+  initialFilters?: ComponentFilters | undefined;
   /** Initial sort settings */
-  initialSort?: { by: ComponentSortBy; order: SortOrder };
+  initialSort?: { by: ComponentSortBy; order: SortOrder } | undefined;
   /** Initial view mode */
-  initialViewMode?: ViewMode;
+  initialViewMode?: ViewMode | undefined;
   /** Whether to show filter controls */
-  showFilters?: boolean;
+  showFilters?: boolean | undefined;
   /** Whether to show search input */
-  showSearch?: boolean;
+  showSearch?: boolean | undefined;
   /** Whether to show view mode toggle */
-  showViewToggle?: boolean;
+  showViewToggle?: boolean | undefined;
   /** Empty state message */
-  emptyMessage?: string;
+  emptyMessage?: string | undefined;
   /** Loading state */
-  isLoading?: boolean;
+  isLoading?: boolean | undefined;
   /** Grid columns for grid view */
-  gridColumns?: 2 | 3 | 4;
+  gridColumns?: 2 | 3 | 4 | undefined;
   /** Enable drag and drop */
-  draggable?: boolean;
+  draggable?: boolean | undefined;
 }
 
 /**

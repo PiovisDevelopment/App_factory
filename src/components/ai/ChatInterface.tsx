@@ -95,26 +95,6 @@ const SendIcon: React.FC = () => (
 );
 
 /**
- * Clear icon for the clear button.
- */
-const ClearIcon: React.FC = () => (
-  <svg
-    className="h-4 w-4"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-);
-
-/**
  * User avatar icon.
  */
 const UserIcon: React.FC = () => (
@@ -292,7 +272,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   placeholder = "Type your message...",
   showTimestamps = true,
   title = "Chat",
-  onClear,
+  // onClear not destructured - feature unimplemented
   className = "",
   disabled = false,
   systemPrompt,
@@ -358,17 +338,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     "bg-white",
   ].join(" ");
 
-  const headerActions = onClear ? (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClear}
-      leftIcon={<ClearIcon />}
-      disabled={messages.length === 0 || isLoading}
-    >
-      Clear
-    </Button>
-  ) : undefined;
+  // headerActions removed - Panel.header prop is a string, not accepting JSX
 
   return (
     <Panel

@@ -21,33 +21,30 @@ Reference:
 
 import asyncio
 import io
-import struct
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-import torch
 import soundfile as sf
-
-from contracts.base import PluginStatus, HealthStatus
+import torch
+from contracts.base import HealthStatus, PluginStatus
 from contracts.tts_contract import (
+    AudioFormat,
+    SynthesisOptions,
+    SynthesisResult,
     TTSContract,
     Voice,
-    SynthesisResult,
-    SynthesisOptions,
-    AudioFormat,
 )
-
 
 # Language code to BCP-47 mapping
 LANG_CODE_MAP = {
-    "a": "en-US",   # American English
-    "b": "en-GB",   # British English
-    "e": "es",      # Spanish
-    "f": "fr-FR",   # French
-    "h": "hi",      # Hindi
-    "i": "it",      # Italian
-    "j": "ja",      # Japanese
-    "p": "pt-BR",   # Brazilian Portuguese
-    "z": "zh",      # Mandarin Chinese
+    "a": "en-US",  # American English
+    "b": "en-GB",  # British English
+    "e": "es",  # Spanish
+    "f": "fr-FR",  # French
+    "h": "hi",  # Hindi
+    "i": "it",  # Italian
+    "j": "ja",  # Japanese
+    "p": "pt-BR",  # Brazilian Portuguese
+    "z": "zh",  # Mandarin Chinese
 }
 
 # Default voices per language code (from VOICES.md)
@@ -132,10 +129,10 @@ DEFAULT_VOICES = {
 class KokoroTTSPlugin(TTSContract):
     """
     Kokoro TTS Plugin - High-quality neural text-to-speech.
-    
+
     Uses the Kokoro-82M model with KPipeline for synthesis.
     Optimized for GPU inference on NVIDIA RTX cards.
-    
+
     Features:
         - 82M parameter model with quality comparable to larger models
         - ~90x real-time generation on RTX 3090/4080 with PyTorch
@@ -143,7 +140,7 @@ class KokoroTTSPlugin(TTSContract):
         - Apache 2.0 licensed weights
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the Kokoro TTS plugin."""
         super().__init__()
         self._pipeline = None
@@ -154,20 +151,20 @@ class KokoroTTSPlugin(TTSContract):
         self._sample_rate: int = 24000  # Kokoro outputs 24kHz audio
         self._initialized: bool = False
 
-    async def initialize(self, config: Dict[str, Any]) -> bool:
+    async def initialize(self, config: dict[str, Any]) -> bool:
         """
         Initialize the Kokoro TTS plugin.
-        
+
         Lazy-loads the KPipeline to avoid blocking. The actual model
         download happens on first synthesis.
-        
+
         Args:
             config: Configuration from manifest or user overrides.
                 - default_voice: str (e.g., "af_heart")
                 - default_lang_code: str (e.g., "a" for American English)
                 - device: str ("cuda", "cpu", or "auto")
                 - speed: float (0.5 to 2.0)
-        
+
         Returns:
             True if initialization succeeded.
         """
@@ -177,42 +174,44 @@ class KokoroTTSPlugin(TTSContract):
             self._default_lang_code = config.get("default_lang_code", "a")
             self._default_speed = config.get("speed", 1.0)
             self._current_voice_id = self._default_voice
-            
+
             # Determine device
             device_config = config.get("device", "auto")
             if device_config == "auto":
                 self._device = "cuda" if torch.cuda.is_available() else "cpu"
             else:
                 self._device = device_config
-            
+
             # Build voice list from all languages
             self._voices = self._build_voice_list()
-            
+
             # Defer pipeline creation to first use (lazy loading)
             # This prevents blocking during plugin initialization
             self._initialized = True
             self._status = PluginStatus.READY
-            
+
             return True
-            
+
         except Exception as e:
             self._status = PluginStatus.ERROR
             raise RuntimeError(f"Kokoro initialization failed: {e}")
 
-    async def shutdown(self) -> None:
+    async def shutdown(self) -> bool:
         """Clean up plugin resources."""
         self._pipeline = None
         self._initialized = False
-        self._status = PluginStatus.UNLOADED
-        
+        self._status = PluginStatus.STOPPED
+
         # Clear CUDA cache if using GPU
         if self._device == "cuda" and torch.cuda.is_available():
             torch.cuda.empty_cache()
+        
+        return True
 
-    async def health_check(self) -> HealthStatus:
+    def health_check(self) -> HealthStatus:
         """
         Check plugin health.
-        
+
         Returns:
             HealthStatus with current state and diagnostics.
         """
@@ -225,56 +224,54 @@ class KokoroTTSPlugin(TTSContract):
             "voices_count": len(self._voices),
             "sample_rate": self._sample_rate,
         }
-        
+
         if self._device == "cuda" and torch.cuda.is_available():
             details["gpu_name"] = torch.cuda.get_device_name(0)
-            details["gpu_memory_allocated_mb"] = round(
-                torch.cuda.memory_allocated(0) / 1024 / 1024, 2
-            )
-        
+            details["gpu_memory_allocated_mb"] = round(torch.cuda.memory_allocated(0) / 1024 / 1024, 2)
+
         return HealthStatus(
             status=self._status,
             message="Kokoro TTS operational" if self._initialized else "Not initialized",
-            details=details
+            details=details,
         )
 
     async def _ensure_pipeline(self, lang_code: str) -> None:
         """
         Lazy-load the Kokoro pipeline.
-        
+
         The pipeline is created on first use to avoid blocking during
         plugin initialization. Models are auto-downloaded by kokoro package.
-        
+
         Args:
             lang_code: Language code for the pipeline (a, b, j, z, etc.)
         """
         if self._pipeline is not None:
             # Check if we need to reinitialize for a different language
-            current_lang = getattr(self._pipeline, '_lang_code', None)
+            current_lang = getattr(self._pipeline, "_lang_code", None)
             if current_lang == lang_code:
                 return
-        
+
         # Import here to defer loading until needed
         from kokoro import KPipeline
-        
+
         # Create pipeline for the specified language
         # Run in thread to avoid blocking async event loop
-        def create_pipeline():
+        def create_pipeline() -> Any:
             return KPipeline(lang_code=lang_code)
-        
+
         self._pipeline = await asyncio.to_thread(create_pipeline)
         self._pipeline._lang_code = lang_code  # Track current language
 
     def _get_lang_code_for_voice(self, voice_id: str) -> str:
         """
         Determine the language code from a voice ID.
-        
+
         Voice IDs follow the pattern: {lang}{gender}_{name}
         e.g., af_heart = American (a) Female (f) Heart
-        
+
         Args:
             voice_id: The voice identifier.
-            
+
         Returns:
             Single-character language code.
         """
@@ -284,92 +281,92 @@ class KokoroTTSPlugin(TTSContract):
                 return first_char
         return self._default_lang_code
 
-    def _build_voice_list(self) -> List[Voice]:
+    def _build_voice_list(self) -> list[Voice]:
         """Build the complete voice list from all languages."""
         voices = []
-        
+
         for lang_code, voice_list in DEFAULT_VOICES.items():
             bcp47 = LANG_CODE_MAP.get(lang_code, "en-US")
-            
+
             for voice_id, display_name, gender in voice_list:
-                voices.append(Voice(
-                    id=voice_id,
-                    name=display_name,
-                    language=bcp47,
-                    gender=gender,
-                    description=f"Kokoro {display_name} voice",
-                    sample_rate=self._sample_rate,
-                ))
-        
+                voices.append(
+                    Voice(
+                        id=voice_id,
+                        name=display_name,
+                        language=bcp47,
+                        gender=gender,
+                        description=f"Kokoro {display_name} voice",
+                        sample_rate=self._sample_rate,
+                    )
+                )
+
         return voices
 
     async def synthesize(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        options: Optional[SynthesisOptions] = None
+        self, text: str, voice_id: str | None = None, options: SynthesisOptions | None = None
     ) -> SynthesisResult:
         """
         Synthesize speech from text using Kokoro-82M.
-        
+
         Args:
             text: Text to convert to speech.
             voice_id: Voice to use (e.g., "af_heart"). If None, uses current voice.
             options: Synthesis options (speed, format, etc.)
-        
+
         Returns:
             SynthesisResult containing audio data and metadata.
-        
+
         Raises:
             ValueError: If text is empty.
             RuntimeError: If synthesis fails.
         """
         if not text or not text.strip():
             raise ValueError("Text cannot be empty")
-        
+
         # Resolve voice and options
         use_voice = voice_id or self._current_voice_id
         opts = options or SynthesisOptions()
         speed = opts.speed if opts.speed != 1.0 else self._default_speed
-        
+
         # Determine language from voice
         lang_code = self._get_lang_code_for_voice(use_voice)
-        
+
         # Ensure pipeline is loaded
         await self._ensure_pipeline(lang_code)
-        
+
         try:
             # Generate audio using Kokoro
             # KPipeline returns a generator of (graphemes, phonemes, audio) tuples
-            def do_synthesis():
+            def do_synthesis() -> Any:
                 audio_segments = []
                 generator = self._pipeline(
                     text,
                     voice=use_voice,
                     speed=speed,
-                    split_pattern=r'\n+'  # Split on newlines for long text
+                    split_pattern=r"\n+",  # Split on newlines for long text
                 )
-                
+
                 for _, _, audio in generator:
                     audio_segments.append(audio)
-                
+
                 # Concatenate all segments
                 if audio_segments:
                     import numpy as np
+
                     return np.concatenate(audio_segments)
                 return None
-            
+
             audio_array = await asyncio.to_thread(do_synthesis)
-            
+
             if audio_array is None or len(audio_array) == 0:
                 raise RuntimeError("Synthesis produced no audio")
-            
+
             # Convert to requested format
             audio_bytes = self._encode_audio(audio_array, opts.format)
-            
+
             # Calculate duration
             duration_ms = (len(audio_array) / self._sample_rate) * 1000
-            
+
             return SynthesisResult(
                 audio_data=audio_bytes,
                 format=opts.format,
@@ -383,45 +380,46 @@ class KokoroTTSPlugin(TTSContract):
                     "device": self._device,
                     "lang_code": lang_code,
                     "speed": speed,
-                }
+                },
             )
-            
+
         except Exception as e:
             raise RuntimeError(f"Kokoro synthesis failed: {e}")
 
-    def _encode_audio(self, audio_array, output_format: AudioFormat) -> bytes:
+    def _encode_audio(self, audio_array: Any, output_format: AudioFormat) -> bytes:
         """
         Encode audio array to the requested format.
-        
+
         Args:
             audio_array: NumPy array of audio samples (float32, -1 to 1).
             output_format: Desired output format.
-        
+
         Returns:
             Encoded audio bytes.
         """
         buffer = io.BytesIO()
-        
+
         if output_format == AudioFormat.WAV:
-            sf.write(buffer, audio_array, self._sample_rate, format='WAV')
+            sf.write(buffer, audio_array, self._sample_rate, format="WAV")
         elif output_format == AudioFormat.PCM:
             # Raw 16-bit PCM
             import numpy as np
+
             pcm_data = (audio_array * 32767).astype(np.int16)
             buffer.write(pcm_data.tobytes())
         elif output_format == AudioFormat.OGG:
-            sf.write(buffer, audio_array, self._sample_rate, format='OGG')
+            sf.write(buffer, audio_array, self._sample_rate, format="OGG")
         else:
             # Default to WAV for unsupported formats
-            sf.write(buffer, audio_array, self._sample_rate, format='WAV')
-        
+            sf.write(buffer, audio_array, self._sample_rate, format="WAV")
+
         buffer.seek(0)
         return buffer.read()
 
-    def get_voices(self) -> List[Voice]:
+    def get_voices(self) -> list[Voice]:
         """
         Get list of available voices.
-        
+
         Returns:
             List of Voice objects for all supported languages.
         """
@@ -430,13 +428,13 @@ class KokoroTTSPlugin(TTSContract):
     def set_voice(self, voice_id: str) -> bool:
         """
         Set the active voice for synthesis.
-        
+
         Args:
             voice_id: ID of voice to activate (e.g., "af_heart").
-        
+
         Returns:
             True if voice was set successfully.
-        
+
         Raises:
             ValueError: If voice_id is not found.
         """
@@ -444,14 +442,14 @@ class KokoroTTSPlugin(TTSContract):
         found = any(v.id == voice_id for v in self._voices)
         if not found:
             raise ValueError(f"Voice '{voice_id}' not found")
-        
+
         self._current_voice_id = voice_id
         return True
 
-    def get_supported_languages(self) -> List[str]:
+    def get_supported_languages(self) -> list[str]:
         """
         Get list of supported language codes.
-        
+
         Returns:
             List of BCP-47 language codes.
         """

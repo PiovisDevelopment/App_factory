@@ -13,7 +13,7 @@
  *   - Accessible by default (ARIA, keyboard navigation)
  */
 
-import React, {
+import {
   forwardRef,
   useId,
   type SelectHTMLAttributes,
@@ -88,13 +88,13 @@ export interface SelectProps
   /** Error state */
   error?: boolean;
   /** Error message to display */
-  errorMessage?: string;
+  errorMessage?: string | undefined;
   /** Label text (recommended for accessibility) */
-  label?: string;
+  label?: string | undefined;
   /** Helper text displayed below select */
-  helperText?: string;
+  helperText?: string | undefined;
   /** Placeholder option text */
-  placeholder?: string;
+  placeholder?: string | undefined;
   /** Full width select */
   fullWidth?: boolean;
   /** Required field indicator */
@@ -213,11 +213,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     // Error state styles
     const errorStyles = error
       ? [
-          "border-error-500",
-          "focus:border-error-500",
-          "focus:ring-error-500",
-          "text-error-900",
-        ].join(" ")
+        "border-error-500",
+        "focus:border-error-500",
+        "focus:ring-error-500",
+        "text-error-900",
+      ].join(" ")
       : "";
 
     // Left padding for left element

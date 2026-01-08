@@ -271,14 +271,16 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
       required: [],
       optional: [],
     };
+    const requiredList = groups.required ?? [];
+    const optionalList = groups.optional ?? [];
     component.properties.forEach((prop) => {
       if (prop.required) {
-        groups.required.push(prop);
+        requiredList.push(prop);
       } else {
-        groups.optional.push(prop);
+        optionalList.push(prop);
       }
     });
-    return groups;
+    return { required: requiredList, optional: optionalList };
   }, [component.properties]);
 
   // Get category icon

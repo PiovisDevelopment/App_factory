@@ -279,7 +279,7 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
     const config: SlotConfig = {
       name,
       contract,
-      description: description || undefined,
+      ...(description ? { description } : {}),
       position,
       isRequired,
       isMultiple,
@@ -395,8 +395,8 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
                 </div>
               ) : (
                 contractTypes.map((ct) => {
-                  const Icon = ContractIcons[ct.id] || ContractIcons.default;
-                  const colors = contractColors[ct.id] || contractColors.default;
+                  const Icon = ContractIcons[ct.id] ?? ContractIcons["default"]!;
+                  const colors = contractColors[ct.id] ?? contractColors["default"]!;
 
                   return (
                     <button
@@ -458,7 +458,7 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
               {selectedContract && (
                 <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg">
                   {(() => {
-                    const Icon = ContractIcons[selectedContract.id] || ContractIcons.default;
+                    const Icon = ContractIcons[selectedContract.id] ?? ContractIcons["default"]!;
                     return <Icon className="h-5 w-5 text-neutral-500" />;
                   })()}
                   <span className="text-sm font-medium text-neutral-700">

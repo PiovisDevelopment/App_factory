@@ -143,7 +143,7 @@ ACCESSIBILITY (MANDATORY):
  */
 function buildPrompt(
   userPrompt: string,
-  type: ComponentType,
+  _type: ComponentType,
   framework: FrameworkTarget
 ): string {
   const frameworkInstructions: Record<FrameworkTarget, string> = {
@@ -267,7 +267,7 @@ function parseComponentName(code: string): string {
   const exportMatch = code.match(
     /export\s+(?:const|function)\s+(\w+)/
   );
-  if (exportMatch) {
+  if (exportMatch?.[1]) {
     return exportMatch[1];
   }
 
@@ -275,7 +275,7 @@ function parseComponentName(code: string): string {
   const declMatch = code.match(
     /(?:const|function)\s+(\w+)\s*(?::|=|<)/
   );
-  if (declMatch) {
+  if (declMatch?.[1]) {
     return declMatch[1];
   }
 

@@ -7,9 +7,35 @@
 //!
 //! Dependencies:
 //!     - D030: ipc/mod.rs (IPC module)
-//!     - D035: ipc/manager.rs (IpcManagerState)
+//!     - D035: ipc/manager.rs (`IpcManagerState`)
 //!     - D036: commands/mod.rs (Tauri commands)
 
+#![deny(unsafe_code)]
+// Clippy pedantic lint suppressions for this crate:
+// - needless_pass_by_value: Tauri commands require String for deserialization, not &str
+// - unnecessary_wraps: CommandResult is the Tauri API contract for error handling
+// - doc_markdown: Backticks in docs are a formatting preference, not a correctness issue
+// - trivially_copy_pass_by_ref: &bool params are idiomatic for consistency
+// - redundant_else: Keeps control flow explicit and readable
+// - match_same_arms: Sometimes clarity is more important than deduplication
+// - cast_possible_truncation: Platform-specific casts are intentional
+// - unnecessary_debug_formatting: Debug format in logs is intentional
+// - used_underscore_binding: Tauri State<'_, T> requires this pattern
+// - default_trait_access: Style preference for explicitness
+// - redundant_closure_for_method_calls: Readability preference
+// - map_unwrap_or: `is_some_and` not always more readable
+#![allow(clippy::needless_pass_by_value)]
+#![allow(clippy::unnecessary_wraps)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::trivially_copy_pass_by_ref)]
+#![allow(clippy::redundant_else)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::unnecessary_debug_formatting)]
+#![allow(clippy::used_underscore_binding)]
+#![allow(clippy::default_trait_access)]
+#![allow(clippy::redundant_closure_for_method_calls)]
+#![allow(clippy::map_unwrap_or)]
 #![cfg_attr(
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
@@ -30,20 +56,20 @@ fn get_project_root() -> PathBuf {
     // During development, the executable runs from src-tauri/target/debug
     // We need to go up to find the project root (where plugins/ is)
     let exe_path = std::env::current_exe().unwrap_or_default();
-    log::debug!("Executable path: {:?}", exe_path);
+    log::debug!("Executable path: {exe_path:?}");
 
     // Try to find project root by looking for plugins directory
-    let mut current = exe_path.parent().map(|p| p.to_path_buf());
+    let mut current = exe_path.parent().map(std::path::Path::to_path_buf);
 
     // Walk up the directory tree looking for the plugins directory
     for _ in 0..10 {
         if let Some(ref dir) = current {
             let plugins_dir = dir.join("plugins");
             if plugins_dir.exists() && plugins_dir.is_dir() {
-                log::info!("Found project root: {:?}", dir);
+                log::info!("Found project root: {dir:?}");
                 return dir.clone();
             }
-            current = dir.parent().map(|p| p.to_path_buf());
+            current = dir.parent().map(std::path::Path::to_path_buf);
         } else {
             break;
         }
@@ -52,8 +78,7 @@ fn get_project_root() -> PathBuf {
     // Fallback: try current working directory
     let cwd = std::env::current_dir().unwrap_or_default();
     log::warn!(
-        "Could not find plugins directory, using current working directory: {:?}",
-        cwd
+        "Could not find plugins directory, using current working directory: {cwd:?}"
     );
 
     // Check if cwd has plugins, if not try parent
@@ -81,7 +106,7 @@ fn main() {
 
     // Determine project root (where plugins/ directory is located)
     let project_root = get_project_root();
-    log::info!("Project root: {:?}", project_root);
+    log::info!("Project root: {project_root:?}");
 
     // Create IPC configuration with correct working directory
     let config = IpcConfig::default()
@@ -112,7 +137,7 @@ fn main() {
                 log::info!("Starting IPC Manager...");
                 match state_clone.start().await {
                     Ok(()) => log::info!("IPC Manager started successfully"),
-                    Err(e) => log::error!("Failed to start IPC Manager: {}", e),
+                    Err(e) => log::error!("Failed to start IPC Manager: {e}"),
                 }
             });
 

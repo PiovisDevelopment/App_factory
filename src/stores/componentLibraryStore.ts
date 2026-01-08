@@ -45,11 +45,11 @@ export interface LibraryComponent {
     /** Display name */
     name: string;
     /** Optional description */
-    description?: string;
+    description?: string | undefined;
     /** Raw TSX/component code */
     code: string;
     /** Compiled JavaScript (cached for performance) */
-    compiledCode?: string;
+    compiledCode?: string | undefined;
     /** Target framework */
     framework: ComponentFramework;
     /** Category for organization */
@@ -57,9 +57,9 @@ export interface LibraryComponent {
     /** User-defined tags for search */
     tags: string[];
     /** Base64 thumbnail image (PNG or WebP) */
-    thumbnail?: string;
+    thumbnail?: string | undefined;
     /** Original prompt used to generate the component */
-    prompt?: string;
+    prompt?: string | undefined;
     /** Creation timestamp */
     createdAt: number;
     /** Last modified timestamp */
@@ -75,11 +75,11 @@ export interface AddComponentInput {
     name: string;
     code: string;
     framework: ComponentFramework;
-    description?: string;
-    category?: ComponentCategory;
-    tags?: string[];
-    thumbnail?: string;
-    prompt?: string;
+    description?: string | undefined;
+    category?: ComponentCategory | undefined;
+    tags?: string[] | undefined;
+    thumbnail?: string | undefined;
+    prompt?: string | undefined;
 }
 
 /**
@@ -179,10 +179,10 @@ function generateId(): string {
 function extractNameFromCode(code: string): string {
     // Match: const ComponentName = or function ComponentName
     const constMatch = code.match(/const\s+([A-Z][a-zA-Z0-9]*)\s*[:=]/);
-    if (constMatch) return constMatch[1];
+    if (constMatch?.[1]) return constMatch[1];
 
     const funcMatch = code.match(/function\s+([A-Z][a-zA-Z0-9]*)\s*\(/);
-    if (funcMatch) return funcMatch[1];
+    if (funcMatch?.[1]) return funcMatch[1];
 
     return `Component_${Date.now()}`;
 }

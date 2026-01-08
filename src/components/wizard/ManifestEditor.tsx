@@ -63,9 +63,9 @@ const PYTHON_VERSION_OPTIONS = [
 interface FormFieldProps {
   label: string;
   htmlFor: string;
-  error?: string;
+  error?: string | undefined;
   required?: boolean;
-  helpText?: string;
+  helpText?: string | undefined;
   children: React.ReactNode;
 }
 

@@ -7,6 +7,6 @@ Implements the STTContract for integration with the Plugin Host.
 Repository: https://github.com/SYSTRAN/faster-whisper
 """
 
-from .plugin import WhisperSTTPlugin, Plugin
+from .plugin import Plugin, WhisperSTTPlugin
 
 __all__ = ["WhisperSTTPlugin", "Plugin"]

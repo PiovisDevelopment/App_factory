@@ -15,15 +15,15 @@ Dependencies:
 """
 
 import struct
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from contracts.base import PluginStatus, HealthStatus
+from contracts.base import HealthStatus, PluginStatus
 from contracts.tts_contract import (
+    AudioFormat,
+    SynthesisOptions,
+    SynthesisResult,
     TTSContract,
     Voice,
-    SynthesisResult,
-    SynthesisOptions,
-    AudioFormat,
 )
 
 
@@ -35,7 +35,7 @@ class ExampleTTSPlugin(TTSContract):
     Each character generates ~50ms of silence at the configured sample rate.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the example TTS plugin."""
         super().__init__()
         self._sample_rate: int = 22050
@@ -71,7 +71,7 @@ class ExampleTTSPlugin(TTSContract):
 
         self._current_voice_id = self._default_voice
 
-    async def initialize(self, config: Dict[str, Any]) -> bool:
+    async def initialize(self, config: dict[str, Any]) -> bool:
         """
         Initialize the plugin with configuration.
 
@@ -94,11 +94,12 @@ class ExampleTTSPlugin(TTSContract):
         self._status = PluginStatus.READY
         return True
 
-    async def shutdown(self) -> None:
+    async def shutdown(self) -> bool:
         """Clean up plugin resources."""
-        self._status = PluginStatus.UNLOADED
+        self._status = PluginStatus.STOPPED
+        return True
 
-    async def health_check(self) -> HealthStatus:
+    def health_check(self) -> HealthStatus:
         """
         Check plugin health.
 
@@ -106,20 +107,17 @@ class ExampleTTSPlugin(TTSContract):
             HealthStatus with current state.
         """
         return HealthStatus(
-            healthy=self._status == PluginStatus.READY,
+            status=self._status,
             message="Example TTS plugin operational" if self._status == PluginStatus.READY else "Plugin not ready",
             details={
                 "voices_available": len(self._voices),
                 "current_voice": self._current_voice_id,
                 "sample_rate": self._sample_rate,
-            }
+            },
         )
 
     async def synthesize(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        options: Optional[SynthesisOptions] = None
+        self, text: str, voice_id: str | None = None, options: SynthesisOptions | None = None
     ) -> SynthesisResult:
         """
         Synthesize speech from text.
@@ -177,10 +175,10 @@ class ExampleTTSPlugin(TTSContract):
                 "plugin": "tts_example_plugin",
                 "is_silent": True,
                 "char_count": len(text),
-            }
+            },
         )
 
-    def get_voices(self) -> List[Voice]:
+    def get_voices(self) -> list[Voice]:
         """
         Get list of available voices.
 
@@ -209,7 +207,7 @@ class ExampleTTSPlugin(TTSContract):
         self._current_voice_id = voice_id
         return True
 
-    def _get_voice_by_id(self, voice_id: str) -> Optional[Voice]:
+    def _get_voice_by_id(self, voice_id: str) -> Voice | None:
         """Get voice object by ID."""
         for voice in self._voices:
             if voice.id == voice_id:
@@ -238,23 +236,23 @@ class ExampleTTSPlugin(TTSContract):
         header = bytearray()
 
         # RIFF header
-        header.extend(b'RIFF')
-        header.extend(struct.pack('<I', 36 + data_size))  # File size - 8
-        header.extend(b'WAVE')
+        header.extend(b"RIFF")
+        header.extend(struct.pack("<I", 36 + data_size))  # File size - 8
+        header.extend(b"WAVE")
 
         # fmt chunk
-        header.extend(b'fmt ')
-        header.extend(struct.pack('<I', 16))  # Chunk size
-        header.extend(struct.pack('<H', 1))   # PCM format
-        header.extend(struct.pack('<H', channels))
-        header.extend(struct.pack('<I', sample_rate))
-        header.extend(struct.pack('<I', byte_rate))
-        header.extend(struct.pack('<H', block_align))
-        header.extend(struct.pack('<H', bits_per_sample))
+        header.extend(b"fmt ")
+        header.extend(struct.pack("<I", 16))  # Chunk size
+        header.extend(struct.pack("<H", 1))  # PCM format
+        header.extend(struct.pack("<H", channels))
+        header.extend(struct.pack("<I", sample_rate))
+        header.extend(struct.pack("<I", byte_rate))
+        header.extend(struct.pack("<H", block_align))
+        header.extend(struct.pack("<H", bits_per_sample))
 
         # data chunk
-        header.extend(b'data')
-        header.extend(struct.pack('<I', data_size))
+        header.extend(b"data")
+        header.extend(struct.pack("<I", data_size))
 
         # Silent audio data (zeros)
         audio_data = bytes(data_size)

@@ -28,9 +28,9 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import Button from "./Button";
 import Input from "./Input";
-import Select, { type SelectOption } from "./Select";
+// Select import removed - not used in this file
 import Checkbox from "./Checkbox";
-import Panel, { PanelHeader, PanelBody, PanelFooter } from "./Panel";
+import Panel, { PanelHeader, PanelBody } from "./Panel";
 import type { ScreenType, SerializedWindowConfig } from "../../stores/projectStore";
 
 // ============================================

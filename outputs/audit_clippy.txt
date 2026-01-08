@@ -1,0 +1,3073 @@
+    Checking app-factory v1.0.0 (C:\Users\anujd\Documents\01_AI\173_piovisstudio\app_factory\src-tauri)
+error: long literal lacking separators
+   --> src\ipc\spawn.rs:557:39
+    |
+557 |         const CREATE_NO_WINDOW: u32 = 0x08000000;
+    |                                       ^^^^^^^^^^ help: consider: `0x0800_0000`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unreadable_literal
+    = note: `-D clippy::unreadable-literal` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unreadable_literal)]`
+
+error: item in documentation is missing backticks
+  --> src\main.rs:10:33
+   |
+10 | //!     - D035: ipc/manager.rs (IpcManagerState)
+   |                                 ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+   = note: `-D clippy::doc-markdown` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_markdown)]`
+help: try
+   |
+10 - //!     - D035: ipc/manager.rs (IpcManagerState)
+10 + //!     - D035: ipc/manager.rs (`IpcManagerState`)
+   |
+
+error: item in documentation is missing backticks
+ --> src\commands\mod.rs:9:52
+  |
+9 | //! - Tauri commands exposed to React frontend via invoke()
+  |                                                    ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+  |
+9 - //! - Tauri commands exposed to React frontend via invoke()
+9 + //! - Tauri commands exposed to React frontend via `invoke()`
+  |
+
+error: item in documentation is missing backticks
+  --> src\commands\mod.rs:16:29
+   |
+16 | //!     - D035: manager.rs (IpcManagerState)
+   |                             ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+16 - //!     - D035: manager.rs (IpcManagerState)
+16 + //!     - D035: manager.rs (`IpcManagerState`)
+   |
+
+error: backticks are unbalanced
+  --> src\commands\mod.rs:18:5
+   |
+18 |   //! Usage (Rust):
+   |  _____^
+19 | | //!     ```rust
+20 | | //!     // In main.rs
+21 | | //!     use commands::*;
+   | |________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: backticks are unbalanced
+  --> src\commands\mod.rs:39:5
+   |
+39 |   //! Usage (TypeScript):
+   |  _____^
+40 | | //!     ```typescript
+41 | | //!     import { invoke } from '@tauri-apps/api/tauri';
+   | |_______________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: backticks are unbalanced
+  --> src\commands\compiler.rs:10:5
+   |
+10 |   //! Usage (TypeScript):
+   |  _____^
+11 | | //!     ```typescript
+12 | | //!     import { invoke } from '@tauri-apps/api/tauri';
+   | |_______________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: item in documentation is missing backticks
+  --> src\commands\compiler.rs:33:26
+   |
+33 | /// Matches the frontend CompileResult interface.
+   |                          ^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+33 - /// Matches the frontend CompileResult interface.
+33 + /// Matches the frontend `CompileResult` interface.
+   |
+
+error: calling `Rc::default()` is more clear than this expression
+  --> src\commands\compiler.rs:80:30
+   |
+80 |     let cm: Lrc<SourceMap> = Default::default();
+   |                              ^^^^^^^^^^^^^^^^^^ help: try: `Rc::default()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#default_trait_access
+   = note: `-D clippy::default-trait-access` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::default_trait_access)]`
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\compiler.rs:102:61
+    |
+102 |         let error_msgs: Vec<String> = errors.iter().map(|e| format!("{:?}", e)).collect();
+    |                                                             ^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+    = note: `-D clippy::uninlined-format-args` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+    |
+102 -         let error_msgs: Vec<String> = errors.iter().map(|e| format!("{:?}", e)).collect();
+102 +         let error_msgs: Vec<String> = errors.iter().map(|e| format!("{e:?}")).collect();
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\compiler.rs:108:22
+    |
+108 |         .map_err(|e| format!("Parse error: {:?}", e))?;
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+108 -         .map_err(|e| format!("Parse error: {:?}", e))?;
+108 +         .map_err(|e| format!("Parse error: {e:?}"))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\compiler.rs:165:26
+    |
+165 |             .map_err(|e| format!("Emit error: {:?}", e))?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+165 -             .map_err(|e| format!("Emit error: {:?}", e))?;
+165 +             .map_err(|e| format!("Emit error: {e:?}"))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\compiler.rs:168:40
+    |
+168 |     String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {}", e))
+    |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+168 -     String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {}", e))
+168 +     String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {e}"))
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\compiler.rs:183:5
+    |
+183 | /// CompileResult with success status and either compiled code or error message.
+    |     ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+183 - /// CompileResult with success status and either compiled code or error message.
+183 + /// `CompileResult` with success status and either compiled code or error message.
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\compiler.rs:198:26
+    |
+198 | pub fn compile_tsx(code: String) -> CompileResult {
+    |                          ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+    = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\compiler.rs:210:13
+    |
+210 |             log::warn!("Compilation failed: {}", error);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+210 -             log::warn!("Compilation failed: {}", error);
+210 +             log::warn!("Compilation failed: {error}");
+    |
+
+error: item in documentation is missing backticks
+ --> src\commands\secrets.rs:9:27
+  |
+9 | //! Active key tracked as ACTIVE_APIKEY_<SERVICE>=<UUID>
+  |                           ^^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+  |
+9 - //! Active key tracked as ACTIVE_APIKEY_<SERVICE>=<UUID>
+9 + //! Active key tracked as `ACTIVE_APIKEY`_<SERVICE>=<UUID>
+  |
+
+error: backticks are unbalanced
+  --> src\commands\secrets.rs:11:5
+   |
+11 |   //! Usage (TypeScript):
+   |  _____^
+12 | | //!     ```typescript
+13 | | //!     import { invoke } from '@tauri-apps/api/tauri';
+   | |_______________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: item in documentation is missing backticks
+  --> src\commands\secrets.rs:53:36
+   |
+53 |     /// Masked key display (e.g., "AIz***xyz")
+   |                                    ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+53 -     /// Masked key display (e.g., "AIz***xyz")
+53 +     /// Masked key display (e.g., "`AIz`***xyz")
+   |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:102:50
+    |
+102 |     log::debug!("get_env_path: exe_path = {:?}", exe_path);
+    |                                                  ^^^^^^^^
+    |
+    = help: use `Display` formatting and change this to `exe_path.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+    = note: `-D clippy::unnecessary-debug-formatting` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_debug_formatting)]`
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:102:5
+    |
+102 |     log::debug!("get_env_path: exe_path = {:?}", exe_path);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+102 -     log::debug!("get_env_path: exe_path = {:?}", exe_path);
+102 +     log::debug!("get_env_path: exe_path = {exe_path:?}");
+    |
+
+error: redundant closure
+   --> src\commands\secrets.rs:104:45
+    |
+104 |     let mut current = exe_path.parent().map(|p| p.to_path_buf());
+    |                                             ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::path::Path::to_path_buf`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+    = note: `-D clippy::redundant-closure-for-method-calls` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::redundant_closure_for_method_calls)]`
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:110:81
+    |
+110 |                 log::debug!("get_env_path: Found via exe path traversal: {:?}", dir);
+    |                                                                                 ^^^
+    |
+    = help: use `Display` formatting and change this to `dir.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:110:17
+    |
+110 |                 log::debug!("get_env_path: Found via exe path traversal: {:?}", dir);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+110 -                 log::debug!("get_env_path: Found via exe path traversal: {:?}", dir);
+110 +                 log::debug!("get_env_path: Found via exe path traversal: {dir:?}");
+    |
+
+error: redundant closure
+   --> src\commands\secrets.rs:113:40
+    |
+113 |             current = dir.parent().map(|p| p.to_path_buf());
+    |                                        ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::path::Path::to_path_buf`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:121:45
+    |
+121 |     log::debug!("get_env_path: cwd = {:?}", cwd);
+    |                                             ^^^
+    |
+    = help: use `Display` formatting and change this to `cwd.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:121:5
+    |
+121 |     log::debug!("get_env_path: cwd = {:?}", cwd);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+121 -     log::debug!("get_env_path: cwd = {:?}", cwd);
+121 +     log::debug!("get_env_path: cwd = {cwd:?}");
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:124:58
+    |
+124 |         log::debug!("get_env_path: Found via cwd: {:?}", cwd);
+    |                                                          ^^^
+    |
+    = help: use `Display` formatting and change this to `cwd.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:124:9
+    |
+124 |         log::debug!("get_env_path: Found via cwd: {:?}", cwd);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+124 -         log::debug!("get_env_path: Found via cwd: {:?}", cwd);
+124 +         log::debug!("get_env_path: Found via cwd: {cwd:?}");
+    |
+
+error: called `map(<f>).unwrap_or(false)` on an `Option` value
+   --> src\commands\secrets.rs:129:8
+    |
+129 |     if cwd.file_name().map(|n| n == "src-tauri").unwrap_or(false) {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#map_unwrap_or
+    = note: `-D clippy::map-unwrap-or` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::map_unwrap_or)]`
+help: use `is_some_and(<f>)` instead
+    |
+129 -     if cwd.file_name().map(|n| n == "src-tauri").unwrap_or(false) {
+129 +     if cwd.file_name().is_some_and(|n| n == "src-tauri") {
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:132:79
+    |
+132 |                 log::debug!("get_env_path: Found via src-tauri parent: {:?}", parent);
+    |                                                                               ^^^^^^
+    |
+    = help: use `Display` formatting and change this to `parent.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:132:17
+    |
+132 |                 log::debug!("get_env_path: Found via src-tauri parent: {:?}", parent);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+132 -                 log::debug!("get_env_path: Found via src-tauri parent: {:?}", parent);
+132 +                 log::debug!("get_env_path: Found via src-tauri parent: {parent:?}");
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:141:69
+    |
+141 |             log::debug!("get_env_path: Found via cwd parent: {:?}", parent);
+    |                                                                     ^^^^^^
+    |
+    = help: use `Display` formatting and change this to `parent.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:141:13
+    |
+141 |             log::debug!("get_env_path: Found via cwd parent: {:?}", parent);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+141 -             log::debug!("get_env_path: Found via cwd parent: {:?}", parent);
+141 +             log::debug!("get_env_path: Found via cwd parent: {parent:?}");
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\commands\secrets.rs:151:83
+    |
+151 |             log::debug!("get_env_path: Found via src-tauri sibling search: {:?}", search);
+    |                                                                                   ^^^^^^
+    |
+    = help: use `Display` formatting and change this to `search.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:151:13
+    |
+151 |             log::debug!("get_env_path: Found via src-tauri sibling search: {:?}", search);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+151 -             log::debug!("get_env_path: Found via src-tauri sibling search: {:?}", search);
+151 +             log::debug!("get_env_path: Found via src-tauri sibling search: {search:?}");
+    |
+
+error: unnecessary `Debug` formatting in `warn!` args
+   --> src\commands\secrets.rs:162:78
+    |
+162 |     log::warn!("get_env_path: Could not find project root, using cwd: {:?}", cwd);
+    |                                                                              ^^^
+    |
+    = help: use `Display` formatting and change this to `cwd.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:162:5
+    |
+162 |     log::warn!("get_env_path: Could not find project root, using cwd: {:?}", cwd);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+162 -     log::warn!("get_env_path: Could not find project root, using cwd: {:?}", cwd);
+162 +     log::warn!("get_env_path: Could not find project root, using cwd: {cwd:?}");
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\secrets.rs:175:26
+    |
+175 | /// Parse .env file into HashMap.
+    |                          ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+175 - /// Parse .env file into HashMap.
+175 + /// Parse .env file into `HashMap`.
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\secrets.rs:211:11
+    |
+211 | /// Write HashMap back to .env file, preserving comments.
+    |           ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+211 - /// Write HashMap back to .env file, preserving comments.
+211 + /// Write `HashMap` back to .env file, preserving comments.
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:228:36
+    |
+228 |                         lines.push(format!("{}={}", key, value));
+    |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+228 -                         lines.push(format!("{}={}", key, value));
+228 +                         lines.push(format!("{key}={value}"));
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:240:24
+    |
+240 |             lines.push(format!("{}={}", key, value));
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+240 -             lines.push(format!("{}={}", key, value));
+240 +             lines.push(format!("{key}={value}"));
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:246:42
+    |
+246 |     fs::write(path, content).map_err(|e| format!("Failed to write .env: {}", e))
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+246 -     fs::write(path, content).map_err(|e| format!("Failed to write .env: {}", e))
+246 +     fs::write(path, content).map_err(|e| format!("Failed to write .env: {e}"))
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:267:23
+    |
+267 |                 .get(&format!("{}{}", name_prefix, id))
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+267 -                 .get(&format!("{}{}", name_prefix, id))
+267 +                 .get(&format!("{name_prefix}{id}"))
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:272:23
+    |
+272 |                 .get(&format!("{}{}", created_prefix, id))
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+272 -                 .get(&format!("{}{}", created_prefix, id))
+272 +                 .get(&format!("{created_prefix}{id}"))
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\secrets.rs:307:14
+    |
+307 | /// Array of ApiKeyEntry (with masked keys).
+    |              ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+307 - /// Array of ApiKeyEntry (with masked keys).
+307 + /// Array of `ApiKeyEntry` (with masked keys).
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:309:30
+    |
+309 | pub fn get_api_keys(service: String) -> CommandResult<Vec<ApiKeyEntry>> {
+    |                              ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: this function's return value is unnecessarily wrapped by `Result`
+   --> src\commands\secrets.rs:309:1
+    |
+309 | pub fn get_api_keys(service: String) -> CommandResult<Vec<ApiKeyEntry>> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_wraps
+    = note: `-D clippy::unnecessary-wraps` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_wraps)]`
+help: remove `Result` from the return type...
+    |
+309 - pub fn get_api_keys(service: String) -> CommandResult<Vec<ApiKeyEntry>> {
+309 + pub fn get_api_keys(service: String) -> std::vec::Vec<commands::secrets::ApiKeyEntry> {
+    |
+help: ...and then remove the surrounding `Ok()` from returning expressions
+    |
+325 -     Ok(entries)
+325 +     entries
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:310:5
+    |
+310 |     log::debug!("Command: get_api_keys service={}", service);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+310 -     log::debug!("Command: get_api_keys service={}", service);
+310 +     log::debug!("Command: get_api_keys service={service}");
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\secrets.rs:338:17
+    |
+338 | /// The created ApiKeyEntry.
+    |                 ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+338 - /// The created ApiKeyEntry.
+338 + /// The created `ApiKeyEntry`.
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:340:56
+    |
+340 | pub fn add_api_key(service: String, name: String, key: String) -> CommandResult<ApiKeyEntry> {
+    |                                                        ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider changing the type to
+    |
+340 - pub fn add_api_key(service: String, name: String, key: String) -> CommandResult<ApiKeyEntry> {
+340 + pub fn add_api_key(service: String, name: String, key: &str) -> CommandResult<ApiKeyEntry> {
+    |
+help: change `key.clone()` to
+    |
+355 -     env_vars.insert(key_var, key.clone());
+355 +     env_vars.insert(key_var, key.to_string());
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:341:5
+    |
+341 |     log::info!("Command: add_api_key service={} name={}", service, name);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+341 -     log::info!("Command: add_api_key service={} name={}", service, name);
+341 +     log::info!("Command: add_api_key service={service} name={name}");
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:394:9
+    |
+394 |     id: String,
+    |         ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider changing the type to
+    |
+394 -     id: String,
+394 +     id: &str,
+    |
+help: change `id.clone()` to
+    |
+438 -         id: id.clone(),
+438 +         id: id.to_string(),
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:396:10
+    |
+396 |     key: Option<String>,
+    |          ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+396 |     key: Option<&String>,
+    |                 +
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:398:5
+    |
+398 |     log::info!("Command: update_api_key service={} id={}", service, id);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+398 -     log::info!("Command: update_api_key service={} id={}", service, id);
+398 +     log::info!("Command: update_api_key service={service} id={id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:408:22
+    |
+408 |             message: format!("API key with ID {} not found", id),
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+408 -             message: format!("API key with ID {} not found", id),
+408 +             message: format!("API key with ID {id} not found"),
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:454:32
+    |
+454 | pub fn delete_api_key(service: String, id: String) -> CommandResult<()> {
+    |                                ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:454:44
+    |
+454 | pub fn delete_api_key(service: String, id: String) -> CommandResult<()> {
+    |                                            ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:455:5
+    |
+455 |     log::info!("Command: delete_api_key service={} id={}", service, id);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+455 -     log::info!("Command: delete_api_key service={} id={}", service, id);
+455 +     log::info!("Command: delete_api_key service={service} id={id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:468:22
+    |
+468 |             message: format!("API key with ID {} not found", id),
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+468 -             message: format!("API key with ID {} not found", id),
+468 +             message: format!("API key with ID {id} not found"),
+    |
+
+error: item in documentation is missing backticks
+   --> src\commands\secrets.rs:507:16
+    |
+507 | /// The active ApiKeyEntry or None.
+    |                ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+507 - /// The active ApiKeyEntry or None.
+507 + /// The active `ApiKeyEntry` or None.
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:509:36
+    |
+509 | pub fn get_active_api_key(service: String) -> CommandResult<Option<ApiKeyEntry>> {
+    |                                    ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: this function's return value is unnecessarily wrapped by `Result`
+   --> src\commands\secrets.rs:509:1
+    |
+509 | pub fn get_active_api_key(service: String) -> CommandResult<Option<ApiKeyEntry>> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_wraps
+help: remove `Result` from the return type...
+    |
+509 - pub fn get_active_api_key(service: String) -> CommandResult<Option<ApiKeyEntry>> {
+509 + pub fn get_active_api_key(service: String) -> std::option::Option<commands::secrets::ApiKeyEntry> {
+    |
+help: ...and then remove the surrounding `Ok()` from returning expressions
+    |
+519 ~             return Some(key.to_entry(true));
+520 |         }
+521 |     }
+522 |
+523 ~     None
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:510:5
+    |
+510 |     log::debug!("Command: get_active_api_key service={}", service);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+510 -     log::debug!("Command: get_active_api_key service={}", service);
+510 +     log::debug!("Command: get_active_api_key service={service}");
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:533:36
+    |
+533 | pub fn set_active_api_key(service: String, id: String) -> CommandResult<()> {
+    |                                    ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:534:5
+    |
+534 |     log::info!("Command: set_active_api_key service={} id={}", service, id);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+534 -     log::info!("Command: set_active_api_key service={} id={}", service, id);
+534 +     log::info!("Command: set_active_api_key service={service} id={id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:544:22
+    |
+544 |             message: format!("API key with ID {} not found", id),
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+544 -             message: format!("API key with ID {} not found", id),
+544 +             message: format!("API key with ID {id} not found"),
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\commands\secrets.rs:574:42
+    |
+574 | pub fn get_active_api_key_value(service: String) -> CommandResult<Option<String>> {
+    |                                          ^^^^^^ help: consider changing the type to: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+
+error: this function's return value is unnecessarily wrapped by `Result`
+   --> src\commands\secrets.rs:574:1
+    |
+574 | pub fn get_active_api_key_value(service: String) -> CommandResult<Option<String>> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_wraps
+help: remove `Result` from the return type...
+    |
+574 - pub fn get_active_api_key_value(service: String) -> CommandResult<Option<String>> {
+574 + pub fn get_active_api_key_value(service: String) -> std::option::Option<std::string::String> {
+    |
+help: ...and then remove the surrounding `Ok()` from returning expressions
+    |
+583 ~         return env_vars.get(&key_var).cloned();
+584 |     }
+585 |
+586 ~     None
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\secrets.rs:575:5
+    |
+575 |     log::debug!("Command: get_active_api_key_value service={}", service);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+575 -     log::debug!("Command: get_active_api_key_value service={}", service);
+575 +     log::debug!("Command: get_active_api_key_value service={service}");
+    |
+
+error: this function's return value is unnecessarily wrapped by `Result`
+   --> src\commands\secrets.rs:595:1
+    |
+595 | pub fn get_configured_services() -> CommandResult<Vec<String>> {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_wraps
+help: remove `Result` from the return type...
+    |
+595 - pub fn get_configured_services() -> CommandResult<Vec<String>> {
+595 + pub fn get_configured_services() -> std::vec::Vec<std::string::String> {
+    |
+help: ...and then remove the surrounding `Ok()` from returning expressions
+    |
+613 -     Ok(services.into_iter().collect())
+613 +     services.into_iter().collect()
+    |
+
+error: variables can be used directly in the `format!` string
+  --> src\commands\mod.rs:91:52
+   |
+91 |             IpcError::Timeout(secs) => ("TIMEOUT", format!("Request timed out after {} seconds", secs)),
+   |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+   |
+91 -             IpcError::Timeout(secs) => ("TIMEOUT", format!("Request timed out after {} seconds", secs)),
+91 +             IpcError::Timeout(secs) => ("TIMEOUT", format!("Request timed out after {secs} seconds")),
+   |
+
+error: variables can be used directly in the `format!` string
+  --> src\commands\mod.rs:95:27
+   |
+95 |                     code: format!("RPC_ERROR_{}", code),
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+   |
+95 -                     code: format!("RPC_ERROR_{}", code),
+95 +                     code: format!("RPC_ERROR_{code}"),
+   |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:100:67
+    |
+100 |             IpcError::ResponseMissing(id) => ("RESPONSE_MISSING", format!("Response missing for request {}", id)),
+    |                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+100 -             IpcError::ResponseMissing(id) => ("RESPONSE_MISSING", format!("Response missing for request {}", id)),
+100 +             IpcError::ResponseMissing(id) => ("RESPONSE_MISSING", format!("Response missing for request {id}")),
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:103:69
+    |
+103 |             IpcError::RespawnFailed(attempts) => ("RESPAWN_FAILED", format!("Respawn failed after {} attempts", attempts)),
+    |                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+103 -             IpcError::RespawnFailed(attempts) => ("RESPAWN_FAILED", format!("Respawn failed after {} attempts", attempts)),
+103 +             IpcError::RespawnFailed(attempts) => ("RESPAWN_FAILED", format!("Respawn failed after {attempts} attempts")),
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:147:62
+    |
+147 | pub async fn ipc_start(state: State<'_, IpcManagerState>) -> CommandResult<()> {
+    |                                                              ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:147:62
+    |
+147 | pub async fn ipc_start(state: State<'_, IpcManagerState>) -> CommandResult<()> {
+    |                                                              ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+    = note: `-D clippy::used-underscore-binding` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::used_underscore_binding)]`
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:165:61
+    |
+165 | pub async fn ipc_stop(state: State<'_, IpcManagerState>) -> CommandResult<()> {
+    |                                                             ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:165:61
+    |
+165 | pub async fn ipc_stop(state: State<'_, IpcManagerState>) -> CommandResult<()> {
+    |                                                             ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:183:63
+    |
+183 | pub async fn ipc_status(state: State<'_, IpcManagerState>) -> CommandResult<ManagerStats> {
+    |                                                               ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:183:63
+    |
+183 | pub async fn ipc_status(state: State<'_, IpcManagerState>) -> CommandResult<ManagerStats> {
+    |                                                               ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:203:62
+    |
+203 | pub async fn ipc_ready(state: State<'_, IpcManagerState>) -> CommandResult<bool> {
+    |                                                              ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:203:62
+    |
+203 | pub async fn ipc_ready(state: State<'_, IpcManagerState>) -> CommandResult<bool> {
+    |                                                              ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:235:6
+    |
+235 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:235:6
+    |
+235 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:236:5
+    |
+236 |     log::debug!("Command: ipc_call method={}", method);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+236 -     log::debug!("Command: ipc_call method={}", method);
+236 +     log::debug!("Command: ipc_call method={method}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:278:6
+    |
+278 | ) -> CommandResult<Vec<BatchResult>> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:278:6
+    |
+278 | ) -> CommandResult<Vec<BatchResult>> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:322:64
+    |
+322 | pub async fn plugin_list(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:322:64
+    |
+322 | pub async fn plugin_list(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:346:6
+    |
+346 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:346:6
+    |
+346 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:347:5
+    |
+347 |     log::debug!("Command: plugin_info name={}", name);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+347 -     log::debug!("Command: plugin_info name={}", name);
+347 +     log::debug!("Command: plugin_info name={name}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:370:6
+    |
+370 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:370:6
+    |
+370 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:371:5
+    |
+371 |     log::info!("Command: plugin_load name={}", name);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+371 -     log::info!("Command: plugin_load name={}", name);
+371 +     log::info!("Command: plugin_load name={name}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:394:6
+    |
+394 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:394:6
+    |
+394 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:395:5
+    |
+395 |     log::info!("Command: plugin_unload name={}", name);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+395 -     log::info!("Command: plugin_unload name={}", name);
+395 +     log::info!("Command: plugin_unload name={name}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:423:6
+    |
+423 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:423:6
+    |
+423 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:424:5
+    |
+424 |     log::info!("Command: plugin_swap {} -> {}", old_name, new_name);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+424 -     log::info!("Command: plugin_swap {} -> {}", old_name, new_name);
+424 +     log::info!("Command: plugin_swap {old_name} -> {new_name}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:458:6
+    |
+458 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:458:6
+    |
+458 | ) -> CommandResult<Value> {
+    |      ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: variables can be used directly in the `format!` string
+   --> src\commands\mod.rs:459:5
+    |
+459 |     log::debug!("Command: plugin_call plugin={} method={}", plugin, method);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+459 -     log::debug!("Command: plugin_call plugin={} method={}", plugin, method);
+459 +     log::debug!("Command: plugin_call plugin={plugin} method={method}");
+    |
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:484:65
+    |
+484 | pub async fn health_check(state: State<'_, IpcManagerState>) -> CommandResult<HealthStatus> {
+    |                                                                 ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:484:65
+    |
+484 | pub async fn health_check(state: State<'_, IpcManagerState>) -> CommandResult<HealthStatus> {
+    |                                                                 ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:503:57
+    |
+503 | pub async fn ping(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                         ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:503:57
+    |
+503 | pub async fn ping(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                         ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:524:69
+    |
+524 | pub async fn discover_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                     ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:524:69
+    |
+524 | pub async fn discover_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                     ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: used underscore-prefixed binding
+   --> src\commands\mod.rs:542:65
+    |
+542 | pub async fn scan_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                 ^^^^^^^^^^^^^
+    |
+note: binding is defined here
+   --> src\commands\mod.rs:542:65
+    |
+542 | pub async fn scan_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
+    |                                                                 ^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#used_underscore_binding
+
+error: item in documentation is missing backticks
+  --> src\ipc\mod.rs:19:17
+   |
+19 | //!     - D009: config/error_codes.yaml (error codes)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D009: config/error_codes.yaml (error codes)
+19 + //!     - D009: `config/error_codes.yaml` (error codes)
+   |
+
+error: backticks are unbalanced
+  --> src\ipc\mod.rs:21:5
+   |
+21 |   //! Usage:
+   |  _____^
+22 | | //!     ```rust
+23 | | //!     let mut manager = IpcManager::new()
+24 | | //!         .with_python_path("python")
+25 | | //!         .with_module_path("plugins._host")
+26 | | //!         .with_working_dir("./");
+   | |____________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:12:7
+   |
+12 | //! - JsonRpcRequest structure matching JSON-RPC 2.0 spec
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+12 - //! - JsonRpcRequest structure matching JSON-RPC 2.0 spec
+12 + //! - `JsonRpcRequest` structure matching JSON-RPC 2.0 spec
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:13:7
+   |
+13 | //! - RequestBuilder for fluent request construction
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+13 - //! - RequestBuilder for fluent request construction
+13 + //! - `RequestBuilder` for fluent request construction
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:14:7
+   |
+14 | //! - send_request() implementation for IpcManager
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+14 - //! - send_request() implementation for IpcManager
+14 + //! - `send_request()` implementation for IpcManager
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:14:41
+   |
+14 | //! - send_request() implementation for IpcManager
+   |                                         ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+14 - //! - send_request() implementation for IpcManager
+14 + //! - send_request() implementation for `IpcManager`
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:17:25
+   |
+17 | //!     - D030: mod.rs (IpcManager, IpcError)
+   |                         ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+17 - //!     - D030: mod.rs (IpcManager, IpcError)
+17 + //!     - D030: mod.rs (`IpcManager`, IpcError)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:17:37
+   |
+17 | //!     - D030: mod.rs (IpcManager, IpcError)
+   |                                     ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+17 - //!     - D030: mod.rs (IpcManager, IpcError)
+17 + //!     - D030: mod.rs (IpcManager, `IpcError`)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\request.rs:18:17
+   |
+18 | //!     - D009: config/error_codes.yaml (error codes reference)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+18 - //!     - D009: config/error_codes.yaml (error codes reference)
+18 + //!     - D009: `config/error_codes.yaml` (error codes reference)
+   |
+
+error: backticks are unbalanced
+  --> src\ipc\request.rs:20:5
+   |
+20 |   //! Usage:
+   |  _____^
+21 | | //!     ```rust
+22 | | //!     // Using RequestBuilder
+23 | | //!     let request = RequestBuilder::new("plugin/list")
+24 | | //!         .with_param("filter", "tts")
+25 | | //!         .build(1);
+   | |______________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:223:17
+    |
+223 |                 log::warn!("Failed to serialize param '{}': {}", key, e);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+223 -                 log::warn!("Failed to serialize param '{}': {}", key, e);
+223 +                 log::warn!("Failed to serialize param '{key}': {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:247:13
+    |
+247 |             log::warn!("with_params expected object, got: {:?}", params);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+247 -             log::warn!("with_params expected object, got: {:?}", params);
+247 +             log::warn!("with_params expected object, got: {params:?}");
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\request.rs:260:18
+    |
+260 |     /// Complete JsonRpcRequest ready to send
+    |                  ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+260 -     /// Complete JsonRpcRequest ready to send
+260 +     /// Complete `JsonRpcRequest` ready to send
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:334:9
+    |
+334 |         log::debug!("Sending request: id={}, method={}", id, method);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+334 -         log::debug!("Sending request: id={}, method={}", id, method);
+334 +         log::debug!("Sending request: id={id}, method={method}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:369:17
+    |
+369 |                 log::debug!("Response received: id={}", id);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+369 -                 log::debug!("Response received: id={}", id);
+369 +                 log::debug!("Response received: id={id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:386:17
+    |
+386 |                 log::error!("Request error: id={}, error={}", id, e);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+386 -                 log::error!("Request error: id={}, error={}", id, e);
+386 +                 log::error!("Request error: id={id}, error={e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:397:17
+    |
+397 |                 log::error!("Response channel closed: id={}", id);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+397 -                 log::error!("Response channel closed: id={}", id);
+397 +                 log::error!("Response channel closed: id={id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\request.rs:408:17
+    |
+408 |                 log::error!("Request timeout: id={}, method={}", id, method);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+408 -                 log::error!("Request timeout: id={}, method={}", id, method);
+408 +                 log::error!("Request timeout: id={id}, method={method}");
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\request.rs:414:30
+    |
+414 |     /// Send a request using RequestBuilder.
+    |                              ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+414 -     /// Send a request using RequestBuilder.
+414 +     /// Send a request using `RequestBuilder`.
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\request.rs:420:34
+    |
+420 |     /// * `builder` - Configured RequestBuilder
+    |                                  ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+420 -     /// * `builder` - Configured RequestBuilder
+420 +     /// * `builder` - Configured `RequestBuilder`
+    |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:12:7
+   |
+12 | //! - JsonRpcResponse structure matching JSON-RPC 2.0 spec
+   |       ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+12 - //! - JsonRpcResponse structure matching JSON-RPC 2.0 spec
+12 + //! - `JsonRpcResponse` structure matching JSON-RPC 2.0 spec
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:13:7
+   |
+13 | //! - JsonRpcError for error responses
+   |       ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+13 - //! - JsonRpcError for error responses
+13 + //! - `JsonRpcError` for error responses
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:14:7
+   |
+14 | //! - ResponseResult helper for handling success/error
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+14 - //! - ResponseResult helper for handling success/error
+14 + //! - `ResponseResult` helper for handling success/error
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:18:25
+   |
+18 | //!     - D030: mod.rs (IpcError)
+   |                         ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+18 - //!     - D030: mod.rs (IpcError)
+18 + //!     - D030: mod.rs (`IpcError`)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:19:17
+   |
+19 | //!     - D009: config/error_codes.yaml (error codes)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D009: config/error_codes.yaml (error codes)
+19 + //!     - D009: `config/error_codes.yaml` (error codes)
+   |
+
+error: backticks are unbalanced
+  --> src\ipc\response.rs:21:5
+   |
+21 |   //! Usage:
+   |  _____^
+22 | | //!     ```rust
+23 | | //!     let response: JsonRpcResponse = serde_json::from_str(&json_line)?;
+   | |__________________________________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:69:57
+   |
+69 |     /// Plugin initialization failed: Plugin loaded but initialize() failed.
+   |                                                         ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+69 -     /// Plugin initialization failed: Plugin loaded but initialize() failed.
+69 +     /// Plugin initialization failed: Plugin loaded but `initialize()` failed.
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\response.rs:72:40
+   |
+72 |     /// Plugin shutdown failed: Plugin shutdown() method failed.
+   |                                        ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+72 -     /// Plugin shutdown failed: Plugin shutdown() method failed.
+72 +     /// Plugin shutdown failed: Plugin `shutdown()` method failed.
+   |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\response.rs:235:13
+    |
+235 |             format!("Method not found: {}", method),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+235 -             format!("Method not found: {}", method),
+235 +             format!("Method not found: {method}"),
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\response.rs:275:20
+    |
+275 |     /// Convert to IpcError.
+    |                    ^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+275 -     /// Convert to IpcError.
+275 +     /// Convert to `IpcError`.
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\response.rs:489:13
+    |
+489 |             write!(f, "Error: {}", error)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+489 -             write!(f, "Error: {}", error)
+489 +             write!(f, "Error: {error}")
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\response.rs:491:13
+    |
+491 |             write!(f, "Result: {}", result)
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+491 -             write!(f, "Result: {}", result)
+491 +             write!(f, "Result: {result}")
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\response.rs:504:47
+    |
+504 | /// Wraps the common pattern of Result<Value, JsonRpcError>.
+    |                                               ^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+504 - /// Wraps the common pattern of Result<Value, JsonRpcError>.
+504 + /// Wraps the common pattern of Result<Value, `JsonRpcError`>.
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\response.rs:507:25
+    |
+507 | /// Extension trait for ResponseResult.
+    |                         ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+507 - /// Extension trait for ResponseResult.
+507 + /// Extension trait for `ResponseResult`.
+    |
+
+error: redundant closure
+   --> src\ipc\response.rs:569:35
+    |
+569 |         self.responses.iter().all(|r| r.is_success())
+    |                                   ^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `JsonRpcResponse::is_success`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+
+error: usage of wildcard import
+   --> src\ipc\response.rs:597:9
+    |
+597 |     use super::*;
+    |         ^^^^^^^^ help: try: `super::{JsonRpcResponse, IpcError, ResponseResultExt}`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#wildcard_imports
+    = note: `-D clippy::wildcard-imports` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::wildcard_imports)]`
+
+error: item in documentation is missing backticks
+  --> src\ipc\spawn.rs:12:7
+   |
+12 | //! - SubprocessConfig for configurable spawn parameters
+   |       ^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+12 - //! - SubprocessConfig for configurable spawn parameters
+12 + //! - `SubprocessConfig` for configurable spawn parameters
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\spawn.rs:13:33
+   |
+13 | //! - Sidecar-style spawn using tauri::api::process::Command
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+13 - //! - Sidecar-style spawn using tauri::api::process::Command
+13 + //! - Sidecar-style spawn using `tauri::api::process::Command`
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\spawn.rs:19:25
+   |
+19 | //!     - D030: mod.rs (IpcError, constants)
+   |                         ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D030: mod.rs (IpcError, constants)
+19 + //!     - D030: mod.rs (`IpcError`, constants)
+   |
+
+error: you should put bare URLs between `<`/`>` or make a proper Markdown link
+  --> src\ipc\spawn.rs:21:16
+   |
+21 | //! Reference: https://v1.tauri.app/v1/guides/building/sidecar/
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `<https://v1.tauri.app/v1/guides/building/sidecar>`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: backticks are unbalanced
+  --> src\ipc\spawn.rs:23:5
+   |
+23 |   //! Usage:
+   |  _____^
+24 | | //!     ```rust
+25 | | //!     use crate::ipc::spawn::{SubprocessConfig, SubprocessHandle, spawn_plugin_host};
+   | |_______________________________________________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:413:29
+    |
+413 |             if let Err(e) = writeln!(stdin, "{}", shutdown_request) {
+    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+413 -             if let Err(e) = writeln!(stdin, "{}", shutdown_request) {
+413 +             if let Err(e) = writeln!(stdin, "{shutdown_request}") {
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:414:17
+    |
+414 |                 log::warn!("Failed to send shutdown request: {}", e);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+414 -                 log::warn!("Failed to send shutdown request: {}", e);
+414 +                 log::warn!("Failed to send shutdown request: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:416:17
+    |
+416 |                 log::warn!("Failed to flush shutdown request: {}", e);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+416 -                 log::warn!("Failed to flush shutdown request: {}", e);
+416 +                 log::warn!("Failed to flush shutdown request: {e}");
+    |
+
+error: you seem to be trying to use `match` for destructuring a single pattern. Consider using `if let`
+   --> src\ipc\spawn.rs:423:13
+    |
+423 | /             match self.try_wait()? {
+424 | |                 Some(status) => {
+425 | |                     log::info!(
+426 | |                         "Subprocess exited gracefully (PID: {}, status: {:?})",
+...   |
+442 | |             }
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#single_match_else
+    = note: `-D clippy::single-match-else` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::single_match_else)]`
+help: try
+    |
+423 ~             if let Some(status) = self.try_wait()? {
+424 +                 log::info!(
+425 +                     "Subprocess exited gracefully (PID: {}, status: {:?})",
+426 +                     self.pid,
+427 +                     status
+428 +                 );
+429 +                 return Ok(());
+430 +             } else {
+431 +                 if start.elapsed() >= timeout {
+432 +                     log::warn!(
+433 +                         "Graceful shutdown timeout exceeded, killing subprocess (PID: {})",
+434 +                         self.pid
+435 +                     );
+436 +                     return self.kill();
+437 +                 }
+438 +                 std::thread::sleep(Duration::from_millis(50));
+439 +             }
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:461:44
+    |
+461 |             .map_err(|e| IpcError::IoError(format!("Failed to kill subprocess: {}", e)))?;
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+461 -             .map_err(|e| IpcError::IoError(format!("Failed to kill subprocess: {}", e)))?;
+461 +             .map_err(|e| IpcError::IoError(format!("Failed to kill subprocess: {e}")))?;
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+   --> src\ipc\spawn.rs:538:48
+    |
+538 |         log::debug!("Working directory: {:?}", dir);
+    |                                                ^^^
+    |
+    = help: use `Display` formatting and change this to `dir.display()`
+    = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:538:9
+    |
+538 |         log::debug!("Working directory: {:?}", dir);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+538 -         log::debug!("Working directory: {:?}", dir);
+538 +         log::debug!("Working directory: {dir:?}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:564:43
+    |
+564 |         .map_err(|e| IpcError::SpawnError(format!("Failed to spawn subprocess: {}", e)))?;
+    |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+564 -         .map_err(|e| IpcError::SpawnError(format!("Failed to spawn subprocess: {}", e)))?;
+564 +         .map_err(|e| IpcError::SpawnError(format!("Failed to spawn subprocess: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:567:5
+    |
+567 |     log::info!("Plugin host spawned with PID: {}", pid);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+567 -     log::info!("Plugin host spawned with PID: {}", pid);
+567 +     log::info!("Plugin host spawned with PID: {pid}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:652:5
+    |
+652 |     writeln!(stdin, "{}", json)
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+652 -     writeln!(stdin, "{}", json)
+652 +     writeln!(stdin, "{json}")
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:653:42
+    |
+653 |         .map_err(|e| IpcError::SendError(format!("Failed to write to stdin: {}", e)))?;
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+653 -         .map_err(|e| IpcError::SendError(format!("Failed to write to stdin: {}", e)))?;
+653 +         .map_err(|e| IpcError::SendError(format!("Failed to write to stdin: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\spawn.rs:657:42
+    |
+657 |         .map_err(|e| IpcError::SendError(format!("Failed to flush stdin: {}", e)))?;
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+657 -         .map_err(|e| IpcError::SendError(format!("Failed to flush stdin: {}", e)))?;
+657 +         .map_err(|e| IpcError::SendError(format!("Failed to flush stdin: {e}")))?;
+    |
+
+error: item in documentation is missing backticks
+  --> src\ipc\health.rs:12:7
+   |
+12 | //! - HealthMonitor for periodic health checks
+   |       ^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+12 - //! - HealthMonitor for periodic health checks
+12 + //! - `HealthMonitor` for periodic health checks
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\health.rs:13:7
+   |
+13 | //! - HealthStatus tracking with history
+   |       ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+13 - //! - HealthStatus tracking with history
+13 + //! - `HealthStatus` tracking with history
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\health.rs:14:7
+   |
+14 | //! - SubprocessState enum for lifecycle tracking
+   |       ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+14 - //! - SubprocessState enum for lifecycle tracking
+14 + //! - `SubprocessState` enum for lifecycle tracking
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\health.rs:18:25
+   |
+18 | //!     - D030: mod.rs (IpcError, constants)
+   |                         ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+18 - //!     - D030: mod.rs (IpcError, constants)
+18 + //!     - D030: mod.rs (`IpcError`, constants)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\health.rs:19:29
+   |
+19 | //!     - D031: request.rs (RequestBuilder)
+   |                             ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D031: request.rs (RequestBuilder)
+19 + //!     - D031: request.rs (`RequestBuilder`)
+   |
+
+error: backticks are unbalanced
+  --> src\ipc\health.rs:21:5
+   |
+21 |   //! Usage:
+   |  _____^
+22 | | //!     ```rust
+23 | | //!     use crate::ipc::health::{HealthMonitor, HealthStatus};
+   | |______________________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\health.rs:75:23
+   |
+75 |     pub fn is_running(&self) -> bool {
+   |                       ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+   = note: `-D clippy::trivially-copy-pass-by-ref` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::trivially_copy_pass_by_ref)]`
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\health.rs:80:24
+   |
+80 |     pub fn is_terminal(&self) -> bool {
+   |                        ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\health.rs:88:32
+   |
+88 |     pub fn can_accept_requests(&self) -> bool {
+   |                                ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\health.rs:93:26
+   |
+93 |     pub fn needs_respawn(&self) -> bool {
+   |                          ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+
+error: casting `u128` to `u64` may truncate the value
+   --> src\ipc\health.rs:140:30
+    |
+140 |             latency_ms: Some(latency.as_millis() as u64),
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_possible_truncation
+    = note: `-D clippy::cast-possible-truncation` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::cast_possible_truncation)]`
+help: ... or use `try_from` and handle the error accordingly
+    |
+140 -             latency_ms: Some(latency.as_millis() as u64),
+140 +             latency_ms: Some(u64::try_from(latency.as_millis())),
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\health.rs:328:9
+    |
+328 |         log::info!("Subprocess state: {} -> {}", old_state, state);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+328 -         log::info!("Subprocess state: {} -> {}", old_state, state);
+328 +         log::info!("Subprocess state: {old_state} -> {state}");
+    |
+
+error: these match arms have identical bodies
+   --> src\ipc\health.rs:338:13
+    |
+338 | /             SubprocessState::Degraded => {
+339 | |                 self.is_healthy.store(false, Ordering::SeqCst);
+340 | |             }
+    | |_____________^
+341 | /             SubprocessState::Crashed | SubprocessState::Killed => {
+342 | |                 self.is_healthy.store(false, Ordering::SeqCst);
+343 | |             }
+    | |_____________^
+    |
+    = help: if this is unintentional make the arms return different values
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#match_same_arms
+    = note: `-D clippy::match-same-arms` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::match_same_arms)]`
+help: otherwise merge the patterns into a single arm
+    |
+338 ~             SubprocessState::Degraded | SubprocessState::Crashed | SubprocessState::Killed => {
+339 |                 self.is_healthy.store(false, Ordering::SeqCst);
+340 |             }
+341 ~             SubprocessState::Starting => {
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\health.rs:384:9
+    |
+384 |         log::debug!("Health check success: latency={:?}", latency);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+384 -         log::debug!("Health check success: latency={:?}", latency);
+384 +         log::debug!("Health check success: latency={latency:?}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\health.rs:401:9
+    |
+401 |         log::warn!("Health check failure #{}: {}", failures, error);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+401 -         log::warn!("Health check failure #{}: {}", failures, error);
+401 +         log::warn!("Health check failure #{failures}: {error}");
+    |
+
+error: casts from `u32` to `u64` can be expressed infallibly using `From`
+   --> src\ipc\health.rs:404:24
+    |
+404 |         if failures >= self.max_consecutive_failures as u64 {
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_lossless
+    = note: `-D clippy::cast-lossless` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::cast_lossless)]`
+help: use `u64::from` instead
+    |
+404 -         if failures >= self.max_consecutive_failures as u64 {
+404 +         if failures >= u64::from(self.max_consecutive_failures) {
+    |
+
+error: casting `u128` to `u64` may truncate the value
+   --> src\ipc\health.rs:442:22
+    |
+442 |             .map(|d| d.as_millis() as u64);
+    |                      ^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+    |
+442 -             .map(|d| d.as_millis() as u64);
+442 +             .map(|d| u64::try_from(d.as_millis()));
+    |
+
+error: casting `u64` to `u32` may truncate the value
+   --> src\ipc\health.rs:451:35
+    |
+451 |             consecutive_failures: self.consecutive_failures.load(Ordering::SeqCst) as u32,
+    |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+    |
+451 -             consecutive_failures: self.consecutive_failures.load(Ordering::SeqCst) as u32,
+451 +             consecutive_failures: u32::try_from(self.consecutive_failures.load(Ordering::SeqCst)),
+    |
+
+error: casting `u64` to `u32` may truncate the value
+   --> src\ipc\health.rs:456:31
+    |
+456 |             respawn_attempts: self.respawn_attempts.load(Ordering::SeqCst) as u32,
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+    |
+456 -             respawn_attempts: self.respawn_attempts.load(Ordering::SeqCst) as u32,
+456 +             respawn_attempts: u32::try_from(self.respawn_attempts.load(Ordering::SeqCst)),
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\health.rs:483:9
+    |
+483 |         log::info!("Respawn attempt: {}/{}", attempts, MAX_RESPAWN_ATTEMPTS);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+483 -         log::info!("Respawn attempt: {}/{}", attempts, MAX_RESPAWN_ATTEMPTS);
+483 +         log::info!("Respawn attempt: {attempts}/{MAX_RESPAWN_ATTEMPTS}");
+    |
+
+error: casting `u64` to `u32` may truncate the value
+   --> src\ipc\health.rs:484:9
+    |
+484 |         attempts as u32
+    |         ^^^^^^^^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_possible_truncation
+help: ... or use `try_from` and handle the error accordingly
+    |
+484 -         attempts as u32
+484 +         u32::try_from(attempts)
+    |
+
+error: casts from `u32` to `u64` can be expressed infallibly using `From`
+   --> src\ipc\health.rs:494:57
+    |
+494 |         self.respawn_attempts.load(Ordering::SeqCst) >= MAX_RESPAWN_ATTEMPTS as u64
+    |                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#cast_lossless
+help: use `u64::from` instead
+    |
+494 -         self.respawn_attempts.load(Ordering::SeqCst) >= MAX_RESPAWN_ATTEMPTS as u64
+494 +         self.respawn_attempts.load(Ordering::SeqCst) >= u64::from(MAX_RESPAWN_ATTEMPTS)
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\health.rs:518:9
+    |
+518 |         log::error!("Subprocess crashed: {}", error);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+518 -         log::error!("Subprocess crashed: {}", error);
+518 +         log::error!("Subprocess crashed: {error}");
+    |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:12:7
+   |
+12 | //! - IpcConfig for manager configuration
+   |       ^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+12 - //! - IpcConfig for manager configuration
+12 + //! - `IpcConfig` for manager configuration
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:13:7
+   |
+13 | //! - IpcManagerState for Tauri state management
+   |       ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+13 - //! - IpcManagerState for Tauri state management
+13 + //! - `IpcManagerState` for Tauri state management
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:14:7
+   |
+14 | //! - LifecycleState enum for manager lifecycle
+   |       ^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+14 - //! - LifecycleState enum for manager lifecycle
+14 + //! - `LifecycleState` enum for manager lifecycle
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:15:7
+   |
+15 | //! - ManagerStats for statistics reporting
+   |       ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+15 - //! - ManagerStats for statistics reporting
+15 + //! - `ManagerStats` for statistics reporting
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:19:27
+   |
+19 | //!     - D033: spawn.rs (SubprocessConfig, spawn_plugin_host)
+   |                           ^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D033: spawn.rs (SubprocessConfig, spawn_plugin_host)
+19 + //!     - D033: spawn.rs (`SubprocessConfig`, spawn_plugin_host)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:19:45
+   |
+19 | //!     - D033: spawn.rs (SubprocessConfig, spawn_plugin_host)
+   |                                             ^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+19 - //!     - D033: spawn.rs (SubprocessConfig, spawn_plugin_host)
+19 + //!     - D033: spawn.rs (SubprocessConfig, `spawn_plugin_host`)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:20:28
+   |
+20 | //!     - D034: health.rs (HealthMonitor, HealthStatus)
+   |                            ^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+20 - //!     - D034: health.rs (HealthMonitor, HealthStatus)
+20 + //!     - D034: health.rs (`HealthMonitor`, HealthStatus)
+   |
+
+error: item in documentation is missing backticks
+  --> src\ipc\manager.rs:20:43
+   |
+20 | //!     - D034: health.rs (HealthMonitor, HealthStatus)
+   |                                           ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+   |
+20 - //!     - D034: health.rs (HealthMonitor, HealthStatus)
+20 + //!     - D034: health.rs (HealthMonitor, `HealthStatus`)
+   |
+
+error: backticks are unbalanced
+  --> src\ipc\manager.rs:22:5
+   |
+22 |   //! Usage:
+   |  _____^
+23 | | //!     ```rust
+24 | | //!     use crate::ipc::manager::{IpcConfig, IpcManagerState};
+   | |______________________________________________________________^
+   |
+   = help: a backtick may be missing a pair
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\manager.rs:77:32
+   |
+77 |     pub fn can_accept_requests(&self) -> bool {
+   |                                ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+
+error: this argument (1 byte) is passed by reference, but would be more efficient if passed by value (limit: 8 byte)
+  --> src\ipc\manager.rs:82:24
+   |
+82 |     pub fn is_terminal(&self) -> bool {
+   |                        ^^^^^ help: consider passing by value instead: `self`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#trivially_copy_pass_by_ref
+
+error: item in documentation is missing backticks
+   --> src\ipc\manager.rs:177:20
+    |
+177 |     /// Convert to SubprocessConfig.
+    |                    ^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+177 -     /// Convert to SubprocessConfig.
+177 +     /// Convert to `SubprocessConfig`.
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:364:9
+    |
+364 |         log::info!("IPC Manager lifecycle: {} -> {}", old, state);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+364 -         log::info!("IPC Manager lifecycle: {} -> {}", old, state);
+364 +         log::info!("IPC Manager lifecycle: {old} -> {state}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:388:13
+    |
+388 |             log::warn!("Cannot start from state: {}", current);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+388 -             log::warn!("Cannot start from state: {}", current);
+388 +             log::warn!("Cannot start from state: {current}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:389:45
+    |
+389 |               return Err(IpcError::SpawnError(format!(
+    |  _____________________________________________^
+390 | |                 "Cannot start from state: {}",
+391 | |                 current
+392 | |             )));
+    | |_____________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:403:9
+    |
+403 |         log::info!("Subprocess started with PID: {}", pid);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+403 -         log::info!("Subprocess started with PID: {}", pid);
+403 +         log::info!("Subprocess started with PID: {pid}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:468:21
+    |
+468 |                     log::debug!("Sending: {}", json);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+468 -                     log::debug!("Sending: {}", json);
+468 +                     log::debug!("Sending: {json}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:469:37
+    |
+469 |                     if let Err(e) = writeln!(stdin, "{}", json) {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+469 -                     if let Err(e) = writeln!(stdin, "{}", json) {
+469 +                     if let Err(e) = writeln!(stdin, "{json}") {
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:470:25
+    |
+470 |                         log::error!("Failed to write: {}", e);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+470 -                         log::error!("Failed to write: {}", e);
+470 +                         log::error!("Failed to write: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:474:25
+    |
+474 |                         log::error!("Failed to flush: {}", e);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+474 -                         log::error!("Failed to flush: {}", e);
+474 +                         log::error!("Failed to flush: {e}");
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\ipc\manager.rs:491:18
+    |
+491 |         pending: PendingRequests,
+    |                  ^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+491 |         pending: &PendingRequests,
+    |                  +
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\ipc\manager.rs:492:17
+    |
+492 |         health: Arc<HealthMonitor>,
+    |                 ^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+492 |         health: &Arc<HealthMonitor>,
+    |                 +
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:505:21
+    |
+505 |                     log::debug!("Received: {}", json);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+505 -                     log::debug!("Received: {}", json);
+505 +                     log::debug!("Received: {json}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:518:29
+    |
+518 | ...                   log::error!("Failed to parse response: {}", e);
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+518 -                             log::error!("Failed to parse response: {}", e);
+518 +                             log::error!("Failed to parse response: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:523:21
+    |
+523 |                     log::error!("Read error: {}", e);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+523 -                     log::error!("Read error: {}", e);
+523 +                     log::error!("Read error: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:535:13
+    |
+535 |             log::warn!("Cancelling request {}", id);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+535 -             log::warn!("Cancelling request {}", id);
+535 +             log::warn!("Cancelling request {id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:552:25
+    |
+552 |                         log::error!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+552 -                         log::error!("[Python] {}", text);
+552 +                         log::error!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:554:25
+    |
+554 |                         log::warn!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+554 -                         log::warn!("[Python] {}", text);
+554 +                         log::warn!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:556:25
+    |
+556 |                         log::debug!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+556 -                         log::debug!("[Python] {}", text);
+556 +                         log::debug!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:558:25
+    |
+558 |                         log::info!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+558 -                         log::info!("[Python] {}", text);
+558 +                         log::info!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:562:21
+    |
+562 |                     log::error!("Stderr read error: {}", e);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+562 -                     log::error!("Stderr read error: {}", e);
+562 +                     log::error!("Stderr read error: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:593:9
+    |
+593 |         log::debug!("Calling: id={}, method={}", id, method);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+593 -         log::debug!("Calling: id={}, method={}", id, method);
+593 +         log::debug!("Calling: id={id}, method={method}");
+    |
+
+error: item in documentation is missing backticks
+   --> src\ipc\manager.rs:654:20
+    |
+654 |     /// Send using RequestBuilder.
+    |                    ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#doc_markdown
+help: try
+    |
+654 -     /// Send using RequestBuilder.
+654 +     /// Send using `RequestBuilder`.
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\manager.rs:682:17
+    |
+682 |                 log::error!("Subprocess shutdown error: {}", e);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+682 -                 log::error!("Subprocess shutdown error: {}", e);
+682 +                 log::error!("Subprocess shutdown error: {e}");
+    |
+
+error: redundant closure
+   --> src\ipc\mod.rs:355:33
+    |
+355 |         self.child.as_ref().map(|c| c.id())
+    |                                 ^^^^^^^^^^ help: replace the closure with the method itself: `std::process::Child::id`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:408:47
+    |
+408 |             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn: {}", e)))?;
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+408 -             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn: {}", e)))?;
+408 +             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:411:9
+    |
+411 |         log::info!("Python subprocess spawned with PID: {}", pid);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+411 -         log::info!("Python subprocess spawned with PID: {}", pid);
+411 +         log::info!("Python subprocess spawned with PID: {pid}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:436:47
+    |
+436 |             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn writer thread: {}", e)))?;
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+436 -             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn writer thread: {}", e)))?;
+436 +             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn writer thread: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:446:47
+    |
+446 |             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn reader thread: {}", e)))?;
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+446 -             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn reader thread: {}", e)))?;
+446 +             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn reader thread: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:454:47
+    |
+454 |             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn stderr thread: {}", e)))?;
+    |                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+454 -             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn stderr thread: {}", e)))?;
+454 +             .map_err(|e| IpcError::SpawnError(format!("Failed to spawn stderr thread: {e}")))?;
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:484:21
+    |
+484 |                     log::debug!("Sending request: {}", json);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+484 -                     log::debug!("Sending request: {}", json);
+484 +                     log::debug!("Sending request: {json}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:487:37
+    |
+487 |                     if let Err(e) = writeln!(stdin, "{}", json) {
+    |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+487 -                     if let Err(e) = writeln!(stdin, "{}", json) {
+487 +                     if let Err(e) = writeln!(stdin, "{json}") {
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:488:25
+    |
+488 |                         log::error!("Failed to write to stdin: {}", e);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+488 -                         log::error!("Failed to write to stdin: {}", e);
+488 +                         log::error!("Failed to write to stdin: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:494:25
+    |
+494 |                         log::error!("Failed to flush stdin: {}", e);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+494 -                         log::error!("Failed to flush stdin: {}", e);
+494 +                         log::error!("Failed to flush stdin: {e}");
+    |
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\ipc\mod.rs:514:18
+    |
+514 |         pending: PendingMap,
+    |                  ^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+514 |         pending: &PendingMap,
+    |                  +
+
+error: this argument is passed by value, but not consumed in the function body
+   --> src\ipc\mod.rs:515:21
+    |
+515 |         is_running: Arc<AtomicBool>,
+    |                     ^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+515 |         is_running: &Arc<AtomicBool>,
+    |                     +
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:529:21
+    |
+529 |                     log::debug!("Received response: {}", json);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+529 -                     log::debug!("Received response: {}", json);
+529 +                     log::debug!("Received response: {json}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:542:37
+    |
+542 | ...                   log::warn!("No pending request for id {}", id);
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+542 -                                     log::warn!("No pending request for id {}", id);
+542 +                                     log::warn!("No pending request for id {id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:546:33
+    |
+546 | ...                   log::debug!("Received notification: {:?}", response);
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+546 -                                 log::debug!("Received notification: {:?}", response);
+546 +                                 log::debug!("Received notification: {response:?}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:550:29
+    |
+550 | ...                   log::error!("Failed to parse response: {} - {}", e, json);
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+550 -                             log::error!("Failed to parse response: {} - {}", e, json);
+550 +                             log::error!("Failed to parse response: {e} - {json}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:555:21
+    |
+555 |                     log::error!("Failed to read from stdout: {}", e);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+555 -                     log::error!("Failed to read from stdout: {}", e);
+555 +                     log::error!("Failed to read from stdout: {e}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:568:13
+    |
+568 |             log::warn!("Cancelling pending request {}", id);
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+568 -             log::warn!("Cancelling pending request {}", id);
+568 +             log::warn!("Cancelling pending request {id}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:589:25
+    |
+589 |                         log::error!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+589 -                         log::error!("[Python] {}", text);
+589 +                         log::error!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:591:25
+    |
+591 |                         log::warn!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+591 -                         log::warn!("[Python] {}", text);
+591 +                         log::warn!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:593:25
+    |
+593 |                         log::debug!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+593 -                         log::debug!("[Python] {}", text);
+593 +                         log::debug!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:595:25
+    |
+595 |                         log::info!("[Python] {}", text);
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+595 -                         log::info!("[Python] {}", text);
+595 +                         log::info!("[Python] {text}");
+    |
+
+error: variables can be used directly in the `format!` string
+   --> src\ipc\mod.rs:599:21
+    |
+599 |                     log::error!("Failed to read from stderr: {}", e);
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+599 -                     log::error!("Failed to read from stderr: {}", e);
+599 +                     log::error!("Failed to read from stderr: {e}");
+    |
+
+error: unnecessary `Debug` formatting in `debug!` args
+  --> src\main.rs:33:42
+   |
+33 |     log::debug!("Executable path: {:?}", exe_path);
+   |                                          ^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `exe_path.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+  --> src\main.rs:33:5
+   |
+33 |     log::debug!("Executable path: {:?}", exe_path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+   |
+33 -     log::debug!("Executable path: {:?}", exe_path);
+33 +     log::debug!("Executable path: {exe_path:?}");
+   |
+
+error: redundant closure
+  --> src\main.rs:36:45
+   |
+36 |     let mut current = exe_path.parent().map(|p| p.to_path_buf());
+   |                                             ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::path::Path::to_path_buf`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+
+error: unnecessary `Debug` formatting in `info!` args
+  --> src\main.rs:43:56
+   |
+43 |                 log::info!("Found project root: {:?}", dir);
+   |                                                        ^^^
+   |
+   = help: use `Display` formatting and change this to `dir.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+  --> src\main.rs:43:17
+   |
+43 |                 log::info!("Found project root: {:?}", dir);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+   |
+43 -                 log::info!("Found project root: {:?}", dir);
+43 +                 log::info!("Found project root: {dir:?}");
+   |
+
+error: redundant closure
+  --> src\main.rs:46:40
+   |
+46 |             current = dir.parent().map(|p| p.to_path_buf());
+   |                                        ^^^^^^^^^^^^^^^^^^^ help: replace the closure with the method itself: `std::path::Path::to_path_buf`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#redundant_closure_for_method_calls
+
+error: unnecessary `Debug` formatting in `warn!` args
+  --> src\main.rs:56:9
+   |
+56 |         cwd
+   |         ^^^
+   |
+   = help: use `Display` formatting and change this to `cwd.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+  --> src\main.rs:54:5
+   |
+54 | /     log::warn!(
+55 | |         "Could not find plugins directory, using current working directory: {:?}",
+56 | |         cwd
+57 | |     );
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+
+error: unnecessary `Debug` formatting in `info!` args
+  --> src\main.rs:84:38
+   |
+84 |     log::info!("Project root: {:?}", project_root);
+   |                                      ^^^^^^^^^^^^
+   |
+   = help: use `Display` formatting and change this to `project_root.display()`
+   = note: switching to `Display` formatting will change how the value is shown; escaped characters will no longer be escaped and surrounding quotes will be removed
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#unnecessary_debug_formatting
+
+error: variables can be used directly in the `format!` string
+  --> src\main.rs:84:5
+   |
+84 |     log::info!("Project root: {:?}", project_root);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+   |
+84 -     log::info!("Project root: {:?}", project_root);
+84 +     log::info!("Project root: {project_root:?}");
+   |
+
+error: variables can be used directly in the `format!` string
+   --> src\main.rs:115:31
+    |
+115 |                     Err(e) => log::error!("Failed to start IPC Manager: {}", e),
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.91.0/index.html#uninlined_format_args
+help: change this to
+    |
+115 -                     Err(e) => log::error!("Failed to start IPC Manager: {}", e),
+115 +                     Err(e) => log::error!("Failed to start IPC Manager: {e}"),
+    |
+
+error: could not compile `app-factory` (bin "app-factory") due to 241 previous errors

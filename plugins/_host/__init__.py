@@ -19,7 +19,7 @@ Dependencies:
 Usage:
     from plugins._host import configure_host_logging
     configure_host_logging(level="INFO")
-    
+
     # Or import individual components
     from plugins._host.discovery import HybridDiscovery
     from plugins._host.manager import PluginManager
@@ -32,7 +32,7 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 # Package version
 __version__ = "1.0.0"
@@ -48,33 +48,32 @@ __license__ = "Proprietary"
 # This MUST be executed before ANY other imports that might write to stdout.
 # Buffered stdout causes IPC deadlocks with Tauri.
 
+
 def _configure_unbuffered_stdout() -> None:
     """
     Configure stdout for unbuffered, line-by-line output.
-    
+
     CRITICAL: This prevents IPC deadlocks in the JSON-RPC communication.
     Must be called at module import time.
     """
     # Method 1: Environment variable (affects child processes too)
-    os.environ['PYTHONUNBUFFERED'] = '1'
-    
+    os.environ["PYTHONUNBUFFERED"] = "1"
+
     # Method 2: Reconfigure stdout (Python 3.7+)
-    if hasattr(sys.stdout, 'reconfigure'):
+    if hasattr(sys.stdout, "reconfigure"):
         try:
             sys.stdout.reconfigure(line_buffering=True, write_through=True)
         except Exception:
             pass  # Fall through to method 3
-    
+
     # Method 3: Replace stdout with unbuffered wrapper
     # This is the most reliable method, especially on Windows
     try:
         sys.stdout = io.TextIOWrapper(
-            io.BufferedWriter(
-                io.FileIO(sys.stdout.fileno(), mode='wb', closefd=False)
-            ),
-            encoding='utf-8',
+            io.BufferedWriter(io.FileIO(sys.stdout.fileno(), mode="wb", closefd=False)),
+            encoding="utf-8",
             line_buffering=True,
-            write_through=True
+            write_through=True,
         )
     except Exception:
         # Last resort: simple flush-through wrapper
@@ -112,19 +111,19 @@ LOG_LEVELS = {
 class StderrHandler(logging.StreamHandler):
     """
     A StreamHandler that ALWAYS writes to stderr.
-    
+
     This ensures log messages never contaminate the stdout JSON-RPC channel,
     even if sys.stderr is reassigned elsewhere.
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         """Initialize with stderr as the stream."""
         super().__init__(stream=sys.stderr)
-    
+
     def emit(self, record: logging.LogRecord) -> None:
         """
         Emit a record to stderr.
-        
+
         Overrides parent to explicitly use sys.stderr at emit time,
         in case stderr was reassigned after handler creation.
         """
@@ -139,42 +138,39 @@ class StderrHandler(logging.StreamHandler):
 class JsonRpcSafeFormatter(logging.Formatter):
     """
     A formatter that ensures log output doesn't look like JSON-RPC.
-    
+
     Prefixes all log lines with a marker that the Rust IPC layer can
     filter out if needed.
     """
-    
+
     LOG_PREFIX = "[LOG] "
-    
+
     def format(self, record: logging.LogRecord) -> str:
         """Format the record with a non-JSON prefix."""
         formatted = super().format(record)
         # Prefix each line to distinguish from JSON-RPC
-        lines = formatted.split('\n')
-        prefixed = '\n'.join(f"{self.LOG_PREFIX}{line}" for line in lines)
+        lines = formatted.split("\n")
+        prefixed = "\n".join(f"{self.LOG_PREFIX}{line}" for line in lines)
         return prefixed
 
 
 def configure_host_logging(
-    level: str = "INFO",
-    log_format: Optional[str] = None,
-    date_format: Optional[str] = None,
-    use_json_safe: bool = False
+    level: str = "INFO", log_format: str | None = None, date_format: str | None = None, use_json_safe: bool = False
 ) -> logging.Logger:
     """
     Configure logging for the Plugin Host.
-    
+
     All logging is directed to stderr to keep stdout clean for JSON-RPC.
-    
+
     Args:
         level: Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_format: Custom log format string (defaults to DEFAULT_LOG_FORMAT)
         date_format: Custom date format string (defaults to DEFAULT_DATE_FORMAT)
         use_json_safe: If True, prefix logs to distinguish from JSON-RPC
-        
+
     Returns:
         The root plugin host logger
-        
+
     Example:
         >>> configure_host_logging(level="DEBUG")
         >>> logger = logging.getLogger("plugin_host.discovery")
@@ -182,48 +178,48 @@ def configure_host_logging(
     """
     # Get numeric level
     numeric_level = LOG_LEVELS.get(level.upper(), logging.INFO)
-    
+
     # Get root logger for plugin host
     root_logger = logging.getLogger(LOGGER_PREFIX)
     root_logger.setLevel(numeric_level)
-    
+
     # Remove any existing handlers
     root_logger.handlers.clear()
-    
+
     # Create stderr handler
     handler = StderrHandler()
     handler.setLevel(numeric_level)
-    
+
     # Create formatter
     fmt = log_format or DEFAULT_LOG_FORMAT
     datefmt = date_format or DEFAULT_DATE_FORMAT
-    
+
     if use_json_safe:
-        formatter = JsonRpcSafeFormatter(fmt=fmt, datefmt=datefmt)
+        formatter: logging.Formatter = JsonRpcSafeFormatter(fmt=fmt, datefmt=datefmt)
     else:
         formatter = logging.Formatter(fmt=fmt, datefmt=datefmt)
-    
+
     handler.setFormatter(formatter)
-    
+
     # Add handler to root logger
     root_logger.addHandler(handler)
-    
+
     # Prevent propagation to root logger (which might have stdout handlers)
     root_logger.propagate = False
-    
+
     return root_logger
 
 
 def get_logger(name: str) -> logging.Logger:
     """
     Get a logger for a Plugin Host module.
-    
+
     Args:
         name: Logger name (will be prefixed with "plugin_host.")
-        
+
     Returns:
         Configured logger instance
-        
+
     Example:
         >>> logger = get_logger("discovery")
         >>> logger.info("Scanning plugins...")
@@ -237,15 +233,16 @@ def get_logger(name: str) -> logging.Logger:
 # FILE LOGGING (OPTIONAL)
 # ============================================
 
+
 def add_file_logging(
     log_file: str | Path,
     level: str = "DEBUG",
     max_bytes: int = 10_000_000,  # 10MB
-    backup_count: int = 5
+    backup_count: int = 5,
 ) -> None:
     """
     Add rotating file logging in addition to stderr.
-    
+
     Args:
         log_file: Path to log file
         level: Log level for file handler
@@ -253,32 +250,26 @@ def add_file_logging(
         backup_count: Number of backup files to keep
     """
     from logging.handlers import RotatingFileHandler
-    
+
     # Ensure log directory exists
     log_path = Path(log_file)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Get root logger
     root_logger = logging.getLogger(LOGGER_PREFIX)
-    
+
     # Create rotating file handler
     file_handler = RotatingFileHandler(
-        filename=str(log_path),
-        maxBytes=max_bytes,
-        backupCount=backup_count,
-        encoding='utf-8'
+        filename=str(log_path), maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8"
     )
-    
+
     # Configure handler
     numeric_level = LOG_LEVELS.get(level.upper(), logging.DEBUG)
     file_handler.setLevel(numeric_level)
-    
-    formatter = logging.Formatter(
-        fmt=DEFAULT_LOG_FORMAT,
-        datefmt=DEFAULT_DATE_FORMAT
-    )
+
+    formatter = logging.Formatter(fmt=DEFAULT_LOG_FORMAT, datefmt=DEFAULT_DATE_FORMAT)
     file_handler.setFormatter(formatter)
-    
+
     # Add to root logger
     root_logger.addHandler(file_handler)
 
@@ -287,10 +278,11 @@ def add_file_logging(
 # SHUTDOWN LOGGING
 # ============================================
 
+
 def log_startup_info(logger: logging.Logger) -> None:
     """
     Log startup information for debugging.
-    
+
     Args:
         logger: Logger to use for output
     """
@@ -308,7 +300,7 @@ def log_startup_info(logger: logging.Logger) -> None:
 def log_shutdown_info(logger: logging.Logger, reason: str = "Normal") -> None:
     """
     Log shutdown information for debugging.
-    
+
     Args:
         logger: Logger to use for output
         reason: Reason for shutdown
@@ -323,33 +315,47 @@ def log_shutdown_info(logger: logging.Logger, reason: str = "Normal") -> None:
 # PACKAGE EXPORTS
 # ============================================
 
+
 # Core modules (lazy imports to avoid circular dependencies)
-def _import_discovery():
-    from .discovery import HybridDiscovery, DiscoveredPlugin, discover_plugins
+def _import_discovery() -> tuple[Any, ...]:
+    from .discovery import DiscoveredPlugin, HybridDiscovery, discover_plugins
+
     return HybridDiscovery, DiscoveredPlugin, discover_plugins
 
-def _import_validator():
+
+def _import_validator() -> tuple[Any, ...]:
     from .validator import PluginValidator, ValidationResult, validate_plugin
+
     return PluginValidator, ValidationResult, validate_plugin
 
-def _import_loader():
-    from .loader import PluginLoader, LoadedPlugin, initialize_plugin, shutdown_plugin
+
+def _import_loader() -> tuple[Any, ...]:
+    from .loader import LoadedPlugin, PluginLoader, initialize_plugin, shutdown_plugin
+
     return PluginLoader, LoadedPlugin, initialize_plugin, shutdown_plugin
 
-def _import_manager():
-    from .manager import PluginManager, HotSwapResult, get_manager, set_manager
+
+def _import_manager() -> tuple[Any, ...]:
+    from .manager import HotSwapResult, PluginManager, get_manager, set_manager
+
     return PluginManager, HotSwapResult, get_manager, set_manager
 
-def _import_protocol():
-    from .protocol import JsonRpcRouter, JsonRpcRequest, JsonRpcResponse, JsonRpcError
+
+def _import_protocol() -> tuple[Any, ...]:
+    from .protocol import JsonRpcError, JsonRpcRequest, JsonRpcResponse, JsonRpcRouter
+
     return JsonRpcRouter, JsonRpcRequest, JsonRpcResponse, JsonRpcError
 
-def _import_isolation():
-    from .isolation import IsolatedExecutor, CrashReport, ExecutionResult
+
+def _import_isolation() -> tuple[Any, ...]:
+    from .isolation import CrashReport, ExecutionResult, IsolatedExecutor
+
     return IsolatedExecutor, CrashReport, ExecutionResult
 
-def _import_shutdown():
+
+def _import_shutdown() -> tuple[Any, ...]:
     from .shutdown import ShutdownHandler, ShutdownReason
+
     return ShutdownHandler, ShutdownReason
 
 
@@ -357,7 +363,6 @@ def _import_shutdown():
 __all__ = [
     # Version
     "__version__",
-    
     # Logging
     "configure_host_logging",
     "get_logger",
@@ -366,16 +371,14 @@ __all__ = [
     "log_shutdown_info",
     "StderrHandler",
     "JsonRpcSafeFormatter",
-    
     # Constants
     "LOGGER_PREFIX",
     "DEFAULT_LOG_FORMAT",
     "DEFAULT_DATE_FORMAT",
     "LOG_LEVELS",
-    
     # Lazy import helpers (for avoiding circular imports)
     "_import_discovery",
-    "_import_validator", 
+    "_import_validator",
     "_import_loader",
     "_import_manager",
     "_import_protocol",

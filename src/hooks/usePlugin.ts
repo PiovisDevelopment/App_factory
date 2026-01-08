@@ -322,7 +322,7 @@ export function usePlugin(): UsePluginReturn {
   const storeSelectPlugin = usePluginStore((state) => state.selectPlugin);
   const addInvocationResult = usePluginStore((state) => state.addInvocationResult);
   const storeClearHistory = usePluginStore((state) => state.clearInvocationHistory);
-  const clearPlugins = usePluginStore((state) => state.clearPlugins);
+  const _clearPlugins = usePluginStore((state) => state.clearPlugins);
 
   // Factory store for notifications
   const addNotification = useFactoryStore((state) => state.addNotification);

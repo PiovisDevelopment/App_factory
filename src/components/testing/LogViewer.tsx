@@ -187,10 +187,8 @@ const levelColors: Record<LogLevel, string> = {
   critical: "text-error-700",
 };
 
-/**
- * Log level background colors.
- */
-const levelBgColors: Record<LogLevel, string> = {
+// Preserved for future use
+const _levelBgColors: Record<LogLevel, string> = {
   debug: "bg-neutral-100",
   info: "bg-info-50",
   warning: "bg-warning-50",
@@ -315,12 +313,25 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   // Notify filter change
   useEffect(() => {
     if (onFilterChange) {
-      onFilterChange({
-        levels: selectedLevels.size < ALL_LEVELS.length ? Array.from(selectedLevels) : undefined,
-        sources: selectedSources.size > 0 ? Array.from(selectedSources) : undefined,
-        pluginIds: selectedPlugins.size > 0 ? Array.from(selectedPlugins) : undefined,
-        search: searchQuery.trim() || undefined,
-      });
+      const filter: LogFilter = {};
+
+      if (selectedLevels.size < ALL_LEVELS.length) {
+        filter.levels = Array.from(selectedLevels);
+      }
+
+      if (selectedSources.size > 0) {
+        filter.sources = Array.from(selectedSources);
+      }
+
+      if (selectedPlugins.size > 0) {
+        filter.pluginIds = Array.from(selectedPlugins);
+      }
+
+      if (searchQuery.trim()) {
+        filter.search = searchQuery.trim();
+      }
+
+      onFilterChange(filter);
     }
   }, [selectedLevels, selectedSources, selectedPlugins, searchQuery, onFilterChange]);
 

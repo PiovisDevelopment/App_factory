@@ -116,31 +116,31 @@ export interface PluginGalleryProps extends Omit<HTMLAttributes<HTMLDivElement>,
   /** Array of plugins to display */
   plugins: PluginInfo[];
   /** Currently selected plugin ID */
-  selectedId?: string;
+  selectedId?: string | undefined;
   /** Callback when a plugin is selected */
-  onSelect?: (plugin: PluginInfo) => void;
+  onSelect?: ((plugin: PluginInfo) => void) | undefined;
   /** Callback when load is requested */
-  onLoad?: (plugin: PluginInfo) => void;
+  onLoad?: ((plugin: PluginInfo) => void) | undefined;
   /** Callback when unload is requested */
-  onUnload?: (plugin: PluginInfo) => void;
+  onUnload?: ((plugin: PluginInfo) => void) | undefined;
   /** Initial filters */
-  initialFilters?: GalleryFilters;
+  initialFilters?: GalleryFilters | undefined;
   /** Initial sort settings */
-  initialSort?: { by: GallerySortBy; order: GallerySortOrder };
+  initialSort?: { by: GallerySortBy; order: GallerySortOrder } | undefined;
   /** Initial view mode */
-  initialViewMode?: GalleryViewMode;
+  initialViewMode?: GalleryViewMode | undefined;
   /** Whether to show filter controls */
-  showFilters?: boolean;
+  showFilters?: boolean | undefined;
   /** Whether to show search input */
-  showSearch?: boolean;
+  showSearch?: boolean | undefined;
   /** Whether to show view mode toggle */
-  showViewToggle?: boolean;
+  showViewToggle?: boolean | undefined;
   /** Empty state message */
-  emptyMessage?: string;
+  emptyMessage?: string | undefined;
   /** Loading state */
-  isLoading?: boolean;
+  isLoading?: boolean | undefined;
   /** Grid columns for grid view */
-  gridColumns?: 2 | 3 | 4;
+  gridColumns?: 2 | 3 | 4 | undefined;
 }
 
 /**

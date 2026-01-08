@@ -94,7 +94,7 @@ export interface SelectedElementInfo {
 /**
  * PropertyInspector component props.
  */
-export interface PropertyInspectorProps extends HTMLAttributes<HTMLDivElement> {
+export interface PropertyInspectorProps extends Omit<HTMLAttributes<HTMLDivElement>, "onChange" | "onReset"> {
   /** Selected element info */
   selectedElement?: SelectedElementInfo;
   /** Property definitions or groups */
@@ -455,11 +455,11 @@ const PropertyGroupComponent: React.FC<PropertyGroupComponentProps> = ({
   // Filter properties by search
   const filteredProperties = searchQuery
     ? group.properties.filter(
-        (p) =>
-          p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      (p) =>
+        p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : group.properties;
 
   if (filteredProperties.length === 0) return null;
@@ -503,7 +503,7 @@ const PropertyGroupComponent: React.FC<PropertyGroupComponentProps> = ({
               key={prop.key}
               property={prop}
               onChange={onChange}
-              onReset={onReset}
+              {...(onReset ? { onReset } : {})}
               editable={editable}
             />
           ))}
@@ -567,17 +567,17 @@ export const PropertyInspector = forwardRef<HTMLDivElement, PropertyInspectorPro
     );
 
     // Check if properties are grouped
-    const isGrouped = grouped || (properties.length > 0 && "properties" in properties[0]);
+    const isGrouped = grouped || (properties.length > 0 && "properties" in properties[0]!);
 
     // Filter flat properties by search
     const filteredFlatProperties =
       !isGrouped && searchQuery
         ? (properties as PropertyDefinition[]).filter(
-            (p) =>
-              p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              p.description?.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+          (p) =>
+            p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
         : (properties as PropertyDefinition[]);
 
     // Container styles
@@ -683,7 +683,7 @@ export const PropertyInspector = forwardRef<HTMLDivElement, PropertyInspectorPro
                   key={prop.key}
                   property={prop}
                   onChange={handleChange}
-                  onReset={handleReset}
+                  {...(handleReset ? { onReset: handleReset } : {})}
                   editable={editable}
                 />
               ))}

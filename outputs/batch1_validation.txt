@@ -1,0 +1,56 @@
+contracts\base.py:118: error: Incompatible types in assignment (expression has type "float", target has type "dict[str, Any] | str")  [assignment]
+contracts\base.py:120: error: Incompatible types in assignment (expression has type "float", target has type "dict[str, Any] | str")  [assignment]
+contracts\base.py:155: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\base.py:155: note: Use "-> None" if function does not return a value
+contracts\llm_contract.py:71: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+contracts\llm_contract.py:243: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+contracts\llm_contract.py:278: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\llm_contract.py:278: note: Use "-> None" if function does not return a value
+contracts\llm_contract.py:280: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+contracts\stt_contract.py:200: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\stt_contract.py:200: note: Use "-> None" if function does not return a value
+contracts\stt_contract.py:202: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+contracts\tts_contract.py:175: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\tts_contract.py:175: note: Use "-> None" if function does not return a value
+contracts\tts_contract.py:177: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\tts_example_plugin\plugin.py:38: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\tts_example_plugin\plugin.py:38: note: Use "-> None" if function does not return a value
+plugins\tts_example_plugin\plugin.py:40: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\tts_example_plugin\plugin.py:144: error: Argument 1 to "_get_voice_by_id" of "ExampleTTSPlugin" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins\tts_example_plugin\plugin.py:173: error: Argument "voice_id" to "SynthesisResult" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins\llm_ollama_v2\plugin.py:56: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:56: note: Use "-> None" if function does not return a value
+plugins\llm_ollama_v2\plugin.py:58: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\llm_ollama_v2\plugin.py:137: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:150: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:254: error: Unsupported target for indexed assignment ("object")  [index]
+plugins\llm_ollama_v2\plugin.py:256: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:297: error: Return type "AsyncIterator[StreamChunk]" of "complete_stream" incompatible with return type "Coroutine[Any, Any, AsyncIterator[StreamChunk]]" in supertype "contracts.llm_contract.LLMContract"  [override]
+plugins\llm_ollama_v2\plugin.py:297: note: Consider declaring "complete_stream" in supertype "contracts.llm_contract.LLMContract" without "async"
+plugins\llm_ollama_v2\plugin.py:297: note: See https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
+plugins\llm_ollama_v2\plugin.py:334: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:353: error: Need type annotation for "q"  [var-annotated]
+plugins\llm_ollama_v2\plugin.py:356: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\llm_ollama_v2\plugin.py:356: note: Use "-> None" if function does not return a value
+plugins\llm_ollama_v2\plugin.py:358: error: Call to untyped function "stream_request" in typed context  [no-untyped-call]
+plugins\llm_ollama_v2\plugin.py:361: error: No overload variant of "__setitem__" of "list" matches argument types "int", "Exception"  [call-overload]
+plugins\llm_ollama_v2\plugin.py:361: note: Possible overload variants:
+plugins\llm_ollama_v2\plugin.py:361: note:     def __setitem__(self, SupportsIndex, None, /) -> None
+plugins\llm_ollama_v2\plugin.py:361: note:     def __setitem__(self, slice[Any, Any, Any], Iterable[None], /) -> None
+plugins\stt_whisper\plugin.py:156: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\stt_whisper\plugin.py:156: note: Use "-> None" if function does not return a value
+plugins\stt_whisper\plugin.py:158: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\stt_whisper\plugin.py:262: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\stt_whisper\plugin.py:299: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\stt_whisper\plugin.py:300: error: Item "None" of "Any | None" has no attribute "transcribe"  [union-attr]
+plugins\tts_kokoro\plugin.py:143: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\tts_kokoro\plugin.py:143: note: Use "-> None" if function does not return a value
+plugins\tts_kokoro\plugin.py:145: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\tts_kokoro\plugin.py:259: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\tts_kokoro\plugin.py:263: error: Item "None" of "Any | None" has no attribute "_lang_code"  [union-attr]
+plugins\tts_kokoro\plugin.py:332: error: Argument 1 to "_get_lang_code_for_voice" of "KokoroTTSPlugin" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins\tts_kokoro\plugin.py:340: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\tts_kokoro\plugin.py:342: error: "None" not callable  [misc]
+plugins\tts_kokoro\plugin.py:376: error: Argument "voice_id" to "SynthesisResult" has incompatible type "str | None"; expected "str"  [arg-type]
+plugins\tts_kokoro\plugin.py:389: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+Found 41 errors in 8 files (checked 4 source files)

@@ -30,7 +30,7 @@ use swc_ecma_transforms_typescript::strip;
 // ============================================
 
 /// Result of TSX/TypeScript compilation.
-/// Matches the frontend CompileResult interface.
+/// Matches the frontend `CompileResult` interface.
 #[derive(Debug, Clone, Serialize)]
 pub struct CompileResult {
     /// Whether compilation succeeded
@@ -77,7 +77,7 @@ impl CompileResult {
 /// 7. Generate JavaScript output
 fn compile_tsx_internal(code: &str) -> Result<String, String> {
     // Create source map
-    let cm: Lrc<SourceMap> = Default::default();
+    let cm: Lrc<SourceMap> = Lrc::default();
 
     // Create a virtual file for the source
     let fm = cm.new_source_file(FileName::Custom("input.tsx".into()).into(), code.to_string());
@@ -99,13 +99,13 @@ fn compile_tsx_internal(code: &str) -> Result<String, String> {
     // Collect parse errors
     let errors: Vec<_> = parser.take_errors();
     if !errors.is_empty() {
-        let error_msgs: Vec<String> = errors.iter().map(|e| format!("{:?}", e)).collect();
+        let error_msgs: Vec<String> = errors.iter().map(|e| format!("{e:?}")).collect();
         return Err(format!("Parse errors: {}", error_msgs.join("; ")));
     }
 
     let module = parser
         .parse_module()
-        .map_err(|e| format!("Parse error: {:?}", e))?;
+        .map_err(|e| format!("Parse error: {e:?}"))?;
 
     // Wrap in Program for transforms
     let program = Program::Module(module);
@@ -162,10 +162,10 @@ fn compile_tsx_internal(code: &str) -> Result<String, String> {
 
         emitter
             .emit_module(&module)
-            .map_err(|e| format!("Emit error: {:?}", e))?;
+            .map_err(|e| format!("Emit error: {e:?}"))?;
     }
 
-    String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {}", e))
+    String::from_utf8(buf).map_err(|e| format!("UTF-8 error: {e}"))
 }
 
 // ============================================
@@ -180,7 +180,7 @@ fn compile_tsx_internal(code: &str) -> Result<String, String> {
 ///
 /// # Returns
 ///
-/// CompileResult with success status and either compiled code or error message.
+/// `CompileResult` with success status and either compiled code or error message.
 ///
 /// # Example (TypeScript)
 ///
@@ -195,10 +195,10 @@ fn compile_tsx_internal(code: &str) -> Result<String, String> {
 /// }
 /// ```
 #[tauri::command]
-pub fn compile_tsx(code: String) -> CompileResult {
+pub fn compile_tsx(code: &str) -> CompileResult {
     log::debug!("Command: compile_tsx (code length: {} chars)", code.len());
 
-    match compile_tsx_internal(&code) {
+    match compile_tsx_internal(code) {
         Ok(js_code) => {
             log::debug!(
                 "Compilation succeeded (output length: {} chars)",
@@ -207,7 +207,7 @@ pub fn compile_tsx(code: String) -> CompileResult {
             CompileResult::success(js_code)
         }
         Err(error) => {
-            log::warn!("Compilation failed: {}", error);
+            log::warn!("Compilation failed: {error}");
             CompileResult::error(error)
         }
     }
@@ -224,7 +224,7 @@ mod tests {
     #[test]
     fn test_compile_simple_tsx() {
         let code = r#"const Button = () => <button>Hello</button>;"#;
-        let result = compile_tsx(code.to_string());
+        let result = compile_tsx(code);
 
         assert!(
             result.success,
@@ -243,7 +243,7 @@ mod tests {
             interface Props { name: string; }
             const Greet = ({ name }: Props) => <div>Hello {name}</div>;
         "#;
-        let result = compile_tsx(code.to_string());
+        let result = compile_tsx(code);
 
         assert!(
             result.success,
@@ -259,7 +259,7 @@ mod tests {
     #[test]
     fn test_compile_error_handling() {
         let code = r#"const x = <invalid syntax"#;
-        let result = compile_tsx(code.to_string());
+        let result = compile_tsx(code);
 
         assert!(!result.success);
         assert!(result.error.is_some());
@@ -269,7 +269,7 @@ mod tests {
     #[test]
     fn test_compile_null_component() {
         let code = r#"const X = () => null;"#;
-        let result = compile_tsx(code.to_string());
+        let result = compile_tsx(code);
 
         assert!(
             result.success,

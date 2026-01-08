@@ -10,16 +10,18 @@ All TTS plugins (Kokoro, Piper, Coqui, etc.) MUST implement this contract.
 """
 
 from abc import abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, AsyncIterator
 from enum import Enum
+from typing import Any
 
 # Import from D001 - no forward references
-from .base import PluginBase, PluginStatus, HealthStatus
+from .base import PluginBase
 
 
 class AudioFormat(Enum):
     """Supported audio output formats."""
+
     WAV = "wav"
     MP3 = "mp3"
     OGG = "ogg"
@@ -31,7 +33,7 @@ class AudioFormat(Enum):
 class Voice:
     """
     Voice definition for TTS synthesis.
-    
+
     Attributes:
         id: Unique voice identifier within the plugin
         name: Human-readable voice name
@@ -41,6 +43,7 @@ class Voice:
         sample_rate: Native sample rate in Hz (e.g., 22050, 44100)
         preview_url: Optional URL to voice sample audio
     """
+
     id: str
     name: str
     language: str
@@ -48,8 +51,8 @@ class Voice:
     description: str = ""
     sample_rate: int = 22050
     preview_url: str = ""
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize voice for JSON-RPC responses."""
         return {
             "id": self.id,
@@ -66,7 +69,7 @@ class Voice:
 class SynthesisResult:
     """
     Result of TTS synthesis operation.
-    
+
     Attributes:
         audio_data: Raw audio bytes in specified format
         format: Audio format of the data
@@ -76,20 +79,22 @@ class SynthesisResult:
         voice_id: Voice used for synthesis
         metadata: Optional additional metadata
     """
+
     audio_data: bytes
     format: AudioFormat
     sample_rate: int
     duration_ms: float
     text: str
     voice_id: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         """
         Serialize for JSON-RPC responses.
         Note: audio_data is base64 encoded for JSON transport.
         """
         import base64
+
         return {
             "audio_data": base64.b64encode(self.audio_data).decode("utf-8"),
             "format": self.format.value,
@@ -105,7 +110,7 @@ class SynthesisResult:
 class SynthesisOptions:
     """
     Options for TTS synthesis.
-    
+
     Attributes:
         speed: Playback speed multiplier (0.5 = half speed, 2.0 = double)
         pitch: Pitch adjustment (-1.0 to 1.0, 0.0 = normal)
@@ -114,15 +119,16 @@ class SynthesisOptions:
         sample_rate: Desired output sample rate (None = use voice default)
         language: Override language for multilingual voices
     """
+
     speed: float = 1.0
     pitch: float = 0.0
     volume: float = 1.0
     format: AudioFormat = AudioFormat.WAV
-    sample_rate: Optional[int] = None
-    language: Optional[str] = None
-    
+    sample_rate: int | None = None
+    language: str | None = None
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "SynthesisOptions":
+    def from_dict(cls, data: dict[str, Any]) -> "SynthesisOptions":
         """Create options from dictionary."""
         return cls(
             speed=data.get("speed", 1.0),
@@ -137,16 +143,16 @@ class SynthesisOptions:
 class TTSContract(PluginBase):
     """
     Abstract contract for Text-to-Speech plugins.
-    
+
     All TTS plugins must implement this interface to be compatible
     with the Plugin Host's TTS slot.
-    
+
     JSON-RPC Methods (routed by Plugin Host):
         - tts/synthesize: Convert text to speech audio
         - tts/voices: List available voices
         - tts/voice/set: Set active voice
         - tts/stream: Stream synthesis for long text (optional)
-    
+
     Example Implementation:
         class KokoroTTSPlugin(TTSContract):
             async def initialize(self, config):
@@ -155,7 +161,7 @@ class TTSContract(PluginBase):
                 self._current_voice = self._voices[0].id
                 self._status = PluginStatus.READY
                 return True
-            
+
             async def synthesize(self, text, voice_id=None, options=None):
                 voice = voice_id or self._current_voice
                 audio = self._model.generate(text, voice)
@@ -165,117 +171,111 @@ class TTSContract(PluginBase):
                     ...
                 )
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         """Initialize TTS plugin instance."""
         super().__init__()
-        self._current_voice_id: Optional[str] = None
-        self._voices: List[Voice] = []
-    
+        self._current_voice_id: str | None = None
+        self._voices: list[Voice] = []
+
     @abstractmethod
     async def synthesize(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        options: Optional[SynthesisOptions] = None
+        self, text: str, voice_id: str | None = None, options: SynthesisOptions | None = None
     ) -> SynthesisResult:
         """
         Synthesize speech from text.
-        
+
         Args:
             text: Text to convert to speech. May contain SSML if supported.
             voice_id: Voice to use. If None, uses current voice.
             options: Synthesis options (speed, pitch, format, etc.)
-        
+
         Returns:
             SynthesisResult containing audio data and metadata.
-        
+
         Raises:
             ValueError: If text is empty or voice_id is invalid.
             RuntimeError: If synthesis fails.
         """
         pass
-    
+
     @abstractmethod
-    def get_voices(self) -> List[Voice]:
+    def get_voices(self) -> list[Voice]:
         """
         Get list of available voices.
-        
+
         Returns:
             List of Voice objects supported by this plugin.
         """
         pass
-    
+
     @abstractmethod
     def set_voice(self, voice_id: str) -> bool:
         """
         Set the active voice for synthesis.
-        
+
         Args:
             voice_id: ID of voice to activate.
-        
+
         Returns:
             True if voice was set successfully, False otherwise.
-        
+
         Raises:
             ValueError: If voice_id is not found.
         """
         pass
-    
-    def get_current_voice(self) -> Optional[str]:
+
+    def get_current_voice(self) -> str | None:
         """
         Get the currently active voice ID.
-        
+
         Returns:
             Current voice ID or None if not set.
         """
         return self._current_voice_id
-    
+
     async def synthesize_stream(
-        self,
-        text: str,
-        voice_id: Optional[str] = None,
-        options: Optional[SynthesisOptions] = None
+        self, text: str, voice_id: str | None = None, options: SynthesisOptions | None = None
     ) -> AsyncIterator[bytes]:
         """
         Stream synthesis for long text (optional implementation).
-        
+
         Default implementation calls synthesize() and yields full result.
         Override for true streaming support.
-        
+
         Args:
             text: Text to convert to speech.
             voice_id: Voice to use.
             options: Synthesis options.
-        
+
         Yields:
             Audio data chunks as bytes.
         """
         result = await self.synthesize(text, voice_id, options)
         yield result.audio_data
-    
+
     def supports_ssml(self) -> bool:
         """
         Check if plugin supports SSML input.
-        
+
         Returns:
             True if SSML is supported, False otherwise.
         """
         return False
-    
+
     def supports_streaming(self) -> bool:
         """
         Check if plugin supports true streaming synthesis.
-        
+
         Returns:
             True if streaming is natively supported, False otherwise.
         """
         return False
-    
-    def get_supported_languages(self) -> List[str]:
+
+    def get_supported_languages(self) -> list[str]:
         """
         Get list of supported language codes.
-        
+
         Returns:
             List of BCP-47 language codes (e.g., ["en-US", "ja-JP"]).
         """

@@ -29,7 +29,7 @@ export interface PluginSlot {
   id: string;
   contract: string;
   name: string;
-  pluginName?: string;
+  pluginName?: string | undefined;
   status: HealthStatus;
 }
 
@@ -145,8 +145,8 @@ export const BackendBlueprintPanel: React.FC<BackendBlueprintPanelProps> = ({
   pluginRegistry,
   manualSlots = [],
   onAddSlot,
-  onRemoveSlot,
-  onSlotClick
+  // onRemoveSlot, // Not yet implemented
+  // onSlotClick,  // Not yet implemented
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeStep, setActiveStep] = useState<number | null>(null);
@@ -191,7 +191,10 @@ export const BackendBlueprintPanel: React.FC<BackendBlueprintPanelProps> = ({
       // Strictly highlight a random FE component ONLY when FE is the SOURCE of the action
       if (flow?.from === 'fe' && feComponents.length > 0) {
         const randomIdx = Math.floor(Math.random() * feComponents.length);
-        setActiveFeComponent(feComponents[randomIdx].id);
+        const selectedComponent = feComponents[randomIdx];
+        if (selectedComponent) {
+          setActiveFeComponent(selectedComponent.id);
+        }
       } else {
         setActiveFeComponent(null);
       }

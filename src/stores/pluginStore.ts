@@ -83,16 +83,16 @@ export interface PluginConfigOption {
   /** Default value */
   defaultValue: unknown;
   /** Description/help text */
-  description?: string;
+  description?: string | undefined;
   /** Options for select type */
-  options?: Array<{ value: string; label: string }>;
+  options?: Array<{ value: string; label: string }> | undefined;
   /** Validation constraints */
   validation?: {
     min?: number;
     max?: number;
     pattern?: string;
     required?: boolean;
-  };
+  } | undefined;
 }
 
 /**
@@ -120,13 +120,13 @@ export interface PluginManifest {
   /** Tags for search */
   tags: string[];
   /** Icon path (relative to plugin dir) */
-  icon?: string;
+  icon?: string | undefined;
   /** License */
-  license?: string;
+  license?: string | undefined;
   /** Repository URL */
-  repository?: string;
+  repository?: string | undefined;
   /** Minimum host version required */
-  minHostVersion?: string;
+  minHostVersion?: string | undefined;
 }
 
 /**
@@ -324,7 +324,7 @@ const createPluginState = (manifest: PluginManifest, path: string): Plugin => ({
  */
 export const usePluginStore = create<PluginState & PluginActions>()(
   devtools(
-    (set, get) => ({
+    (set, _get) => ({
       ...initialState,
 
       // Discovery actions

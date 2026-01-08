@@ -156,12 +156,10 @@ const ResetIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-/**
- * Generate a unique ID.
- */
-const generateId = (): string => {
-  return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
+// Preserved for future use
+function _generateId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
 
 /**
  * Parse value based on type.
@@ -259,7 +257,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
     const newErrors: Record<string, string> = {};
 
     method.params.forEach((param) => {
-      const value = paramValues[param.name];
+      const value = paramValues[param.name] ?? "";
       const parsed = parseValue(value, param.type);
 
       if (param.required && (value === "" || value === undefined)) {
@@ -284,7 +282,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
   const buildParams = useMemo((): Record<string, unknown> => {
     const params: Record<string, unknown> = {};
     method.params.forEach((param) => {
-      const value = paramValues[param.name];
+      const value = paramValues[param.name] ?? "";
       const parsed = parseValue(value, param.type);
       if (parsed !== undefined) {
         params[param.name] = parsed;
@@ -621,7 +619,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
                     Error code: {lastResult.error.code}
                   </p>
                 )}
-                {lastResult.error?.data && (
+                {!!lastResult.error?.data && (
                   <pre className="mt-2 text-xs font-mono text-error-600 whitespace-pre-wrap overflow-x-auto">
                     {JSON.stringify(lastResult.error.data, null, 2)}
                   </pre>

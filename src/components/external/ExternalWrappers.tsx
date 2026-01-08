@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not needed with JSX transform
 import MuiButton from '@mui/material/Button';
 
 // =============================================================================
@@ -31,8 +31,8 @@ export const DashboardStatsBlock = (props: any) => {
                     </h3>
                 </div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium h-6 whitespace-nowrap ${(props.trend || '+20.1%').startsWith('+')
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
                     }`}>
                     {props.trend || '+20.1%'}
                 </span>

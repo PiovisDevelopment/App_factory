@@ -180,9 +180,9 @@ export interface AiAppChatPanelProps {
  */
 const ChatMessageItem: React.FC<{
     message: ChatMessage;
-    showTimestamp?: boolean;
-    onApplyCode?: (code: string, language: string) => void;
-    onApplyCanvasChanges?: (changes: CanvasChange[]) => void;
+    showTimestamp?: boolean | undefined;
+    onApplyCode?: ((code: string, language: string) => void) | undefined;
+    onApplyCanvasChanges?: ((changes: CanvasChange[]) => void) | undefined;
 }> = ({
     message,
     showTimestamp = true,
@@ -230,7 +230,7 @@ const ChatMessageItem: React.FC<{
                                         // Debugging: Alert start
                                         alert('Clicked Apply Changes');
                                         try {
-                                            const parsed = JSON.parse(code.trim());
+                                            const parsed = JSON.parse(code?.trim() ?? '');
                                             if (parsed.changes && Array.isArray(parsed.changes)) {
                                                 if (onApplyCanvasChanges) {
                                                     // alert('Calling onApplyCanvasChanges with ' + parsed.changes.length + ' changes');
@@ -251,7 +251,7 @@ const ChatMessageItem: React.FC<{
                                 >
                                     Apply Changes
                                 </button>
-                            ) : onApplyCode ? (
+                            ) : onApplyCode && code ? (
                                 <button
                                     type="button"
                                     onClick={() => onApplyCode(code.trim(), language)}
@@ -488,7 +488,7 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({
                     try {
                         // Extract JSON from code block if present
                         const jsonMatch = result.text.match(/```json\s*([\s\S]*?)\s*```/);
-                        if (jsonMatch) {
+                        if (jsonMatch?.[1]) {
                             const parsed = JSON.parse(jsonMatch[1]);
                             if (parsed.changes && Array.isArray(parsed.changes)) {
                                 console.log('[AiAppChatPanel] Parsed', parsed.changes.length, 'changes from AI response');

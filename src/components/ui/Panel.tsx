@@ -298,7 +298,7 @@ Panel.displayName = "Panel";
 /**
  * PanelHeader component for structured panel headers.
  */
-export interface PanelHeaderProps extends HTMLAttributes<HTMLDivElement> {
+export interface PanelHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   /** Title text or element */
   title?: ReactNode;
   /** Subtitle text or element */

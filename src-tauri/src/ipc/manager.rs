@@ -9,15 +9,15 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - IpcConfig for manager configuration
-//! - IpcManagerState for Tauri state management
-//! - LifecycleState enum for manager lifecycle
-//! - ManagerStats for statistics reporting
+//! - `IpcConfig` for manager configuration
+//! - `IpcManagerState` for Tauri state management
+//! - `LifecycleState` enum for manager lifecycle
+//! - `ManagerStats` for statistics reporting
 //! - Coordination between spawn, health, and request handling
 //!
 //! Dependencies:
-//!     - D033: spawn.rs (SubprocessConfig, spawn_plugin_host)
-//!     - D034: health.rs (HealthMonitor, HealthStatus)
+//!     - D033: spawn.rs (`SubprocessConfig`, `spawn_plugin_host`)
+//!     - D034: health.rs (`HealthMonitor`, `HealthStatus`)
 //!
 //! Usage:
 //!     ```rust
@@ -174,7 +174,7 @@ impl IpcConfig {
         self
     }
 
-    /// Convert to SubprocessConfig.
+    /// Convert to `SubprocessConfig`.
     pub fn to_subprocess_config(&self) -> SubprocessConfig {
         let mut config = SubprocessConfig::new()
             .with_python_path(&self.python_path)
@@ -361,7 +361,7 @@ impl IpcManagerState {
         let mut guard = self.lifecycle.write().await;
         let old = *guard;
         *guard = state;
-        log::info!("IPC Manager lifecycle: {} -> {}", old, state);
+        log::info!("IPC Manager lifecycle: {old} -> {state}");
     }
 
     /// Get health monitor.
@@ -385,10 +385,9 @@ impl IpcManagerState {
     pub async fn start(&self) -> Result<(), IpcError> {
         let current = self.lifecycle_state().await;
         if current != LifecycleState::Uninitialized && current != LifecycleState::Stopped {
-            log::warn!("Cannot start from state: {}", current);
+            log::warn!("Cannot start from state: {current}");
             return Err(IpcError::SpawnError(format!(
-                "Cannot start from state: {}",
-                current
+                "Cannot start from state: {current}"
             )));
         }
 
@@ -400,7 +399,7 @@ impl IpcManagerState {
         let mut handle = spawn_plugin_host(subprocess_config)?;
 
         let pid = handle.pid;
-        log::info!("Subprocess started with PID: {}", pid);
+        log::info!("Subprocess started with PID: {pid}");
 
         // Take stdio handles
         let stdin = handle
@@ -465,13 +464,13 @@ impl IpcManagerState {
         while let Some(msg) = rx.blocking_recv() {
             match msg {
                 WriterMessage::Request(json) => {
-                    log::debug!("Sending: {}", json);
-                    if let Err(e) = writeln!(stdin, "{}", json) {
-                        log::error!("Failed to write: {}", e);
+                    log::debug!("Sending: {json}");
+                    if let Err(e) = writeln!(stdin, "{json}") {
+                        log::error!("Failed to write: {e}");
                         break;
                     }
                     if let Err(e) = stdin.flush() {
-                        log::error!("Failed to flush: {}", e);
+                        log::error!("Failed to flush: {e}");
                         break;
                     }
                 }
@@ -502,7 +501,7 @@ impl IpcManagerState {
                         continue;
                     }
 
-                    log::debug!("Received: {}", json);
+                    log::debug!("Received: {json}");
 
                     match serde_json::from_str::<JsonRpcResponse>(&json) {
                         Ok(response) => {
@@ -515,12 +514,12 @@ impl IpcManagerState {
                             }
                         }
                         Err(e) => {
-                            log::error!("Failed to parse response: {}", e);
+                            log::error!("Failed to parse response: {e}");
                         }
                     }
                 }
                 Err(e) => {
-                    log::error!("Read error: {}", e);
+                    log::error!("Read error: {e}");
                     break;
                 }
             }
@@ -532,7 +531,7 @@ impl IpcManagerState {
         // Cancel pending requests
         let mut pending_guard = futures::executor::block_on(pending.write());
         for (id, tx) in pending_guard.drain() {
-            log::warn!("Cancelling request {}", id);
+            log::warn!("Cancelling request {id}");
             let _ = tx.send(Err(IpcError::SubprocessCrashed));
         }
 
@@ -549,17 +548,17 @@ impl IpcManagerState {
             match line {
                 Ok(text) => {
                     if text.contains("ERROR") {
-                        log::error!("[Python] {}", text);
+                        log::error!("[Python] {text}");
                     } else if text.contains("WARNING") {
-                        log::warn!("[Python] {}", text);
+                        log::warn!("[Python] {text}");
                     } else if text.contains("DEBUG") {
-                        log::debug!("[Python] {}", text);
+                        log::debug!("[Python] {text}");
                     } else {
-                        log::info!("[Python] {}", text);
+                        log::info!("[Python] {text}");
                     }
                 }
                 Err(e) => {
-                    log::error!("Stderr read error: {}", e);
+                    log::error!("Stderr read error: {e}");
                     break;
                 }
             }
@@ -590,7 +589,7 @@ impl IpcManagerState {
         let method = method.into();
         let id = self.next_request_id();
 
-        log::debug!("Calling: id={}, method={}", id, method);
+        log::debug!("Calling: id={id}, method={method}");
 
         // Build request
         let request = JsonRpcRequest::new(id, &method, params);
@@ -651,7 +650,7 @@ impl IpcManagerState {
         }
     }
 
-    /// Send using RequestBuilder.
+    /// Send using `RequestBuilder`.
     pub async fn send_builder(&self, builder: RequestBuilder) -> Result<Value, IpcError> {
         let id = self.next_request_id();
         let request = builder.build(id);
@@ -679,7 +678,7 @@ impl IpcManagerState {
         if let Some(mut handle) = self.subprocess.lock().unwrap().take() {
             let timeout = Duration::from_secs(self.config.timeout_secs);
             if let Err(e) = handle.shutdown(timeout) {
-                log::error!("Subprocess shutdown error: {}", e);
+                log::error!("Subprocess shutdown error: {e}");
             }
         }
 

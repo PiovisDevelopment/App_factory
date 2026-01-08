@@ -9,13 +9,13 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - JsonRpcRequest structure matching JSON-RPC 2.0 spec
-//! - RequestBuilder for fluent request construction
-//! - send_request() implementation for IpcManager
+//! - `JsonRpcRequest` structure matching JSON-RPC 2.0 spec
+//! - `RequestBuilder` for fluent request construction
+//! - `send_request()` implementation for `IpcManager`
 //!
 //! Dependencies:
-//!     - D030: mod.rs (IpcManager, IpcError)
-//!     - D009: config/error_codes.yaml (error codes reference)
+//!     - D030: mod.rs (`IpcManager`, `IpcError`)
+//!     - D009: `config/error_codes.yaml` (error codes reference)
 //!
 //! Usage:
 //!     ```rust
@@ -220,7 +220,7 @@ impl RequestBuilder {
                 self.params.insert(key, v);
             }
             Err(e) => {
-                log::warn!("Failed to serialize param '{}': {}", key, e);
+                log::warn!("Failed to serialize param '{key}': {e}");
             }
         }
         self
@@ -244,7 +244,7 @@ impl RequestBuilder {
                 self.params.insert(k, v);
             }
         } else {
-            log::warn!("with_params expected object, got: {:?}", params);
+            log::warn!("with_params expected object, got: {params:?}");
         }
         self
     }
@@ -257,7 +257,7 @@ impl RequestBuilder {
     ///
     /// # Returns
     ///
-    /// Complete JsonRpcRequest ready to send
+    /// Complete `JsonRpcRequest` ready to send
     pub fn build(self, id: u64) -> JsonRpcRequest {
         let params = if self.params.is_empty() {
             Value::Null
@@ -331,7 +331,7 @@ impl IpcManager {
         let method = method.into();
         let id = self.next_request_id();
 
-        log::debug!("Sending request: id={}, method={}", id, method);
+        log::debug!("Sending request: id={id}, method={method}");
 
         // Build request
         let request = JsonRpcRequest::new(id, &method, params);
@@ -366,7 +366,7 @@ impl IpcManager {
         match timeout(timeout_duration, rx).await {
             Ok(Ok(Ok(response))) => {
                 // Response received successfully
-                log::debug!("Response received: id={}", id);
+                log::debug!("Response received: id={id}");
                 
                 // Check for JSON-RPC error
                 if let Some(error) = response.error {
@@ -383,7 +383,7 @@ impl IpcManager {
             Ok(Ok(Err(e))) => {
                 // IpcError from reader task
                 self.error_count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-                log::error!("Request error: id={}, error={}", id, e);
+                log::error!("Request error: id={id}, error={e}");
                 Err(e)
             }
             Ok(Err(_)) => {
@@ -394,7 +394,7 @@ impl IpcManager {
                 let mut pending = self.pending.write().await;
                 pending.remove(&id);
                 
-                log::error!("Response channel closed: id={}", id);
+                log::error!("Response channel closed: id={id}");
                 Err(IpcError::ChannelClosed)
             }
             Err(_) => {
@@ -405,19 +405,19 @@ impl IpcManager {
                 let mut pending = self.pending.write().await;
                 pending.remove(&id);
                 
-                log::error!("Request timeout: id={}, method={}", id, method);
+                log::error!("Request timeout: id={id}, method={method}");
                 Err(IpcError::Timeout(self.timeout_secs))
             }
         }
     }
 
-    /// Send a request using RequestBuilder.
+    /// Send a request using `RequestBuilder`.
     ///
     /// Convenience method for using the builder pattern.
     ///
     /// # Arguments
     ///
-    /// * `builder` - Configured RequestBuilder
+    /// * `builder` - Configured `RequestBuilder`
     ///
     /// # Returns
     ///

@@ -22,10 +22,10 @@ Dependencies:
 
 Usage:
     python -m plugins._host [--plugins-dir ./plugins] [--config-dir ./config] [--log-level INFO]
-    
+
 The host reads JSON-RPC requests line-by-line from stdin:
     {"jsonrpc": "2.0", "method": "plugin/list", "params": {}, "id": 1}
-    
+
 And writes JSON-RPC responses to stdout:
     {"jsonrpc": "2.0", "result": [...], "id": 1}
 
@@ -48,10 +48,10 @@ import os
 import sys
 
 # Method 1: Environment variable
-os.environ['PYTHONUNBUFFERED'] = '1'
+os.environ["PYTHONUNBUFFERED"] = "1"
 
 # Method 2: Reconfigure stdout (Python 3.7+)
-if hasattr(sys.stdout, 'reconfigure'):
+if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(line_buffering=True, write_through=True)
     except Exception:
@@ -60,12 +60,10 @@ if hasattr(sys.stdout, 'reconfigure'):
 # Method 3: Replace stdout with unbuffered wrapper (most reliable on Windows)
 try:
     sys.stdout = io.TextIOWrapper(
-        io.BufferedWriter(
-            io.FileIO(sys.stdout.fileno(), mode='wb', closefd=False)
-        ),
-        encoding='utf-8',
+        io.BufferedWriter(io.FileIO(sys.stdout.fileno(), mode="wb", closefd=False)),
+        encoding="utf-8",
         line_buffering=True,
-        write_through=True
+        write_through=True,
     )
 except Exception:
     pass
@@ -77,46 +75,34 @@ except Exception:
 import argparse
 import asyncio
 import json
-import logging
-import signal
-import time
-import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 # ============================================
 # LOCAL IMPORTS
 # ============================================
-
 # Import package initialization (configures logging infrastructure)
 from . import (
     __version__,
     configure_host_logging,
     get_logger,
-    log_startup_info,
     log_shutdown_info,
-    LOGGER_PREFIX,
+    log_startup_info,
 )
 
 # Import core components
-from .discovery import HybridDiscovery
-from .isolation import IsolatedExecutor, get_executor, set_executor
-from .loader import PluginLoader
-from .manager import PluginManager, get_manager, set_manager
+from .isolation import IsolatedExecutor, set_executor
+from .manager import PluginManager, set_manager
 from .protocol import (
     ErrorCodes,
-    JsonRpcRequest,
-    JsonRpcResponse,
     JsonRpcRouter,
 )
 from .shutdown import (
     ShutdownHandler,
     ShutdownReason,
     create_shutdown_handler,
-    get_shutdown_handler,
 )
-from .validator import PluginValidator
 
 # ============================================
 # MODULE LOGGER
@@ -129,35 +115,31 @@ logger = get_logger("main")
 # JSON-RPC I/O FUNCTIONS
 # ============================================
 
-def send_response(response: Dict[str, Any]) -> None:
+
+def send_response(response: dict[str, Any]) -> None:
     """
     Send a JSON-RPC response to stdout.
-    
+
     Args:
         response: JSON-RPC response dictionary
-        
+
     Note:
         Uses compact JSON (no whitespace) and explicit flush
         for reliable IPC communication.
     """
     try:
-        line = json.dumps(response, ensure_ascii=False, separators=(',', ':'))
+        line = json.dumps(response, ensure_ascii=False, separators=(",", ":"))
         sys.stdout.write(line)
-        sys.stdout.write('\n')
+        sys.stdout.write("\n")
         sys.stdout.flush()
     except Exception as e:
         logger.error(f"Failed to send response: {e}")
 
 
-def send_error(
-    request_id: Optional[Union[str, int]],
-    code: int,
-    message: str,
-    data: Optional[Dict[str, Any]] = None
-) -> None:
+def send_error(request_id: str | int | None, code: int, message: str, data: dict[str, Any] | None = None) -> None:
     """
     Send a JSON-RPC error response.
-    
+
     Args:
         request_id: Request ID (None for parse errors)
         code: JSON-RPC error code
@@ -167,7 +149,7 @@ def send_error(
     error_obj = {"code": code, "message": message}
     if data is not None:
         error_obj["data"] = data
-    
+
     response = {
         "jsonrpc": "2.0",
         "id": request_id,
@@ -176,13 +158,10 @@ def send_error(
     send_response(response)
 
 
-def send_result(
-    request_id: Optional[Union[str, int]],
-    result: Any
-) -> None:
+def send_result(request_id: str | int | None, result: Any) -> None:
     """
     Send a JSON-RPC success response.
-    
+
     Args:
         request_id: Request ID
         result: Result value
@@ -199,28 +178,27 @@ def send_result(
 # SHUTDOWN METHOD HANDLER
 # ============================================
 
+
 async def handle_shutdown_method(
-    params: Optional[Dict[str, Any]],
-    request_id: Optional[Union[str, int]],
-    shutdown_handler: ShutdownHandler
-) -> Dict[str, Any]:
+    params: dict[str, Any] | None, request_id: str | int | None, shutdown_handler: ShutdownHandler
+) -> dict[str, Any]:
     """
     Handle the 'shutdown' JSON-RPC method.
-    
+
     Args:
         params: Method parameters (optional reason)
         request_id: Request ID
         shutdown_handler: ShutdownHandler instance
-        
+
     Returns:
         Acknowledgment response
     """
     reason = params.get("reason", "requested") if params else "requested"
     logger.info(f"Shutdown method called: reason={reason}")
-    
+
     # Signal shutdown (will be picked up by main loop)
     shutdown_handler._initiate_shutdown(ShutdownReason.REQUESTED)
-    
+
     return {
         "status": "shutting_down",
         "reason": reason,
@@ -232,66 +210,64 @@ async def handle_shutdown_method(
 # MAIN READ LOOP
 # ============================================
 
-async def run_read_loop(
-    router: JsonRpcRouter,
-    shutdown_handler: ShutdownHandler
-) -> None:
+
+async def run_read_loop(router: JsonRpcRouter, shutdown_handler: ShutdownHandler) -> None:
     """
     Main JSON-RPC read loop.
-    
+
     Reads JSON-RPC requests from stdin line-by-line and processes them.
     Continues until shutdown is requested or stdin is closed.
-    
+
     Args:
         router: JsonRpcRouter for request handling
         shutdown_handler: ShutdownHandler for graceful shutdown
     """
     logger.info("Starting JSON-RPC read loop")
-    
+
     loop = asyncio.get_event_loop()
-    
+
     # Create a reader for stdin
     reader = asyncio.StreamReader()
     protocol = asyncio.StreamReaderProtocol(reader)
-    
+
     try:
         await loop.connect_read_pipe(lambda: protocol, sys.stdin)
     except Exception as e:
         logger.error(f"Failed to connect stdin pipe: {e}")
         send_error(None, ErrorCodes.INTERNAL_ERROR, f"Stdin connection failed: {e}")
         return
-    
+
     logger.info("JSON-RPC read loop ready, waiting for requests...")
-    
+
     request_count = 0
-    
+
     while not shutdown_handler.is_shutdown_requested():
         try:
             # Read a line from stdin with timeout
             try:
                 line_bytes = await asyncio.wait_for(
                     reader.readline(),
-                    timeout=1.0  # Check shutdown flag every second
+                    timeout=1.0,  # Check shutdown flag every second
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
-            
+
             # Check for EOF (stdin closed)
             if not line_bytes:
                 logger.info("EOF on stdin, initiating shutdown")
                 shutdown_handler._initiate_shutdown(ShutdownReason.EOF)
                 break
-            
+
             # Decode and strip
-            line = line_bytes.decode('utf-8', errors='replace').strip()
-            
+            line = line_bytes.decode("utf-8", errors="replace").strip()
+
             # Skip empty lines
             if not line:
                 continue
-            
+
             request_count += 1
             logger.debug(f"Received request #{request_count}: {line[:100]}...")
-            
+
             # Parse JSON
             try:
                 data = json.loads(line)
@@ -299,63 +275,57 @@ async def run_read_loop(
                 logger.warning(f"JSON parse error: {e}")
                 send_error(None, ErrorCodes.PARSE_ERROR, f"Parse error: {e}")
                 continue
-            
+
             # Parse as JSON-RPC request
             request, error_response = router.parse_request(line)
-            
+
             if error_response:
                 send_response(error_response.to_dict())
                 continue
-            
+
             if not request:
                 logger.warning("Failed to parse request")
                 send_error(None, ErrorCodes.INVALID_REQUEST, "Invalid request")
                 continue
-            
+
             # Track in-flight request
             if request.id is not None:
                 shutdown_handler.request_started(request.id)
-            
+
             try:
                 # Check for shutdown method (handle specially)
                 if request.method == "shutdown":
                     result = await handle_shutdown_method(
-                        request.params if isinstance(request.params, dict) else {},
-                        request.id,
-                        shutdown_handler
+                        request.params if isinstance(request.params, dict) else {}, request.id, shutdown_handler
                     )
                     if not request.is_notification:
                         send_result(request.id, result)
                     break  # Exit loop after shutdown
-                
+
                 # Route to handler
                 response = await router.handle_request(request)
-                
+
                 # Send response (skip for notifications)
                 if response and not request.is_notification:
                     send_response(response.to_dict())
-                    
+
             except Exception as e:
                 logger.exception(f"Error handling request: {e}")
                 if not request.is_notification:
-                    send_error(
-                        request.id,
-                        ErrorCodes.INTERNAL_ERROR,
-                        f"Internal error: {type(e).__name__}: {str(e)}"
-                    )
+                    send_error(request.id, ErrorCodes.INTERNAL_ERROR, f"Internal error: {type(e).__name__}: {str(e)}")
             finally:
                 # Complete request tracking
                 if request.id is not None:
                     shutdown_handler.request_completed(request.id)
-                    
+
         except asyncio.CancelledError:
             logger.info("Read loop cancelled")
             break
-            
+
         except Exception as e:
             logger.exception(f"Unexpected error in read loop: {e}")
             send_error(None, ErrorCodes.INTERNAL_ERROR, f"Read loop error: {e}")
-    
+
     logger.info(f"Read loop ended after {request_count} requests")
 
 
@@ -363,10 +333,9 @@ async def run_read_loop(
 # SYNCHRONOUS READ LOOP (WINDOWS-COMPATIBLE)
 # ============================================
 
+
 def run_sync_read_loop(
-    router: JsonRpcRouter,
-    shutdown_handler: ShutdownHandler,
-    event_loop: Optional[asyncio.AbstractEventLoop] = None
+    router: JsonRpcRouter, shutdown_handler: ShutdownHandler, event_loop: asyncio.AbstractEventLoop | None = None
 ) -> None:
     """
     Synchronous read loop for Windows and environments without async stdin.
@@ -455,9 +424,7 @@ def run_sync_read_loop(
 
                 # Route to handler using the event loop
                 # Use run_until_complete which is safe for sync context
-                response = event_loop.run_until_complete(
-                    router.handle_request(request)
-                )
+                response = event_loop.run_until_complete(router.handle_request(request))
 
                 # Send response
                 if response and not request.is_notification:
@@ -467,11 +434,7 @@ def run_sync_read_loop(
             except Exception as e:
                 logger.exception(f"Error handling request {request.method}: {e}")
                 if not request.is_notification:
-                    send_error(
-                        request.id,
-                        ErrorCodes.INTERNAL_ERROR,
-                        f"Internal error: {type(e).__name__}: {str(e)}"
-                    )
+                    send_error(request.id, ErrorCodes.INTERNAL_ERROR, f"Internal error: {type(e).__name__}: {str(e)}")
             finally:
                 if request.id is not None:
                     shutdown_handler.request_completed(request.id)
@@ -504,76 +467,61 @@ def run_sync_read_loop(
 # MAIN ENTRY POINT
 # ============================================
 
+
 async def async_main(args: argparse.Namespace) -> int:
     """
     Async main function.
-    
+
     Args:
         args: Parsed command-line arguments
-        
+
     Returns:
         Exit code
     """
     # Configure logging
     configure_host_logging(level=args.log_level)
     log_startup_info(logger)
-    
+
     logger.info(f"Plugins directory: {args.plugins_dir}")
     logger.info(f"Config directory: {args.config_dir}")
-    
+
     # Resolve paths
     plugins_dir = Path(args.plugins_dir).resolve()
     config_dir = Path(args.config_dir).resolve()
-    
+
     # Validate directories exist
     if not plugins_dir.exists():
         logger.error(f"Plugins directory not found: {plugins_dir}")
         send_error(None, ErrorCodes.INTERNAL_ERROR, f"Plugins directory not found: {plugins_dir}")
         return 1
-    
+
     if not config_dir.exists():
         logger.warning(f"Config directory not found: {config_dir}, creating...")
         config_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Initialize components
     logger.info("Initializing plugin infrastructure...")
-    
+
     # Create isolated executor
-    executor = IsolatedExecutor(
-        default_timeout=30.0,
-        crash_rate_window=60.0,
-        crash_rate_limit=5
-    )
+    executor = IsolatedExecutor(default_timeout=30.0, crash_rate_window=60.0, crash_rate_limit=5)
     set_executor(executor)
-    
+
     # Create plugin manager
-    manager = PluginManager(
-        plugins_dir=plugins_dir,
-        config_dir=config_dir,
-        auto_install_deps=args.auto_install_deps
-    )
+    manager = PluginManager(plugins_dir=plugins_dir, config_dir=config_dir, auto_install_deps=args.auto_install_deps)
     set_manager(manager)
-    
+
     # Start plugin manager (performs initial discovery)
     await manager.start()
-    
+
     # Create shutdown handler
     loop = asyncio.get_event_loop()
-    shutdown_handler = create_shutdown_handler(
-        manager=manager,
-        install_signals=True,
-        loop=loop
-    )
-    
+    shutdown_handler = create_shutdown_handler(manager=manager, install_signals=True, loop=loop)
+
     # Create JSON-RPC router
-    router = JsonRpcRouter(
-        manager=manager,
-        executor=executor,
-        default_timeout=30.0
-    )
-    
+    router = JsonRpcRouter(manager=manager, executor=executor, default_timeout=30.0)
+
     logger.info("Plugin Host initialized successfully")
-    
+
     # Auto-load plugins if requested
     if args.auto_load:
         logger.info("Auto-loading plugins...")
@@ -584,10 +532,10 @@ async def async_main(args: argparse.Namespace) -> int:
                 logger.info(f"Loaded: {plugin.name}")
             except Exception as e:
                 logger.warning(f"Failed to auto-load {plugin.name}: {e}")
-    
+
     # Run read loop
     exit_code = 0
-    
+
     try:
         if args.sync_mode:
             # Run synchronous read loop
@@ -595,23 +543,21 @@ async def async_main(args: argparse.Namespace) -> int:
         else:
             # Run async read loop
             await run_read_loop(router, shutdown_handler)
-            
+
     except asyncio.CancelledError:
         logger.info("Main task cancelled")
     except Exception as e:
         logger.exception(f"Fatal error: {e}")
         exit_code = 1
-    
+
     # Perform graceful shutdown
     if shutdown_handler.is_shutdown_requested():
-        exit_code = await shutdown_handler.shutdown(
-            reason=shutdown_handler.get_state().reason or ShutdownReason.NORMAL
-        )
+        exit_code = await shutdown_handler.shutdown(reason=shutdown_handler.get_state().reason or ShutdownReason.NORMAL)
     else:
         exit_code = await shutdown_handler.shutdown(ShutdownReason.NORMAL)
-    
+
     log_shutdown_info(logger, reason=str(shutdown_handler.get_state().reason))
-    
+
     return exit_code
 
 
@@ -669,18 +615,12 @@ def sync_main(args: argparse.Namespace) -> int:
         logger.info("Initializing plugin infrastructure...")
 
         # Create isolated executor
-        executor = IsolatedExecutor(
-            default_timeout=30.0,
-            crash_rate_window=60.0,
-            crash_rate_limit=5
-        )
+        executor = IsolatedExecutor(default_timeout=30.0, crash_rate_window=60.0, crash_rate_limit=5)
         set_executor(executor)
 
         # Create plugin manager
         manager = PluginManager(
-            plugins_dir=plugins_dir,
-            config_dir=config_dir,
-            auto_install_deps=args.auto_install_deps
+            plugins_dir=plugins_dir, config_dir=config_dir, auto_install_deps=args.auto_install_deps
         )
         set_manager(manager)
 
@@ -691,15 +631,11 @@ def sync_main(args: argparse.Namespace) -> int:
         shutdown_handler = create_shutdown_handler(
             manager=manager,
             install_signals=False,  # We handle signals manually in sync mode
-            loop=loop
+            loop=loop,
         )
 
         # Create JSON-RPC router
-        router = JsonRpcRouter(
-            manager=manager,
-            executor=executor,
-            default_timeout=30.0
-        )
+        router = JsonRpcRouter(manager=manager, executor=executor, default_timeout=30.0)
 
         logger.info("Plugin Host initialized successfully")
 
@@ -720,14 +656,10 @@ def sync_main(args: argparse.Namespace) -> int:
         # Perform graceful shutdown
         if shutdown_handler.is_shutdown_requested():
             exit_code = loop.run_until_complete(
-                shutdown_handler.shutdown(
-                    reason=shutdown_handler.get_state().reason or ShutdownReason.NORMAL
-                )
+                shutdown_handler.shutdown(reason=shutdown_handler.get_state().reason or ShutdownReason.NORMAL)
             )
         else:
-            exit_code = loop.run_until_complete(
-                shutdown_handler.shutdown(ShutdownReason.NORMAL)
-            )
+            exit_code = loop.run_until_complete(shutdown_handler.shutdown(ShutdownReason.NORMAL))
 
         log_shutdown_info(logger, reason=str(shutdown_handler.get_state().reason))
 
@@ -765,64 +697,38 @@ def main() -> int:
     # Parse arguments
     parser = argparse.ArgumentParser(
         description="Plugin Host - JSON-RPC subprocess for Tauri IPC",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument(
-        "--plugins-dir",
-        type=str,
-        default="./plugins",
-        help="Path to plugins directory"
-    )
+    parser.add_argument("--plugins-dir", type=str, default="./plugins", help="Path to plugins directory")
 
-    parser.add_argument(
-        "--config-dir",
-        type=str,
-        default="./config",
-        help="Path to config directory"
-    )
+    parser.add_argument("--config-dir", type=str, default="./config", help="Path to config directory")
 
     parser.add_argument(
         "--log-level",
         type=str,
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        help="Log level"
+        help="Log level",
     )
 
     parser.add_argument(
-        "--auto-load",
-        action="store_true",
-        default=False,
-        help="Auto-load all valid plugins on startup"
+        "--auto-load", action="store_true", default=False, help="Auto-load all valid plugins on startup"
     )
 
     parser.add_argument(
-        "--auto-install-deps",
-        action="store_true",
-        default=False,
-        help="Auto-install missing plugin dependencies"
+        "--auto-install-deps", action="store_true", default=False, help="Auto-install missing plugin dependencies"
     )
 
     parser.add_argument(
-        "--sync-mode",
-        action="store_true",
-        default=False,
-        help="Force synchronous read loop (auto-enabled on Windows)"
+        "--sync-mode", action="store_true", default=False, help="Force synchronous read loop (auto-enabled on Windows)"
     )
 
     parser.add_argument(
-        "--force-async",
-        action="store_true",
-        default=False,
-        help="Force async mode even on Windows (may cause issues)"
+        "--force-async", action="store_true", default=False, help="Force async mode even on Windows (may cause issues)"
     )
 
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"Plugin Host v{__version__}"
-    )
+    parser.add_argument("--version", action="version", version=f"Plugin Host v{__version__}")
 
     args = parser.parse_args()
 

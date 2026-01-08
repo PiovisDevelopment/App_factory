@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { resolveColor, resolveBorder } from "../../utils/tokenMap";
+import { resolveColor } from "../../utils/tokenMap";
 import { getComponent, isComponentRegistered } from "../../utils/ComponentRegistry";
 import type { CanvasElementType } from "./canvasTypes";
 

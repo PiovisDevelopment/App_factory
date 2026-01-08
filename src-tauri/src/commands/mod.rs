@@ -6,14 +6,14 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - Tauri commands exposed to React frontend via invoke()
+//! - Tauri commands exposed to React frontend via `invoke()`
 //! - IPC proxy commands for plugin communication
 //! - Health and status commands
 //! - Plugin management commands
 //! - API key management commands (D079)
 //!
 //! Dependencies:
-//!     - D035: manager.rs (IpcManagerState)
+//!     - D035: manager.rs (`IpcManagerState`)
 //!
 //! Usage (Rust):
 //!     ```rust
@@ -88,19 +88,19 @@ impl From<IpcError> for CommandError {
             IpcError::SpawnError(msg) => ("SPAWN_ERROR", msg.clone()),
             IpcError::NotRunning => ("NOT_RUNNING", "Subprocess not running".to_string()),
             IpcError::SendError(msg) => ("SEND_ERROR", msg.clone()),
-            IpcError::Timeout(secs) => ("TIMEOUT", format!("Request timed out after {} seconds", secs)),
+            IpcError::Timeout(secs) => ("TIMEOUT", format!("Request timed out after {secs} seconds")),
             IpcError::SubprocessCrashed => ("SUBPROCESS_CRASHED", "Subprocess crashed".to_string()),
             IpcError::RpcError { code, message } => {
                 return Self {
-                    code: format!("RPC_ERROR_{}", code),
+                    code: format!("RPC_ERROR_{code}"),
                     message: message.clone(),
                     details: Some(json!({ "rpc_code": code })),
                 };
             }
-            IpcError::ResponseMissing(id) => ("RESPONSE_MISSING", format!("Response missing for request {}", id)),
+            IpcError::ResponseMissing(id) => ("RESPONSE_MISSING", format!("Response missing for request {id}")),
             IpcError::IoError(msg) => ("IO_ERROR", msg.clone()),
             IpcError::JsonError(msg) => ("JSON_ERROR", msg.clone()),
-            IpcError::RespawnFailed(attempts) => ("RESPAWN_FAILED", format!("Respawn failed after {} attempts", attempts)),
+            IpcError::RespawnFailed(attempts) => ("RESPAWN_FAILED", format!("Respawn failed after {attempts} attempts")),
             IpcError::ChannelClosed => ("CHANNEL_CLOSED", "Communication channel closed".to_string()),
             IpcError::NotInitialized => ("NOT_INITIALIZED", "IPC not initialized".to_string()),
             IpcError::ShuttingDown => ("SHUTTING_DOWN", "System is shutting down".to_string()),
@@ -144,6 +144,7 @@ pub type CommandResult<T> = Result<T, CommandError>;
 /// await invoke('ipc_start');
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_start(state: State<'_, IpcManagerState>) -> CommandResult<()> {
     log::info!("Command: ipc_start");
     state.start().await.map_err(CommandError::from)
@@ -162,6 +163,7 @@ pub async fn ipc_start(state: State<'_, IpcManagerState>) -> CommandResult<()> {
 /// await invoke('ipc_stop');
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_stop(state: State<'_, IpcManagerState>) -> CommandResult<()> {
     log::info!("Command: ipc_stop");
     state.shutdown().await.map_err(CommandError::from)
@@ -180,6 +182,7 @@ pub async fn ipc_stop(state: State<'_, IpcManagerState>) -> CommandResult<()> {
 /// console.log(status.lifecycle_state, status.health_status);
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_status(state: State<'_, IpcManagerState>) -> CommandResult<ManagerStats> {
     log::debug!("Command: ipc_status");
     Ok(state.stats().await)
@@ -200,6 +203,7 @@ pub async fn ipc_status(state: State<'_, IpcManagerState>) -> CommandResult<Mana
 /// }
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_ready(state: State<'_, IpcManagerState>) -> CommandResult<bool> {
     Ok(state.is_ready().await)
 }
@@ -228,12 +232,13 @@ pub async fn ipc_ready(state: State<'_, IpcManagerState>) -> CommandResult<bool>
 /// });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_call(
     state: State<'_, IpcManagerState>,
     method: String,
     params: Option<Value>,
 ) -> CommandResult<Value> {
-    log::debug!("Command: ipc_call method={}", method);
+    log::debug!("Command: ipc_call method={method}");
     let params = params.unwrap_or(json!({}));
     state.call(method, params).await.map_err(CommandError::from)
 }
@@ -272,6 +277,7 @@ pub struct BatchResult {
 }
 
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ipc_batch(
     state: State<'_, IpcManagerState>,
     requests: Vec<BatchRequest>,
@@ -319,6 +325,7 @@ pub async fn ipc_batch(
 /// }
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_list(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
     log::debug!("Command: plugin_list");
     state.call("plugin/list", json!({})).await.map_err(CommandError::from)
@@ -340,11 +347,12 @@ pub async fn plugin_list(state: State<'_, IpcManagerState>) -> CommandResult<Val
 /// const info = await invoke('plugin_info', { name: 'tts_kokoro' });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_info(
     state: State<'_, IpcManagerState>,
     name: String,
 ) -> CommandResult<Value> {
-    log::debug!("Command: plugin_info name={}", name);
+    log::debug!("Command: plugin_info name={name}");
     state.call("plugin/info", json!({ "name": name })).await.map_err(CommandError::from)
 }
 
@@ -364,11 +372,12 @@ pub async fn plugin_info(
 /// await invoke('plugin_load', { name: 'tts_kokoro' });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_load(
     state: State<'_, IpcManagerState>,
     name: String,
 ) -> CommandResult<Value> {
-    log::info!("Command: plugin_load name={}", name);
+    log::info!("Command: plugin_load name={name}");
     state.call("plugin/load", json!({ "name": name })).await.map_err(CommandError::from)
 }
 
@@ -388,11 +397,12 @@ pub async fn plugin_load(
 /// await invoke('plugin_unload', { name: 'tts_kokoro' });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_unload(
     state: State<'_, IpcManagerState>,
     name: String,
 ) -> CommandResult<Value> {
-    log::info!("Command: plugin_unload name={}", name);
+    log::info!("Command: plugin_unload name={name}");
     state.call("plugin/unload", json!({ "name": name })).await.map_err(CommandError::from)
 }
 
@@ -416,12 +426,13 @@ pub async fn plugin_unload(
 /// });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_swap(
     state: State<'_, IpcManagerState>,
     old_name: String,
     new_name: String,
 ) -> CommandResult<Value> {
-    log::info!("Command: plugin_swap {} -> {}", old_name, new_name);
+    log::info!("Command: plugin_swap {old_name} -> {new_name}");
     state.call("plugin/swap", json!({
         "old": old_name,
         "new": new_name
@@ -450,13 +461,14 @@ pub async fn plugin_swap(
 /// });
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn plugin_call(
     state: State<'_, IpcManagerState>,
     plugin: String,
     method: String,
     args: Option<Value>,
 ) -> CommandResult<Value> {
-    log::debug!("Command: plugin_call plugin={} method={}", plugin, method);
+    log::debug!("Command: plugin_call plugin={plugin} method={method}");
     state.call("plugin/call", json!({
         "plugin": plugin,
         "method": method,
@@ -481,6 +493,7 @@ pub async fn plugin_call(
 /// console.log(health.is_healthy, health.last_latency_ms);
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn health_check(state: State<'_, IpcManagerState>) -> CommandResult<HealthStatus> {
     log::debug!("Command: health_check");
     Ok(state.health().status())
@@ -500,6 +513,7 @@ pub async fn health_check(state: State<'_, IpcManagerState>) -> CommandResult<He
 /// console.log(response); // "pong"
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn ping(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
     log::debug!("Command: ping");
     state.call("ping", json!({})).await.map_err(CommandError::from)
@@ -521,6 +535,7 @@ pub async fn ping(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
 /// const discovered = await invoke('discover_plugins');
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn discover_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
     log::info!("Command: discover_plugins");
     state.call("plugin/discover", json!({})).await.map_err(CommandError::from)
@@ -539,6 +554,7 @@ pub async fn discover_plugins(state: State<'_, IpcManagerState>) -> CommandResul
 /// console.log(`Found ${result.new_plugins} new plugins`);
 /// ```
 #[tauri::command]
+#[allow(clippy::used_underscore_binding)]
 pub async fn scan_plugins(state: State<'_, IpcManagerState>) -> CommandResult<Value> {
     log::info!("Command: scan_plugins");
     state.call("plugin/scan", json!({})).await.map_err(CommandError::from)

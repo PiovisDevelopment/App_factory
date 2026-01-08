@@ -32,7 +32,7 @@ export interface BackupMetadata {
   /** Backup version format */
   version: string;
   /** Optional description/note */
-  description?: string;
+  description?: string | undefined;
 }
 
 /**

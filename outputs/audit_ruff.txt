@@ -1,0 +1,2185 @@
+contracts\__init__.py:
+  10:1 I001 [*] Import block is un-sorted or un-formatted
+
+contracts\base.py:
+   13:1  I001 [*] Import block is un-sorted or un-formatted
+   16:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   16:1  UP035 `typing.List` is deprecated, use `list` instead
+   17:8  F401 [*] `json` imported but unused
+   38:1  W293 Blank line contains whitespace
+   57:19 UP006 [*] Use `list` instead of `List` for type annotation
+   58:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   59:1  W293 [*] Blank line contains whitespace
+   60:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   73:1  W293 [*] Blank line contains whitespace
+   75:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   94:1  W293 Blank line contains whitespace
+  104:14 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  105:17 UP007 [*] Use `X | Y` for type annotations
+  106:16 UP007 [*] Use `X | Y` for type annotations
+  107:1  W293 [*] Blank line contains whitespace
+  108:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  125:1  W293 Blank line contains whitespace
+  128:1  W293 Blank line contains whitespace
+  135:1  W293 Blank line contains whitespace
+  141:1  W293 Blank line contains whitespace
+  145:1  W293 Blank line contains whitespace
+  152:1  W293 [*] Blank line contains whitespace
+  156:1  W293 Blank line contains whitespace
+  161:25 UP007 [*] Use `X | Y` for type annotations
+  162:23 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  163:1  W293 [*] Blank line contains whitespace
+  165:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  168:1  W293 Blank line contains whitespace
+  171:1  W293 Blank line contains whitespace
+  175:1  W293 Blank line contains whitespace
+  178:1  W293 Blank line contains whitespace
+  183:1  W293 [*] Blank line contains whitespace
+  188:1  W293 Blank line contains whitespace
+  191:1  W293 Blank line contains whitespace
+  196:1  W293 [*] Blank line contains whitespace
+  201:1  W293 Blank line contains whitespace
+  204:1  W293 Blank line contains whitespace
+  209:1  W293 [*] Blank line contains whitespace
+  210:31 UP007 [*] Use `X | Y` for type annotations
+  213:1  W293 Blank line contains whitespace
+  218:1  W293 [*] Blank line contains whitespace
+  222:1  W293 Blank line contains whitespace
+  227:1  W293 [*] Blank line contains whitespace
+  232:1  W293 [*] Blank line contains whitespace
+  237:1  W293 [*] Blank line contains whitespace
+  242:1  W293 [*] Blank line contains whitespace
+
+contracts\llm_contract.py:
+   12:1  I001 [*] Import block is un-sorted or un-formatted
+   14:1  UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+   14:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   14:1  UP035 `typing.List` is deprecated, use `list` instead
+   18:31 F401 [*] `.base.PluginStatus` imported but unused
+   18:45 F401 [*] `.base.HealthStatus` imported but unused
+   42:1  W293 Blank line contains whitespace
+   52:11 UP007 [*] Use `X | Y` for type annotations
+   53:19 UP007 [*] Use `X | Y` for type annotations
+   54:17 UP006 [*] Use `list` instead of `List` for type annotation
+   54:22 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   55:1  W293 [*] Blank line contains whitespace
+   56:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   69:1  W293 [*] Blank line contains whitespace
+   71:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   86:1  W293 Blank line contains whitespace
+  100:19 UP006 [*] Use `list` instead of `List` for type annotation
+  101:1  W293 [*] Blank line contains whitespace
+  102:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  118:1  W293 Blank line contains whitespace
+  131:12 UP007 [*] Use `X | Y` for type annotations
+  136:11 UP006 [*] Use `list` instead of `List` for type annotation
+  139:12 UP006 [*] Use `list` instead of `List` for type annotation
+  139:17 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  140:18 UP007 [*] Use `X | Y` for type annotations
+  141:1  W293 [*] Blank line contains whitespace
+  143:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  163:1  W293 Blank line contains whitespace
+  172:1  W293 [*] Blank line contains whitespace
+  173:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  186:1  W293 Blank line contains whitespace
+  199:17 UP006 [*] Use `list` instead of `List` for type annotation
+  199:22 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  200:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  201:1  W293 [*] Blank line contains whitespace
+  202:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  218:1  W293 Blank line contains whitespace
+  225:20 UP007 [*] Use `X | Y` for type annotations
+  226:17 UP006 [*] Use `list` instead of `List` for type annotation
+  226:22 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  227:1  W293 [*] Blank line contains whitespace
+  228:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  241:1  W293 Blank line contains whitespace
+  244:1  W293 Blank line contains whitespace
+  250:1  W293 Blank line contains whitespace
+  259:1  W293 Blank line contains whitespace
+  268:1  W293 [*] Blank line contains whitespace
+  272:30 UP007 [*] Use `X | Y` for type annotations
+  273:23 UP006 [*] Use `list` instead of `List` for type annotation
+  274:1  W293 [*] Blank line contains whitespace
+  278:19 UP006 [*] Use `list` instead of `List` for type annotation
+  279:18 UP007 [*] Use `X | Y` for type annotations
+  283:1  W293 Blank line contains whitespace
+  287:1  W293 Blank line contains whitespace
+  290:1  W293 Blank line contains whitespace
+  296:1  W293 [*] Blank line contains whitespace
+  300:19 UP006 [*] Use `list` instead of `List` for type annotation
+  301:18 UP007 [*] Use `X | Y` for type annotations
+  305:1  W293 Blank line contains whitespace
+  309:1  W293 Blank line contains whitespace
+  312:1  W293 Blank line contains whitespace
+  318:1  W293 [*] Blank line contains whitespace
+  320:29 UP006 [*] Use `list` instead of `List` for type annotation
+  323:1  W293 Blank line contains whitespace
+  328:1  W293 [*] Blank line contains whitespace
+  332:1  W293 Blank line contains whitespace
+  335:1  W293 Blank line contains whitespace
+  338:1  W293 Blank line contains whitespace
+  347:1  W293 [*] Blank line contains whitespace
+  348:36 UP007 [*] Use `X | Y` for type annotations
+  351:1  W293 Blank line contains whitespace
+  356:1  W293 [*] Blank line contains whitespace
+  360:1  W293 Blank line contains whitespace
+  365:1  W293 [*] Blank line contains whitespace
+  369:1  W293 Blank line contains whitespace
+  374:1  W293 [*] Blank line contains whitespace
+  378:1  W293 Blank line contains whitespace
+  383:1  W293 [*] Blank line contains whitespace
+  384:44 UP007 [*] Use `X | Y` for type annotations
+  387:1  W293 Blank line contains whitespace
+  390:1  W293 Blank line contains whitespace
+
+contracts\stt_contract.py:
+   12:1  I001 [*] Import block is un-sorted or un-formatted
+   14:1  UP035 [*] Import from `collections.abc` instead: `AsyncIterator`, `Callable`
+   14:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   14:1  UP035 `typing.List` is deprecated, use `list` instead
+   14:47 F401 [*] `typing.AsyncIterator` imported but unused
+   18:31 F401 [*] `.base.PluginStatus` imported but unused
+   18:45 F401 [*] `.base.HealthStatus` imported but unused
+   34:1  W293 Blank line contains whitespace
+   48:14 UP007 [*] Use `X | Y` for type annotations
+   49:15 UP007 [*] Use `X | Y` for type annotations
+   50:12 UP006 [*] Use `list` instead of `List` for type annotation
+   50:17 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   51:1  W293 [*] Blank line contains whitespace
+   52:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   73:1  W293 Blank line contains whitespace
+   83:15 UP006 [*] Use `list` instead of `List` for type annotation
+   87:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   88:1  W293 [*] Blank line contains whitespace
+   89:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  105:1  W293 Blank line contains whitespace
+  117:15 UP007 [*] Use `X | Y` for type annotations
+  124:21 UP007 [*] Use `X | Y` for type annotations
+  125:22 UP006 [*] Use `list` instead of `List` for type annotation
+  126:1  W293 [*] Blank line contains whitespace
+  128:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  147:1  W293 Blank line contains whitespace
+  167:1  W293 Blank line contains whitespace
+  170:1  W293 Blank line contains whitespace
+  177:1  W293 Blank line contains whitespace
+  184:1  W293 Blank line contains whitespace
+  193:1  W293 [*] Blank line contains whitespace
+  198:30 UP007 [*] Use `X | Y` for type annotations
+  199:32 UP007 [*] Use `X | Y` for type annotations
+  200:1  W293 [*] Blank line contains whitespace
+  205:18 UP007 [*] Use `X | Y` for type annotations
+  209:1  W293 Blank line contains whitespace
+  213:1  W293 Blank line contains whitespace
+  216:1  W293 Blank line contains whitespace
+  222:1  W293 [*] Blank line contains whitespace
+  227:19 UP007 [*] Use `X | Y` for type annotations
+  231:1  W293 Blank line contains whitespace
+  235:1  W293 Blank line contains whitespace
+  238:1  W293 Blank line contains whitespace
+  243:1  W293 [*] Blank line contains whitespace
+  245:49 UP007 [*] Use `X | Y` for type annotations
+  248:1  W293 Blank line contains whitespace
+  251:1  W293 Blank line contains whitespace
+  254:1  W293 Blank line contains whitespace
+  259:1  W293 [*] Blank line contains whitespace
+  264:1  W293 Blank line contains whitespace
+  267:1  W293 Blank line contains whitespace
+  272:1  W293 [*] Blank line contains whitespace
+  273:42 UP006 [*] Use `list` instead of `List` for type annotation
+  276:1  W293 Blank line contains whitespace
+  281:1  W293 [*] Blank line contains whitespace
+  285:1  W293 Blank line contains whitespace
+  290:1  W293 [*] Blank line contains whitespace
+  294:1  W293 Blank line contains whitespace
+  299:1  W293 [*] Blank line contains whitespace
+  303:1  W293 Blank line contains whitespace
+  308:1  W293 [*] Blank line contains whitespace
+
+contracts\tts_contract.py:
+   12:1  I001 [*] Import block is un-sorted or un-formatted
+   14:1  UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+   14:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   14:1  UP035 `typing.List` is deprecated, use `list` instead
+   18:31 F401 [*] `.base.PluginStatus` imported but unused
+   18:45 F401 [*] `.base.HealthStatus` imported but unused
+   34:1  W293 Blank line contains whitespace
+   51:1  W293 [*] Blank line contains whitespace
+   52:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   69:1  W293 Blank line contains whitespace
+   85:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   86:1  W293 [*] Blank line contains whitespace
+   87:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  108:1  W293 Blank line contains whitespace
+  121:18 UP007 [*] Use `X | Y` for type annotations
+  122:15 UP007 [*] Use `X | Y` for type annotations
+  123:1  W293 [*] Blank line contains whitespace
+  125:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  140:1  W293 Blank line contains whitespace
+  143:1  W293 Blank line contains whitespace
+  149:1  W293 Blank line contains whitespace
+  158:1  W293 Blank line contains whitespace
+  168:1  W293 [*] Blank line contains whitespace
+  172:33 UP007 [*] Use `X | Y` for type annotations
+  173:23 UP006 [*] Use `list` instead of `List` for type annotation
+  174:1  W293 [*] Blank line contains whitespace
+  179:19 UP007 [*] Use `X | Y` for type annotations
+  180:18 UP007 [*] Use `X | Y` for type annotations
+  184:1  W293 Blank line contains whitespace
+  189:1  W293 Blank line contains whitespace
+  192:1  W293 Blank line contains whitespace
+  198:1  W293 [*] Blank line contains whitespace
+  200:29 UP006 [*] Use `list` instead of `List` for type annotation
+  203:1  W293 Blank line contains whitespace
+  208:1  W293 [*] Blank line contains whitespace
+  213:1  W293 Blank line contains whitespace
+  216:1  W293 Blank line contains whitespace
+  219:1  W293 Blank line contains whitespace
+  224:1  W293 [*] Blank line contains whitespace
+  225:36 UP007 [*] Use `X | Y` for type annotations
+  228:1  W293 Blank line contains whitespace
+  233:1  W293 [*] Blank line contains whitespace
+  237:19 UP007 [*] Use `X | Y` for type annotations
+  238:18 UP007 [*] Use `X | Y` for type annotations
+  242:1  W293 Blank line contains whitespace
+  245:1  W293 Blank line contains whitespace
+  250:1  W293 Blank line contains whitespace
+  256:1  W293 [*] Blank line contains whitespace
+  260:1  W293 Blank line contains whitespace
+  265:1  W293 [*] Blank line contains whitespace
+  269:1  W293 Blank line contains whitespace
+  274:1  W293 [*] Blank line contains whitespace
+  275:42 UP006 [*] Use `list` instead of `List` for type annotation
+  278:1  W293 Blank line contains whitespace
+  282:21 C401 Unnecessary generator (rewrite as a set comprehension)
+
+plugins\_host\__init__.py:
+   22:1  W293 Blank line contains whitespace
+   54:1  W293 Blank line contains whitespace
+   60:1  W293 [*] Blank line contains whitespace
+   67:1  W293 [*] Blank line contains whitespace
+  115:1  W293 Blank line contains whitespace
+  119:1  W293 [*] Blank line contains whitespace
+  123:1  W293 [*] Blank line contains whitespace
+  127:1  W293 Blank line contains whitespace
+  142:1  W293 Blank line contains whitespace
+  146:1  W293 [*] Blank line contains whitespace
+  148:1  W293 [*] Blank line contains whitespace
+  160:17 UP007 [*] Use `X | Y` for type annotations
+  161:18 UP007 [*] Use `X | Y` for type annotations
+  166:1  W293 Blank line contains whitespace
+  168:1  W293 Blank line contains whitespace
+  174:1  W293 Blank line contains whitespace
+  177:1  W293 Blank line contains whitespace
+  185:1  W293 [*] Blank line contains whitespace
+  189:1  W293 [*] Blank line contains whitespace
+  192:1  W293 [*] Blank line contains whitespace
+  196:1  W293 [*] Blank line contains whitespace
+  200:1  W293 [*] Blank line contains whitespace
+  205:1  W293 [*] Blank line contains whitespace
+  207:1  W293 [*] Blank line contains whitespace
+  210:1  W293 [*] Blank line contains whitespace
+  213:1  W293 [*] Blank line contains whitespace
+  220:1  W293 Blank line contains whitespace
+  223:1  W293 Blank line contains whitespace
+  226:1  W293 Blank line contains whitespace
+  248:1  W293 Blank line contains whitespace
+  256:1  W293 [*] Blank line contains whitespace
+  260:1  W293 [*] Blank line contains whitespace
+  263:1  W293 [*] Blank line contains whitespace
+  271:1  W293 [*] Blank line contains whitespace
+  275:1  W293 [*] Blank line contains whitespace
+  281:1  W293 [*] Blank line contains whitespace
+  293:1  W293 Blank line contains whitespace
+  311:1  W293 Blank line contains whitespace
+  328:5  I001 [*] Import block is un-sorted or un-formatted
+  336:5  I001 [*] Import block is un-sorted or un-formatted
+  340:5  I001 [*] Import block is un-sorted or un-formatted
+  344:5  I001 [*] Import block is un-sorted or un-formatted
+  348:5  I001 [*] Import block is un-sorted or un-formatted
+  360:1  W293 [*] Blank line contains whitespace
+  369:1  W293 [*] Blank line contains whitespace
+  375:1  W293 [*] Blank line contains whitespace
+  378:25 W291 [*] Trailing whitespace
+
+plugins\_host\__main__.py:
+   25:1  W293 Blank line contains whitespace
+   28:1  W293 Blank line contains whitespace
+   77:1  I001 [*] Import block is un-sorted or un-formatted
+   80:8  F401 [*] `logging` imported but unused
+   81:8  F401 [*] `signal` imported but unused
+   82:8  F401 [*] `time` imported but unused
+   83:8  F401 [*] `traceback` imported but unused
+   86:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   86:1  UP035 `typing.List` is deprecated, use `list` instead
+   86:31 F401 [*] `typing.List` imported but unused
+   99:5  F401 [*] `.LOGGER_PREFIX` imported but unused
+  103:24 F401 [*] `.discovery.HybridDiscovery` imported but unused
+  104:42 F401 [*] `.isolation.get_executor` imported but unused
+  105:21 F401 [*] `.loader.PluginLoader` imported but unused
+  106:37 F401 [*] `.manager.get_manager` imported but unused
+  109:5  F401 [*] `.protocol.JsonRpcRequest` imported but unused
+  110:5  F401 [*] `.protocol.JsonRpcResponse` imported but unused
+  117:5  F401 [*] `.shutdown.get_shutdown_handler` imported but unused
+  119:24 F401 [*] `.validator.PluginValidator` imported but unused
+  132:29 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  135:1  W293 Blank line contains whitespace
+  138:1  W293 Blank line contains whitespace
+  153:17 UP007 [*] Use `X | Y` for type annotations
+  153:26 UP007 [*] Use `X | Y` for type annotations
+  156:11 UP007 [*] Use `X | Y` for type annotations
+  156:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  160:1  W293 Blank line contains whitespace
+  170:1  W293 [*] Blank line contains whitespace
+  180:17 UP007 [*] Use `X | Y` for type annotations
+  180:26 UP007 [*] Use `X | Y` for type annotations
+  185:1  W293 Blank line contains whitespace
+  203:13 UP007 [*] Use `X | Y` for type annotations
+  203:22 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  204:17 UP007 [*] Use `X | Y` for type annotations
+  204:26 UP007 [*] Use `X | Y` for type annotations
+  206:6  UP006 [*] Use `dict` instead of `Dict` for type annotation
+  209:1  W293 Blank line contains whitespace
+  214:1  W293 Blank line contains whitespace
+  220:1  W293 [*] Blank line contains whitespace
+  223:1  W293 [*] Blank line contains whitespace
+  241:1  W293 Blank line contains whitespace
+  244:1  W293 Blank line contains whitespace
+  250:1  W293 [*] Blank line contains whitespace
+  252:1  W293 [*] Blank line contains whitespace
+  256:1  W293 [*] Blank line contains whitespace
+  263:1  W293 [*] Blank line contains whitespace
+  265:1  W293 [*] Blank line contains whitespace
+  267:1  W293 [*] Blank line contains whitespace
+  276:20 UP041 [*] Replace aliased errors with `TimeoutError`
+  278:1  W293 [*] Blank line contains whitespace
+  284:1  W293 [*] Blank line contains whitespace
+  287:1  W293 [*] Blank line contains whitespace
+  291:1  W293 [*] Blank line contains whitespace
+  294:1  W293 [*] Blank line contains whitespace
+  297:17 F841 Local variable `data` is assigned to but never used
+  302:1  W293 [*] Blank line contains whitespace
+  305:1  W293 [*] Blank line contains whitespace
+  309:1  W293 [*] Blank line contains whitespace
+  314:1  W293 [*] Blank line contains whitespace
+  318:1  W293 [*] Blank line contains whitespace
+  330:1  W293 [*] Blank line contains whitespace
+  333:1  W293 [*] Blank line contains whitespace
+  337:1  W293 [*] Blank line contains whitespace
+  350:1  W293 [*] Blank line contains whitespace
+  354:1  W293 [*] Blank line contains whitespace
+  358:1  W293 [*] Blank line contains whitespace
+  369:17 UP007 [*] Use `X | Y` for type annotations
+  418:17 F841 Local variable `data` is assigned to but never used
+  510:1  W293 Blank line contains whitespace
+  513:1  W293 Blank line contains whitespace
+  520:1  W293 [*] Blank line contains whitespace
+  523:1  W293 [*] Blank line contains whitespace
+  527:1  W293 [*] Blank line contains whitespace
+  533:1  W293 [*] Blank line contains whitespace
+  537:1  W293 [*] Blank line contains whitespace
+  540:1  W293 [*] Blank line contains whitespace
+  548:1  W293 [*] Blank line contains whitespace
+  556:1  W293 [*] Blank line contains whitespace
+  559:1  W293 [*] Blank line contains whitespace
+  567:1  W293 [*] Blank line contains whitespace
+  574:1  W293 [*] Blank line contains whitespace
+  576:1  W293 [*] Blank line contains whitespace
+  587:1  W293 [*] Blank line contains whitespace
+  590:1  W293 [*] Blank line contains whitespace
+  598:1  W293 [*] Blank line contains whitespace
+  604:1  W293 [*] Blank line contains whitespace
+  612:1  W293 [*] Blank line contains whitespace
+  614:1  W293 [*] Blank line contains whitespace
+
+plugins\_host\discovery.py:
+   24:8  F401 [*] `os` imported but unused
+   29:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   29:1  UP035 `typing.List` is deprecated, use `list` instead
+   29:1  UP035 `typing.Set` is deprecated, use `set` instead
+   29:1  UP035 `typing.Tuple` is deprecated, use `tuple` instead
+   41:1  W293 Blank line contains whitespace
+   53:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   59:13 UP006 [*] Use `list` instead of `List` for type annotation
+   60:1  W293 [*] Blank line contains whitespace
+   61:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   80:1  W293 Blank line contains whitespace
+   85:1  W293 Blank line contains whitespace
+   93:1  W293 [*] Blank line contains whitespace
+  101:1  W293 Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  110:25 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  110:35 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  111:31 UP007 [*] Use `X | Y` for type annotations
+  113:1  W293 [*] Blank line contains whitespace
+  115:1  W293 [*] Blank line contains whitespace
+  119:1  W293 Blank line contains whitespace
+  125:1  W293 [*] Blank line contains whitespace
+  135:18 UP015 [*] Unnecessary open mode parameters
+  138:1  W293 [*] Blank line contains whitespace
+  144:1  W293 [*] Blank line contains whitespace
+  146:1  W293 [*] Blank line contains whitespace
+  148:33 UP006 [*] Use `set` instead of `Set` for type annotation
+  151:1  W293 [*] Blank line contains whitespace
+  152:47 UP007 [*] Use `X | Y` for type annotations
+  152:56 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  155:1  W293 Blank line contains whitespace
+  158:1  W293 Blank line contains whitespace
+  163:1  W293 [*] Blank line contains whitespace
+  164:57 UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  164:69 UP007 [*] Use `X | Y` for type annotations
+  164:84 UP006 [*] Use `list` instead of `List` for type annotation
+  167:1  W293 Blank line contains whitespace
+  170:1  W293 Blank line contains whitespace
+  175:1  W293 [*] Blank line contains whitespace
+  179:1  W293 [*] Blank line contains whitespace
+  183:1  W293 [*] Blank line contains whitespace
+  192:1  W293 [*] Blank line contains whitespace
+  195:1  W293 [*] Blank line contains whitespace
+  196:52 UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  196:58 UP007 [*] Use `X | Y` for type annotations
+  196:67 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  196:84 UP006 [*] Use `list` instead of `List` for type annotation
+  199:1  W293 Blank line contains whitespace
+  202:1  W293 Blank line contains whitespace
+  208:1  W293 [*] Blank line contains whitespace
+  211:1  W293 [*] Blank line contains whitespace
+  213:18 UP015 [*] Unnecessary open mode parameters
+  219:1  W293 [*] Blank line contains whitespace
+  222:13 F402 Import `field` from line 27 shadowed by loop variable
+  225:1  W293 [*] Blank line contains whitespace
+  228:1  W293 [*] Blank line contains whitespace
+  230:1  W293 [*] Blank line contains whitespace
+  234:1  W293 Blank line contains whitespace
+  237:1  W293 Blank line contains whitespace
+  242:21 UP006 [*] Use `list` instead of `List` for type annotation
+  243:1  W293 [*] Blank line contains whitespace
+  247:1  W293 [*] Blank line contains whitespace
+  251:1  W293 [*] Blank line contains whitespace
+  264:1  W293 [*] Blank line contains whitespace
+  270:1  W293 [*] Blank line contains whitespace
+  276:1  W293 [*] Blank line contains whitespace
+  282:1  W293 [*] Blank line contains whitespace
+  289:1  W293 [*] Blank line contains whitespace
+  294:1  W293 [*] Blank line contains whitespace
+  305:1  W293 [*] Blank line contains whitespace
+  306:54 UP006 [*] Use `list` instead of `List` for type annotation
+  309:1  W293 Blank line contains whitespace
+  312:1  W293 Blank line contains whitespace
+  316:21 UP006 [*] Use `list` instead of `List` for type annotation
+  317:1  W293 [*] Blank line contains whitespace
+  321:1  W293 [*] Blank line contains whitespace
+  325:1  W293 [*] Blank line contains whitespace
+  336:1  W293 [*] Blank line contains whitespace
+  338:1  W293 [*] Blank line contains whitespace
+  346:1  W293 [*] Blank line contains whitespace
+  349:1  W293 [*] Blank line contains whitespace
+  354:10 UP006 [*] Use `list` instead of `List` for type annotation
+  357:1  W293 Blank line contains whitespace
+  361:1  W293 Blank line contains whitespace
+  367:1  W293 [*] Blank line contains whitespace
+  368:41 UP007 [*] Use `X | Y` for type annotations
+  371:1  W293 Blank line contains whitespace
+  374:1  W293 Blank line contains whitespace
+  382:1  W293 [*] Blank line contains whitespace
+  383:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  383:50 UP006 [*] Use `list` instead of `List` for type annotation
+  386:1  W293 Blank line contains whitespace
+  390:18 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  390:28 UP006 [*] Use `list` instead of `List` for type annotation
+  391:1  W293 [*] Blank line contains whitespace
+  395:1  W293 [*] Blank line contains whitespace
+  404:6  UP006 [*] Use `list` instead of `List` for type annotation
+  407:1  W293 Blank line contains whitespace
+  412:1  W293 Blank line contains whitespace
+  428:1  W293 [*] Blank line contains whitespace
+  433:1  W293 [*] Blank line contains whitespace
+  436:1  W293 [*] Blank line contains whitespace
+  439:1  W293 [*] Blank line contains whitespace
+
+plugins\_host\isolation.py:
+   27:1  I001 [*] Import block is un-sorted or un-formatted
+   30:8  F401 [*] `sys` imported but unused
+   35:32 F401 [*] `datetime.timedelta` imported but unused
+   36:18 F401 [*] `enum.Enum` imported but unused
+   37:1  UP035 [*] Import from `collections.abc` instead: `Callable`, `Coroutine`
+   37:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   37:1  UP035 `typing.List` is deprecated, use `list` instead
+   37:1  UP035 `typing.Tuple` is deprecated, use `tuple` instead
+   37:68 F401 [*] `typing.Tuple` imported but unused
+   37:84 F401 [*] `typing.Union` imported but unused
+   39:28 F401 [*] `contracts.base.PluginStatus` imported but unused
+   39:42 F401 [*] `contracts.base.HealthStatus` imported but unused
+   59:1  W293 [*] Blank line contains whitespace
+   70:1  W293 Blank line contains whitespace
+   73:1  W293 Blank line contains whitespace
+   93:14 UP007 [*] Use `X | Y` for type annotations
+   94:13 UP007 [*] Use `X | Y` for type annotations
+   94:22 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   95:14 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   98:1  W293 [*] Blank line contains whitespace
+   99:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  113:1  W293 [*] Blank line contains whitespace
+  114:32 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  117:1  W293 Blank line contains whitespace
+  126:1  W293 [*] Blank line contains whitespace
+  129:19 F541 [*] f-string without any placeholders
+  143:1  W293 Blank line contains whitespace
+  155:17 UP007 [*] Use `X | Y` for type annotations
+  156:20 UP007 [*] Use `X | Y` for type annotations
+  157:17 UP007 [*] Use `X | Y` for type annotations
+  157:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  158:19 UP007 [*] Use `X | Y` for type annotations
+  160:1  W293 [*] Blank line contains whitespace
+  161:36 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  175:1  W293 Blank line contains whitespace
+  179:1  W293 [*] Blank line contains whitespace
+  187:1  W293 Blank line contains whitespace
+  194:28 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  194:38 UP006 [*] Use `list` instead of `List` for type annotation
+  195:34 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  196:1  W293 [*] Blank line contains whitespace
+  200:1  W293 Blank line contains whitespace
+  203:1  W293 Blank line contains whitespace
+  209:1  W293 [*] Blank line contains whitespace
+  215:1  W293 [*] Blank line contains whitespace
+  219:1  W293 [*] Blank line contains whitespace
+  227:1  W293 [*] Blank line contains whitespace
+  232:1  W293 [*] Blank line contains whitespace
+  246:1  W293 Blank line contains whitespace
+  249:1  W293 Blank line contains whitespace
+  256:1  W293 Blank line contains whitespace
+  259:1  W293 Blank line contains whitespace
+  269:1  W293 Blank line contains whitespace
+  275:1  W293 [*] Blank line contains whitespace
+  285:1  W293 Blank line contains whitespace
+  297:1  W293 [*] Blank line contains whitespace
+  299:30 UP006 [*] Use `list` instead of `List` for type annotation
+  301:1  W293 [*] Blank line contains whitespace
+  303:29 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  304:1  W293 [*] Blank line contains whitespace
+  309:1  W293 [*] Blank line contains whitespace
+  310:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  310:59 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  313:1  W293 Blank line contains whitespace
+  318:1  W293 [*] Blank line contains whitespace
+  334:1  W293 [*] Blank line contains whitespace
+  336:1  W293 [*] Blank line contains whitespace
+  342:18 UP007 [*] Use `X | Y` for type annotations
+  343:17 UP007 [*] Use `X | Y` for type annotations
+  343:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  355:1  W293 [*] Blank line contains whitespace
+  362:1  W293 [*] Blank line contains whitespace
+  365:1  W293 [*] Blank line contains whitespace
+  373:1  W293 [*] Blank line contains whitespace
+  377:1  W293 [*] Blank line contains whitespace
+  381:1  W293 [*] Blank line contains whitespace
+  385:1  W293 [*] Blank line contains whitespace
+  388:1  W293 [*] Blank line contains whitespace
+  394:15 UP007 [*] Use `X | Y` for type annotations
+  395:17 UP007 [*] Use `X | Y` for type annotations
+  395:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  396:26 UP007 [*] Use `X | Y` for type annotations
+  397:18 UP007 [*] Use `X | Y` for type annotations
+  401:1  W293 Blank line contains whitespace
+  410:1  W293 Blank line contains whitespace
+  417:1  W293 [*] Blank line contains whitespace
+  419:1  W293 [*] Blank line contains whitespace
+  426:1  W293 [*] Blank line contains whitespace
+  428:1  W293 [*] Blank line contains whitespace
+  434:1  W293 [*] Blank line contains whitespace
+  435:16 UP041 [*] Replace aliased errors with `TimeoutError`
+  437:1  W293 [*] Blank line contains whitespace
+  449:1  W293 [*] Blank line contains whitespace
+  458:1  W293 [*] Blank line contains whitespace
+  461:1  W293 [*] Blank line contains whitespace
+  471:1  W293 [*] Blank line contains whitespace
+  480:1  W293 [*] Blank line contains whitespace
+  486:15 UP007 [*] Use `X | Y` for type annotations
+  487:17 UP007 [*] Use `X | Y` for type annotations
+  487:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  488:18 UP007 [*] Use `X | Y` for type annotations
+  492:1  W293 Blank line contains whitespace
+  500:1  W293 Blank line contains whitespace
+  506:1  W293 [*] Blank line contains whitespace
+  508:1  W293 [*] Blank line contains whitespace
+  512:1  W293 [*] Blank line contains whitespace
+  518:1  W293 [*] Blank line contains whitespace
+  521:1  W293 [*] Blank line contains whitespace
+  531:1  W293 [*] Blank line contains whitespace
+  540:1  W293 [*] Blank line contains whitespace
+  543:22 UP007 [*] Use `X | Y` for type annotations
+  545:10 UP006 [*] Use `list` instead of `List` for type annotation
+  548:1  W293 Blank line contains whitespace
+  552:1  W293 Blank line contains whitespace
+  557:1  W293 [*] Blank line contains whitespace
+  560:1  W293 [*] Blank line contains whitespace
+  563:1  W293 [*] Blank line contains whitespace
+  567:1  W293 [*] Blank line contains whitespace
+  568:34 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  571:1  W293 Blank line contains whitespace
+  578:1  W293 [*] Blank line contains whitespace
+  583:1  W293 [*] Blank line contains whitespace
+  585:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  588:1  W293 [*] Blank line contains whitespace
+  596:1  W293 [*] Blank line contains whitespace
+  597:48 UP007 [*] Use `X | Y` for type annotations
+  600:1  W293 Blank line contains whitespace
+  603:1  W293 Blank line contains whitespace
+  623:14 UP007 [*] Use `X | Y` for type annotations
+  624:15 UP007 [*] Use `X | Y` for type annotations
+  628:1  W293 Blank line contains whitespace
+  632:1  W293 Blank line contains whitespace
+  643:1  W293 [*] Blank line contains whitespace
+  651:1  W293 [*] Blank line contains whitespace
+  658:1  W293 [*] Blank line contains whitespace
+  664:1  W293 [*] Blank line contains whitespace
+  670:20 UP007 [*] Use `X | Y` for type annotations
+
+plugins\_host\loader.py:
+   18:8  F401 [*] `asyncio` imported but unused
+   27:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   27:1  UP035 `typing.List` is deprecated, use `list` instead
+   27:1  UP035 `typing.Type` is deprecated, use `type` instead
+   38:1  W293 Blank line contains whitespace
+   54:19 UP006 [*] Use `type` instead of `Type` for type annotation
+   58:18 UP006 [*] Use `list` instead of `List` for type annotation
+   59:1  W293 [*] Blank line contains whitespace
+   60:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   78:1  W293 Blank line contains whitespace
+   87:1  W293 Blank line contains whitespace
+   94:1  W293 [*] Blank line contains whitespace
+  102:1  W293 Blank line contains whitespace
+  109:1  W293 [*] Blank line contains whitespace
+  111:31 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  112:1  W293 [*] Blank line contains whitespace
+  114:1  W293 [*] Blank line contains whitespace
+  117:23 UP006 [*] Use `list` instead of `List` for type annotation
+  118:16 UP006 [*] Use `list` instead of `List` for type annotation
+  118:27 UP006 [*] Use `list` instead of `List` for type annotation
+  121:1  W293 Blank line contains whitespace
+  124:1  W293 Blank line contains whitespace
+  130:1  W293 [*] Blank line contains whitespace
+  136:1  W293 [*] Blank line contains whitespace
+  142:1  W293 [*] Blank line contains whitespace
+  144:1  W293 [*] Blank line contains whitespace
+  145:50 UP006 [*] Use `list` instead of `List` for type annotation
+  148:1  W293 Blank line contains whitespace
+  151:1  W293 Blank line contains whitespace
+  157:1  W293 [*] Blank line contains whitespace
+  161:1  W293 [*] Blank line contains whitespace
+  168:1  W293 [*] Blank line contains whitespace
+  172:1  W293 [*] Blank line contains whitespace
+  175:1  W293 [*] Blank line contains whitespace
+  182:1  W293 [*] Blank line contains whitespace
+  188:10 UP007 [*] Use `X | Y` for type annotations
+  191:1  W293 Blank line contains whitespace
+  196:1  W293 Blank line contains whitespace
+  202:1  W293 [*] Blank line contains whitespace
+  207:1  W293 [*] Blank line contains whitespace
+  213:1  W293 [*] Blank line contains whitespace
+  220:1  W293 [*] Blank line contains whitespace
+  227:1  W293 [*] Blank line contains whitespace
+  234:1  W293 [*] Blank line contains whitespace
+  238:1  W293 [*] Blank line contains whitespace
+  240:1  W293 [*] Blank line contains whitespace
+  243:1  W293 [*] Blank line contains whitespace
+  246:1  W293 [*] Blank line contains whitespace
+  249:1  W293 [*] Blank line contains whitespace
+  252:1  W293 [*] Blank line contains whitespace
+  259:1  W293 [*] Blank line contains whitespace
+  266:1  W293 [*] Blank line contains whitespace
+  271:10 UP007 [*] Use `X | Y` for type annotations
+  271:19 UP006 [*] Use `type` instead of `Type` for type annotation
+  274:1  W293 Blank line contains whitespace
+  278:1  W293 Blank line contains whitespace
+  287:1  W293 [*] Blank line contains whitespace
+  291:1  W293 [*] Blank line contains whitespace
+  295:1  W293 [*] Blank line contains whitespace
+  299:1  W293 [*] Blank line contains whitespace
+  304:1  W293 [*] Blank line contains whitespace
+  312:1  W293 [*] Blank line contains whitespace
+  314:1  W293 [*] Blank line contains whitespace
+  319:10 UP007 [*] Use `X | Y` for type annotations
+  322:1  W293 Blank line contains whitespace
+  326:1  W293 Blank line contains whitespace
+  330:22 UP006 [*] Use `list` instead of `List` for type annotation
+  331:1  W293 [*] Blank line contains whitespace
+  336:1  W293 [*] Blank line contains whitespace
+  341:1  W293 [*] Blank line contains whitespace
+  352:1  W293 [*] Blank line contains whitespace
+  359:1  W293 [*] Blank line contains whitespace
+  363:1  W293 [*] Blank line contains whitespace
+  366:1  W293 [*] Blank line contains whitespace
+  370:1  W293 [*] Blank line contains whitespace
+  378:1  W293 [*] Blank line contains whitespace
+  382:1  W293 [*] Blank line contains whitespace
+  394:1  W293 [*] Blank line contains whitespace
+  397:1  W293 [*] Blank line contains whitespace
+  401:1  W293 Blank line contains whitespace
+  404:1  W293 Blank line contains whitespace
+  409:1  W293 [*] Blank line contains whitespace
+  413:1  W293 [*] Blank line contains whitespace
+  417:1  W293 [*] Blank line contains whitespace
+  420:1  W293 [*] Blank line contains whitespace
+  424:10 UP007 [*] Use `X | Y` for type annotations
+  427:1  W293 Blank line contains whitespace
+  430:1  W293 Blank line contains whitespace
+  448:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  452:13 UP006 [*] Use `list` instead of `List` for type annotation
+  458:13 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  462:1  W293 Blank line contains whitespace
+  466:1  W293 Blank line contains whitespace
+  473:1  W293 [*] Blank line contains whitespace
+  475:1  W293 [*] Blank line contains whitespace
+  478:1  W293 [*] Blank line contains whitespace
+  486:1  W293 [*] Blank line contains whitespace
+  488:1  W293 [*] Blank line contains whitespace
+  499:1  W293 Blank line contains whitespace
+  502:1  W293 Blank line contains whitespace
+  509:1  W293 [*] Blank line contains whitespace
+  511:1  W293 [*] Blank line contains whitespace
+  514:1  W293 [*] Blank line contains whitespace
+  522:1  W293 [*] Blank line contains whitespace
+  524:1  W293 [*] Blank line contains whitespace
+  539:1  W293 [*] Blank line contains whitespace
+  541:1  W293 [*] Blank line contains whitespace
+  545:1  W293 [*] Blank line contains whitespace
+  548:1  W293 [*] Blank line contains whitespace
+  552:1  W293 [*] Blank line contains whitespace
+
+plugins\_host\manager.py:
+   24:1  UP035 [*] Import from `collections.abc` instead: `Callable`
+   24:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   24:1  UP035 `typing.List` is deprecated, use `list` instead
+   24:1  UP035 `typing.Set` is deprecated, use `set` instead
+   39:1  W293 Blank line contains whitespace
+   52:13 UP006 [*] Use `list` instead of `List` for type annotation
+   54:1  W293 [*] Blank line contains whitespace
+   55:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   70:1  W293 Blank line contains whitespace
+   77:1  W293 Blank line contains whitespace
+   81:1  W293 Blank line contains whitespace
+   84:1  W293 Blank line contains whitespace
+   87:1  W293 Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+  100:1  W293 Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  113:1  W293 [*] Blank line contains whitespace
+  115:24 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  116:1  W293 [*] Blank line contains whitespace
+  118:24 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  118:34 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  119:1  W293 [*] Blank line contains whitespace
+  121:34 UP006 [*] Use `list` instead of `List` for type annotation
+  122:36 UP006 [*] Use `list` instead of `List` for type annotation
+  123:34 UP006 [*] Use `list` instead of `List` for type annotation
+  124:1  W293 [*] Blank line contains whitespace
+  128:1  W293 [*] Blank line contains whitespace
+  130:1  W293 [*] Blank line contains whitespace
+  135:1  W293 [*] Blank line contains whitespace
+  137:33 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  140:1  W293 [*] Blank line contains whitespace
+  142:31 UP006 [*] Use `set` instead of `Set` for type annotation
+  145:1  W293 [*] Blank line contains whitespace
+  149:1  W293 [*] Blank line contains whitespace
+  153:1  W293 [*] Blank line contains whitespace
+  157:1  W293 [*] Blank line contains whitespace
+  161:1  W293 Blank line contains whitespace
+  167:1  W293 [*] Blank line contains whitespace
+  169:1  W293 [*] Blank line contains whitespace
+  173:1  W293 [*] Blank line contains whitespace
+  176:1  W293 [*] Blank line contains whitespace
+  180:1  W293 Blank line contains whitespace
+  185:1  W293 [*] Blank line contains whitespace
+  189:1  W293 [*] Blank line contains whitespace
+  192:1  W293 [*] Blank line contains whitespace
+  200:1  W293 [*] Blank line contains whitespace
+  204:1  W293 [*] Blank line contains whitespace
+  208:10 UP006 [*] Use `list` instead of `List` for type annotation
+  211:1  W293 Blank line contains whitespace
+  214:1  W293 Blank line contains whitespace
+  219:1  W293 [*] Blank line contains whitespace
+  224:10 UP006 [*] Use `list` instead of `List` for type annotation
+  227:1  W293 Blank line contains whitespace
+  231:1  W293 Blank line contains whitespace
+  236:1  W293 [*] Blank line contains whitespace
+  244:1  W293 Blank line contains whitespace
+  248:1  W293 Blank line contains whitespace
+  257:1  W293 [*] Blank line contains whitespace
+  259:1  W293 [*] Blank line contains whitespace
+  260:40 UP007 [*] Use `X | Y` for type annotations
+  263:1  W293 Blank line contains whitespace
+  266:1  W293 Blank line contains whitespace
+  271:1  W293 [*] Blank line contains whitespace
+  272:49 UP007 [*] Use `X | Y` for type annotations
+  275:1  W293 Blank line contains whitespace
+  278:1  W293 Blank line contains whitespace
+  284:1  W293 [*] Blank line contains whitespace
+  288:1  W293 [*] Blank line contains whitespace
+  292:17 UP007 [*] Use `X | Y` for type annotations
+  292:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  294:10 UP007 [*] Use `X | Y` for type annotations
+  297:1  W293 Blank line contains whitespace
+  302:1  W293 Blank line contains whitespace
+  310:1  W293 [*] Blank line contains whitespace
+  316:1  W293 [*] Blank line contains whitespace
+  324:1  W293 [*] Blank line contains whitespace
+  330:1  W293 [*] Blank line contains whitespace
+  334:1  W293 [*] Blank line contains whitespace
+  338:1  W293 [*] Blank line contains whitespace
+  342:1  W293 [*] Blank line contains whitespace
+  349:1  W293 [*] Blank line contains whitespace
+  352:1  W293 [*] Blank line contains whitespace
+  359:1  W293 [*] Blank line contains whitespace
+  362:1  W293 [*] Blank line contains whitespace
+  366:1  W293 Blank line contains whitespace
+  369:1  W293 Blank line contains whitespace
+  377:1  W293 [*] Blank line contains whitespace
+  381:1  W293 [*] Blank line contains whitespace
+  384:1  W293 [*] Blank line contains whitespace
+  387:1  W293 [*] Blank line contains whitespace
+  391:1  W293 [*] Blank line contains whitespace
+  398:1  W293 [*] Blank line contains whitespace
+  401:1  W293 [*] Blank line contains whitespace
+  405:17 UP007 [*] Use `X | Y` for type annotations
+  405:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  406:10 UP007 [*] Use `X | Y` for type annotations
+  409:1  W293 Blank line contains whitespace
+  413:1  W293 Blank line contains whitespace
+  420:1  W293 [*] Blank line contains whitespace
+  423:1  W293 [*] Blank line contains whitespace
+  426:1  W293 [*] Blank line contains whitespace
+  431:21 UP007 [*] Use `X | Y` for type annotations
+  431:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  435:1  W293 Blank line contains whitespace
+  442:1  W293 Blank line contains whitespace
+  447:1  W293 Blank line contains whitespace
+  457:1  W293 [*] Blank line contains whitespace
+  463:1  W293 [*] Blank line contains whitespace
+  469:1  W293 [*] Blank line contains whitespace
+  476:1  W293 [*] Blank line contains whitespace
+  478:1  W293 [*] Blank line contains whitespace
+  484:1  W293 [*] Blank line contains whitespace
+  487:1  W293 [*] Blank line contains whitespace
+  493:1  W293 [*] Blank line contains whitespace
+  498:1  W293 [*] Blank line contains whitespace
+  500:1  W293 [*] Blank line contains whitespace
+  506:1  W293 [*] Blank line contains whitespace
+  509:1  W293 [*] Blank line contains whitespace
+  519:1  W293 [*] Blank line contains whitespace
+  522:1  W293 [*] Blank line contains whitespace
+  526:1  W293 [*] Blank line contains whitespace
+  530:1  W293 [*] Blank line contains whitespace
+  535:1  W293 [*] Blank line contains whitespace
+  538:1  W293 [*] Blank line contains whitespace
+  545:1  W293 [*] Blank line contains whitespace
+  551:1  W293 [*] Blank line contains whitespace
+  552:42 UP007 [*] Use `X | Y` for type annotations
+  555:1  W293 Blank line contains whitespace
+  558:1  W293 Blank line contains whitespace
+  565:1  W293 [*] Blank line contains whitespace
+  574:1  W293 [*] Blank line contains whitespace
+  575:35 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  578:1  W293 Blank line contains whitespace
+  588:1  W293 [*] Blank line contains whitespace
+  589:37 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  592:1  W293 Blank line contains whitespace
+  602:1  W293 [*] Blank line contains whitespace
+  606:1  W293 [*] Blank line contains whitespace
+  613:1  W293 [*] Blank line contains whitespace
+  618:1  W293 [*] Blank line contains whitespace
+  623:1  W293 [*] Blank line contains whitespace
+  625:1  W293 [*] Blank line contains whitespace
+  626:31 UP006 [*] Use `list` instead of `List` for type annotation
+  626:36 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  629:1  W293 Blank line contains whitespace
+  634:1  W293 [*] Blank line contains whitespace
+  635:33 UP006 [*] Use `list` instead of `List` for type annotation
+  635:38 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  638:1  W293 Blank line contains whitespace
+  658:11 UP007 [*] Use `X | Y` for type annotations
+  661:22 UP007 [*] Use `X | Y` for type annotations
+  675:1  W293 [*] Blank line contains whitespace
+  681:1  W293 [*] Blank line contains whitespace
+  686:1  W293 [*] Blank line contains whitespace
+  689:1  W293 [*] Blank line contains whitespace
+  695:1  W293 [*] Blank line contains whitespace
+  697:1  W293 [*] Blank line contains whitespace
+
+plugins\_host\protocol.py:
+   27:1  W293 Blank line contains whitespace
+   32:1  W293 Blank line contains whitespace
+   42:8  F401 [*] `time` imported but unused
+   45:1  UP035 [*] Import from `collections.abc` instead: `Callable`, `Coroutine`
+   45:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   45:1  UP035 `typing.List` is deprecated, use `list` instead
+   45:1  UP035 `typing.Tuple` is deprecated, use `tuple` instead
+   58:1  W293 Blank line contains whitespace
+   67:9  UP007 [*] Use `X | Y` for type annotations
+   67:18 UP007 [*] Use `X | Y` for type annotations
+   69:13 UP007 [*] Use `X | Y` for type annotations
+   69:19 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   69:35 UP006 [*] Use `list` instead of `List` for type annotation
+   70:10 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   71:1  W293 [*] Blank line contains whitespace
+   76:1  W293 [*] Blank line contains whitespace
+   78:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   81:1  W293 Blank line contains whitespace
+   84:1  W293 Blank line contains whitespace
+   87:1  W293 Blank line contains whitespace
+  100:1  W293 [*] Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  120:1  W293 Blank line contains whitespace
+  128:11 UP007 [*] Use `X | Y` for type annotations
+  128:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  129:1  W293 [*] Blank line contains whitespace
+  130:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  145:1  W293 Blank line contains whitespace
+  147:1  W293 Blank line contains whitespace
+  155:9  UP007 [*] Use `X | Y` for type annotations
+  155:18 UP007 [*] Use `X | Y` for type annotations
+  157:12 UP007 [*] Use `X | Y` for type annotations
+  158:1  W293 [*] Blank line contains whitespace
+  163:1  W293 [*] Blank line contains whitespace
+  164:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  170:1  W293 [*] Blank line contains whitespace
+  175:1  W293 [*] Blank line contains whitespace
+  177:1  W293 [*] Blank line contains whitespace
+  181:1  W293 [*] Blank line contains whitespace
+  183:26 UP007 [*] Use `X | Y` for type annotations
+  183:35 UP007 [*] Use `X | Y` for type annotations
+  186:1  W293 [*] Blank line contains whitespace
+  190:13 UP007 [*] Use `X | Y` for type annotations
+  190:22 UP007 [*] Use `X | Y` for type annotations
+  193:15 UP007 [*] Use `X | Y` for type annotations
+  193:24 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  211:1  W293 [*] Blank line contains whitespace
+  238:6  UP007 [*] Use `X | Y` for type annotations
+  238:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  238:32 UP007 [*] Use `X | Y` for type annotations
+  238:41 UP007 [*] Use `X | Y` for type annotations
+  249:15 UP007 [*] Use `X | Y` for type annotations
+  250:22 UP007 [*] Use `X | Y` for type annotations
+  260:1  W293 Blank line contains whitespace
+  267:1  W293 Blank line contains whitespace
+  270:1  W293 Blank line contains whitespace
+  275:1  W293 Blank line contains whitespace
+  279:1  W293 [*] Blank line contains whitespace
+  282:1  W293 [*] Blank line contains whitespace
+  291:1  W293 Blank line contains whitespace
+  300:1  W293 [*] Blank line contains whitespace
+  302:24 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  303:1  W293 [*] Blank line contains whitespace
+  307:34 UP007 [*] Use `X | Y` for type annotations
+  308:1  W293 [*] Blank line contains whitespace
+  311:1  W293 [*] Blank line contains whitespace
+  313:1  W293 [*] Blank line contains whitespace
+  316:1  W293 [*] Blank line contains whitespace
+  320:1  W293 [*] Blank line contains whitespace
+  325:1  W293 [*] Blank line contains whitespace
+  338:1  W293 [*] Blank line contains whitespace
+  343:1  W293 [*] Blank line contains whitespace
+  349:1  W293 [*] Blank line contains whitespace
+  354:1  W293 [*] Blank line contains whitespace
+  359:1  W293 [*] Blank line contains whitespace
+  363:1  W293 [*] Blank line contains whitespace
+  366:1  W293 [*] Blank line contains whitespace
+  371:1  W293 [*] Blank line contains whitespace
+  376:1  W293 [*] Blank line contains whitespace
+  381:1  W293 [*] Blank line contains whitespace
+  385:1  W293 [*] Blank line contains whitespace
+  388:1  W293 [*] Blank line contains whitespace
+  393:1  W293 [*] Blank line contains whitespace
+  398:1  W293 [*] Blank line contains whitespace
+  401:1  W293 [*] Blank line contains whitespace
+  404:1  W293 [*] Blank line contains whitespace
+  407:1  W293 [*] Blank line contains whitespace
+  409:1  W293 [*] Blank line contains whitespace
+  414:1  W293 [*] Blank line contains whitespace
+  419:1  W293 [*] Blank line contains whitespace
+  421:1  W293 [*] Blank line contains whitespace
+  442:1  W293 [*] Blank line contains whitespace
+  452:18 UP007 [*] Use `X | Y` for type annotations
+  456:1  W293 Blank line contains whitespace
+  461:1  W293 Blank line contains whitespace
+  475:1  W293 [*] Blank line contains whitespace
+  482:19 UP007 [*] Use `X | Y` for type annotations
+  483:18 UP007 [*] Use `X | Y` for type annotations
+  487:1  W293 Blank line contains whitespace
+  504:1  W293 [*] Blank line contains whitespace
+  505:43 UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  505:49 UP007 [*] Use `X | Y` for type annotations
+  505:75 UP007 [*] Use `X | Y` for type annotations
+  508:1  W293 Blank line contains whitespace
+  511:1  W293 Blank line contains whitespace
+  526:1  W293 [*] Blank line contains whitespace
+  537:1  W293 [*] Blank line contains whitespace
+  539:1  W293 [*] Blank line contains whitespace
+  543:10 UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  543:16 UP007 [*] Use `X | Y` for type annotations
+  543:31 UP007 [*] Use `X | Y` for type annotations
+  543:46 UP007 [*] Use `X | Y` for type annotations
+  546:1  W293 Blank line contains whitespace
+  549:1  W293 Blank line contains whitespace
+  556:1  W293 [*] Blank line contains whitespace
+  560:1  W293 [*] Blank line contains whitespace
+  562:1  W293 [*] Blank line contains whitespace
+  566:1  W293 [*] Blank line contains whitespace
+  568:1  W293 [*] Blank line contains whitespace
+  573:17 UP007 [*] Use `X | Y` for type annotations
+  573:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  574:21 UP007 [*] Use `X | Y` for type annotations
+  574:30 UP007 [*] Use `X | Y` for type annotations
+  578:1  W293 Blank line contains whitespace
+  584:1  W293 Blank line contains whitespace
+  587:1  W293 Blank line contains whitespace
+  593:1  W293 [*] Blank line contains whitespace
+  596:13 B007 Loop control variable `name` not used within loop body
+  600:1  W293 [*] Blank line contains whitespace
+  603:1  W293 [*] Blank line contains whitespace
+  606:1  W293 [*] Blank line contains whitespace
+  611:1  W293 [*] Blank line contains whitespace
+  614:1  W293 [*] Blank line contains whitespace
+  618:1  W293 [*] Blank line contains whitespace
+  625:1  W293 [*] Blank line contains whitespace
+  633:1  W293 [*] Blank line contains whitespace
+  637:10 UP007 [*] Use `X | Y` for type annotations
+  640:1  W293 Blank line contains whitespace
+  643:1  W293 Blank line contains whitespace
+  649:1  W293 [*] Blank line contains whitespace
+  652:1  W293 [*] Blank line contains whitespace
+  654:1  W293 [*] Blank line contains whitespace
+  660:1  W293 [*] Blank line contains whitespace
+  665:1  W293 [*] Blank line contains whitespace
+  669:1  W293 [*] Blank line contains whitespace
+  671:1  W293 [*] Blank line contains whitespace
+  674:1  W293 [*] Blank line contains whitespace
+  679:1  W293 [*] Blank line contains whitespace
+  682:1  W293 [*] Blank line contains whitespace
+  684:1  W293 [*] Blank line contains whitespace
+  692:1  W293 [*] Blank line contains whitespace
+  693:16 UP041 [*] Replace aliased errors with `TimeoutError`
+  701:1  W293 [*] Blank line contains whitespace
+  709:1  W293 [*] Blank line contains whitespace
+  713:1  W293 [*] Blank line contains whitespace
+  721:1  W293 [*] Blank line contains whitespace
+  727:1  W293 [*] Blank line contains whitespace
+  736:1  W293 [*] Blank line contains whitespace
+  737:48 UP007 [*] Use `X | Y` for type annotations
+  740:1  W293 Blank line contains whitespace
+  743:1  W293 Blank line contains whitespace
+  751:1  W293 [*] Blank line contains whitespace
+  754:1  W293 [*] Blank line contains whitespace
+  757:1  W293 [*] Blank line contains whitespace
+  762:1  W293 [*] Blank line contains whitespace
+  764:1  W293 [*] Blank line contains whitespace
+  765:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  771:1  W293 [*] Blank line contains whitespace
+  772:28 UP006 [*] Use `dict` instead of `Dict` for type annotation
+
+plugins\_host\scaffold.py:
+   21:8  F401 [*] `os` imported but unused
+   26:20 F401 [*] `string.Template` imported but unused
+   27:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   27:1  UP035 `typing.List` is deprecated, use `list` instead
+   67:19 UP006 [*] Use `list` instead of `List` for type annotation
+   72:11 UP006 [*] Use `list` instead of `List` for type annotation
+   73:19 UP006 [*] Use `list` instead of `List` for type annotation
+   74:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   75:21 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   77:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  100:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  136:18 UP007 [*] Use `X | Y` for type annotations
+  137:20 UP006 [*] Use `list` instead of `List` for type annotation
+  138:13 UP006 [*] Use `list` instead of `List` for type annotation
+  140:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  198:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  207:18 UP015 [*] Unnecessary open mode parameters
+  214:62 UP006 [*] Use `list` instead of `List` for type annotation
+  333:10 UP006 [*] Use `list` instead of `List` for type annotation
+  333:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  508:39 UP006 [*] Use `list` instead of `List` for type annotation
+  508:44 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  630:20 UP006 [*] Use `dict` instead of `Dict` for type annotation
+
+plugins\_host\shutdown.py:
+   43:1  UP035 [*] Import from `collections.abc` instead: `Callable`, `Coroutine`
+   43:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   43:1  UP035 `typing.List` is deprecated, use `list` instead
+   43:1  UP035 `typing.Set` is deprecated, use `set` instead
+   63:13 UP007 [*] Use `X | Y` for type annotations
+   64:16 UP007 [*] Use `X | Y` for type annotations
+   68:1  W293 [*] Blank line contains whitespace
+   69:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   84:1  W293 Blank line contains whitespace
+   91:1  W293 Blank line contains whitespace
+   95:1  W293 Blank line contains whitespace
+   99:1  W293 Blank line contains whitespace
+  104:1  W293 Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  119:1  W293 [*] Blank line contains whitespace
+  128:1  W293 Blank line contains whitespace
+  137:1  W293 [*] Blank line contains whitespace
+  140:26 UP006 [*] Use `set` instead of `Set` for type annotation
+  141:34 UP006 [*] Use `list` instead of `List` for type annotation
+  142:39 UP006 [*] Use `list` instead of `List` for type annotation
+  143:1  W293 [*] Blank line contains whitespace
+  147:1  W293 [*] Blank line contains whitespace
+  149:21 UP007 [*] Use `X | Y` for type annotations
+  150:1  W293 [*] Blank line contains whitespace
+  155:1  W293 [*] Blank line contains whitespace
+  158:15 UP007 [*] Use `X | Y` for type annotations
+  162:1  W293 Blank line contains whitespace
+  167:1  W293 [*] Blank line contains whitespace
+  171:1  W293 [*] Blank line contains whitespace
+  175:1  W293 [*] Blank line contains whitespace
+  178:1  W293 [*] Blank line contains whitespace
+  180:1  W293 [*] Blank line contains whitespace
+  187:1  W293 [*] Blank line contains whitespace
+  189:1  W293 [*] Blank line contains whitespace
+  194:1  W293 [*] Blank line contains whitespace
+  199:1  W293 [*] Blank line contains whitespace
+  203:1  W293 Blank line contains whitespace
+  212:1  W293 [*] Blank line contains whitespace
+  214:1  W293 [*] Blank line contains whitespace
+  221:1  W293 [*] Blank line contains whitespace
+  228:1  W293 [*] Blank line contains whitespace
+  235:1  W293 Blank line contains whitespace
+  240:1  W293 [*] Blank line contains whitespace
+  244:1  W293 Blank line contains whitespace
+  249:1  W293 [*] Blank line contains whitespace
+  253:1  W293 [*] Blank line contains whitespace
+  258:1  W293 [*] Blank line contains whitespace
+  262:1  W293 Blank line contains whitespace
+  268:1  W293 [*] Blank line contains whitespace
+  272:1  W293 Blank line contains whitespace
+  277:1  W293 [*] Blank line contains whitespace
+  281:1  W293 Blank line contains whitespace
+  287:1  W293 [*] Blank line contains whitespace
+  289:1  W293 [*] Blank line contains whitespace
+  293:1  W293 [*] Blank line contains whitespace
+  299:1  W293 [*] Blank line contains whitespace
+  302:1  W293 [*] Blank line contains whitespace
+  306:1  W293 Blank line contains whitespace
+  313:1  W293 [*] Blank line contains whitespace
+  317:1  W293 [*] Blank line contains whitespace
+  319:1  W293 [*] Blank line contains whitespace
+  328:1  W293 [*] Blank line contains whitespace
+  332:1  W293 Blank line contains whitespace
+  337:1  W293 [*] Blank line contains whitespace
+  345:1  W293 [*] Blank line contains whitespace
+  353:1  W293 [*] Blank line contains whitespace
+  355:1  W293 [*] Blank line contains whitespace
+  362:1  W293 Blank line contains whitespace
+  365:1  W293 Blank line contains whitespace
+  372:1  W293 [*] Blank line contains whitespace
+  374:1  W293 [*] Blank line contains whitespace
+  376:1  W293 [*] Blank line contains whitespace
+  380:1  W293 [*] Blank line contains whitespace
+  383:1  W293 [*] Blank line contains whitespace
+  386:1  W293 [*] Blank line contains whitespace
+  389:1  W293 [*] Blank line contains whitespace
+  396:1  W293 [*] Blank line contains whitespace
+  399:1  W293 [*] Blank line contains whitespace
+  400:16 UP041 [*] Replace aliased errors with `TimeoutError`
+  404:1  W293 [*] Blank line contains whitespace
+  408:1  W293 [*] Blank line contains whitespace
+  410:1  W293 [*] Blank line contains whitespace
+  417:1  W293 Blank line contains whitespace
+  420:1  W293 Blank line contains whitespace
+  427:1  W293 [*] Blank line contains whitespace
+  429:1  W293 [*] Blank line contains whitespace
+  436:1  W293 [*] Blank line contains whitespace
+  439:1  W293 [*] Blank line contains whitespace
+  446:1  W293 [*] Blank line contains whitespace
+  454:1  W293 Blank line contains whitespace
+  460:1  W293 [*] Blank line contains whitespace
+  464:1  W293 [*] Blank line contains whitespace
+  465:62 UP007 [*] Use `X | Y` for type annotations
+  468:1  W293 Blank line contains whitespace
+  475:1  W293 [*] Blank line contains whitespace
+  481:1  W293 [*] Blank line contains whitespace
+  487:1  W293 [*] Blank line contains whitespace
+  491:1  W293 Blank line contains whitespace
+  500:19 UP007 [*] Use `X | Y` for type annotations
+  503:31 UP007 [*] Use `X | Y` for type annotations
+  517:11 UP007 [*] Use `X | Y` for type annotations
+  521:1  W293 Blank line contains whitespace
+  526:1  W293 Blank line contains whitespace
+  531:1  W293 [*] Blank line contains whitespace
+  534:1  W293 [*] Blank line contains whitespace
+  536:1  W293 [*] Blank line contains whitespace
+
+plugins\_host\test_runner.py:
+   31:1  UP035 [*] Import from `collections.abc` instead: `Callable`
+   31:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   31:1  UP035 `typing.List` is deprecated, use `list` instead
+   31:57 F401 [*] `typing.Union` imported but unused
+   72:15 UP007 [*] Use `X | Y` for type annotations
+   73:13 UP007 [*] Use `X | Y` for type annotations
+   74:20 UP007 [*] Use `X | Y` for type annotations
+   75:17 UP007 [*] Use `X | Y` for type annotations
+   77:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   84:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  115:14 UP006 [*] Use `list` instead of `List` for type annotation
+  117:17 UP007 [*] Use `X | Y` for type annotations
+  118:18 UP007 [*] Use `X | Y` for type annotations
+  157:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  204:13 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  205:22 UP007 [*] Use `X | Y` for type annotations
+  206:21 UP007 [*] Use `X | Y` for type annotations
+  210:11 UP006 [*] Use `list` instead of `List` for type annotation
+  213:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  246:12 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  247:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  248:17 UP006 [*] Use `list` instead of `List` for type annotation
+  251:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  295:21 UP007 [*] Use `X | Y` for type annotations
+  311:25 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  314:24 UP006 [*] Use `list` instead of `List` for type annotation
+  318:34 UP007 [*] Use `X | Y` for type annotations
+  364:18 UP015 [*] Unnecessary open mode parameters
+  383:41 UP007 [*] Use `X | Y` for type annotations
+  387:59 UP006 [*] Use `list` instead of `List` for type annotation
+  391:32 UP006 [*] Use `list` instead of `List` for type annotation
+  391:37 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  407:17 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  409:27 UP007 [*] Use `X | Y` for type annotations
+  409:42 UP007 [*] Use `X | Y` for type annotations
+  457:16 UP041 [*] Replace aliased errors with `TimeoutError`
+  661:19 UP007 [*] Use `X | Y` for type annotations
+  800:17 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  803:10 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  817:16 UP006 [*] Use `list` instead of `List` for type annotation
+  818:17 UP006 [*] Use `list` instead of `List` for type annotation
+  827:13 B007 Loop control variable `i` not used within loop body
+  867:22 UP007 [*] Use `X | Y` for type annotations
+  868:17 UP007 [*] Use `X | Y` for type annotations
+  869:10 UP006 [*] Use `list` instead of `List` for type annotation
+
+plugins\_host\validator.py:
+   26:1  UP035 [*] Import from `collections.abc` instead: `Callable`
+   26:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   26:1  UP035 `typing.List` is deprecated, use `list` instead
+   26:1  UP035 `typing.Set` is deprecated, use `set` instead
+   26:1  UP035 `typing.Tuple` is deprecated, use `tuple` instead
+   26:1  UP035 `typing.Type` is deprecated, use `type` instead
+   26:25 F401 [*] `typing.Callable` imported but unused
+   35:1  W293 [*] Blank line contains whitespace
+   45:1  W293 Blank line contains whitespace
+   59:13 UP006 [*] Use `list` instead of `List` for type annotation
+   60:15 UP006 [*] Use `list` instead of `List` for type annotation
+   63:20 UP006 [*] Use `list` instead of `List` for type annotation
+   64:22 UP006 [*] Use `list` instead of `List` for type annotation
+   65:20 UP006 [*] Use `list` instead of `List` for type annotation
+   66:1  W293 [*] Blank line contains whitespace
+   67:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   82:1  W293 [*] Blank line contains whitespace
+   87:1  W293 [*] Blank line contains whitespace
+   96:1  W293 Blank line contains whitespace
+  104:1  W293 Blank line contains whitespace
+  112:1  W293 [*] Blank line contains whitespace
+  116:1  W293 Blank line contains whitespace
+  121:1  W293 [*] Blank line contains whitespace
+  123:32 UP007 [*] Use `X | Y` for type annotations
+  123:41 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  125:1  W293 [*] Blank line contains whitespace
+  127:26 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  127:36 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  129:1  W293 [*] Blank line contains whitespace
+  131:1  W293 [*] Blank line contains whitespace
+  135:1  W293 [*] Blank line contains whitespace
+  139:1  W293 [*] Blank line contains whitespace
+  141:18 UP015 [*] Unnecessary open mode parameters
+  146:1  W293 [*] Blank line contains whitespace
+  150:1  W293 [*] Blank line contains whitespace
+  154:1  W293 [*] Blank line contains whitespace
+  156:18 UP015 [*] Unnecessary open mode parameters
+  162:1  W293 [*] Blank line contains whitespace
+  165:19 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  170:1  W293 Blank line contains whitespace
+  178:1  W293 [*] Blank line contains whitespace
+  182:1  W293 [*] Blank line contains whitespace
+  195:1  W293 [*] Blank line contains whitespace
+  203:1  W293 Blank line contains whitespace
+  207:1  W293 Blank line contains whitespace
+  218:1  W293 [*] Blank line contains whitespace
+  219:51 UP007 [*] Use `X | Y` for type annotations
+  219:60 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  222:1  W293 Blank line contains whitespace
+  225:1  W293 Blank line contains whitespace
+  230:1  W293 [*] Blank line contains whitespace
+  231:54 UP006 [*] Use `set` instead of `Set` for type annotation
+  234:1  W293 Blank line contains whitespace
+  237:1  W293 Blank line contains whitespace
+  245:1  W293 [*] Blank line contains whitespace
+  246:54 UP006 [*] Use `set` instead of `Set` for type annotation
+  249:1  W293 Blank line contains whitespace
+  252:1  W293 Blank line contains whitespace
+  260:1  W293 [*] Blank line contains whitespace
+  266:10 UP007 [*] Use `X | Y` for type annotations
+  269:1  W293 Blank line contains whitespace
+  274:1  W293 Blank line contains whitespace
+  282:1  W293 [*] Blank line contains whitespace
+  298:1  W293 [*] Blank line contains whitespace
+  304:10 UP007 [*] Use `X | Y` for type annotations
+  304:19 UP006 [*] Use `type` instead of `Type` for type annotation
+  307:1  W293 Blank line contains whitespace
+  312:1  W293 Blank line contains whitespace
+  317:1  W293 Blank line contains whitespace
+  321:21 UP006 [*] Use `list` instead of `List` for type annotation
+  321:26 UP006 [*] Use `tuple` instead of `Tuple` for type annotation
+  321:37 UP006 [*] Use `type` instead of `Type` for type annotation
+  322:1  W293 [*] Blank line contains whitespace
+  327:1  W293 [*] Blank line contains whitespace
+  331:1  W293 [*] Blank line contains whitespace
+  335:1  W293 [*] Blank line contains whitespace
+  339:1  W293 [*] Blank line contains whitespace
+  341:1  W293 [*] Blank line contains whitespace
+  344:17 F541 [*] f-string without any placeholders
+  345:17 F541 [*] f-string without any placeholders
+  348:1  W293 [*] Blank line contains whitespace
+  354:1  W293 [*] Blank line contains whitespace
+  359:1  W293 [*] Blank line contains whitespace
+  361:1  W293 [*] Blank line contains whitespace
+  364:23 UP006 [*] Use `type` instead of `Type` for type annotation
+  370:1  W293 Blank line contains whitespace
+  379:1  W293 [*] Blank line contains whitespace
+  382:19 B007 Loop control variable `method` not used within loop body
+  385:1  W293 [*] Blank line contains whitespace
+  387:19 B007 Loop control variable `method` not used within loop body
+  390:1  W293 [*] Blank line contains whitespace
+  396:1  W293 [*] Blank line contains whitespace
+  400:1  W293 [*] Blank line contains whitespace
+  403:1  W293 [*] Blank line contains whitespace
+  406:1  W293 [*] Blank line contains whitespace
+  410:19 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  415:1  W293 Blank line contains whitespace
+  420:1  W293 Blank line contains whitespace
+  426:1  W293 [*] Blank line contains whitespace
+  429:1  W293 [*] Blank line contains whitespace
+  434:1  W293 [*] Blank line contains whitespace
+  438:1  W293 [*] Blank line contains whitespace
+  444:1  W293 [*] Blank line contains whitespace
+  449:1  W293 [*] Blank line contains whitespace
+  452:1  W293 [*] Blank line contains whitespace
+  460:1  W293 [*] Blank line contains whitespace
+  462:1  W293 [*] Blank line contains whitespace
+  465:22 F821 Undefined name `DiscoveredPlugin`
+  470:1  W293 Blank line contains whitespace
+  474:1  W293 Blank line contains whitespace
+  479:1  W293 [*] Blank line contains whitespace
+  483:1  W293 [*] Blank line contains whitespace
+  486:1  W293 [*] Blank line contains whitespace
+  505:15 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  510:1  W293 Blank line contains whitespace
+  515:1  W293 Blank line contains whitespace
+  526:1  W293 [*] Blank line contains whitespace
+  532:1  W293 [*] Blank line contains whitespace
+  535:1  W293 [*] Blank line contains whitespace
+  539:1  W293 [*] Blank line contains whitespace
+  542:1  W293 [*] Blank line contains whitespace
+  546:1  W293 [*] Blank line contains whitespace
+
+plugins\llm_ollama\plugin.py:
+  6:1 I001 [*] Import block is un-sorted or un-formatted
+
+plugins\llm_ollama_v2\plugin.py:
+   16:1  I001 [*] Import block is un-sorted or un-formatted
+   20:1  UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+   20:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   20:1  UP035 `typing.List` is deprecated, use `list` instead
+   26:5  F401 [*] `contracts.llm_contract.MessageRole` imported but unused
+   39:1  W293 Blank line contains whitespace
+   42:1  W293 Blank line contains whitespace
+   49:1  W293 Blank line contains whitespace
+   65:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   68:1  W293 Blank line contains whitespace
+   75:1  W293 Blank line contains whitespace
+   84:1  W293 [*] Blank line contains whitespace
+   87:1  W293 [*] Blank line contains whitespace
+   93:1  W293 [*] Blank line contains whitespace
+   96:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  101:13 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  113:1  W293 Blank line contains whitespace
+  119:1  W293 [*] Blank line contains whitespace
+  128:1  W293 [*] Blank line contains whitespace
+  151:1  W293 [*] Blank line contains whitespace
+  166:1  W293 [*] Blank line contains whitespace
+  168:1  W293 [*] Blank line contains whitespace
+  172:1  W293 [*] Blank line contains whitespace
+  177:1  W293 [*] Blank line contains whitespace
+  180:1  W293 [*] Blank line contains whitespace
+  187:1  W293 [*] Blank line contains whitespace
+  196:1  W293 [*] Blank line contains whitespace
+  202:1  W293 [*] Blank line contains whitespace
+  218:1  W293 [*] Blank line contains whitespace
+  224:19 UP006 [*] Use `list` instead of `List` for type annotation
+  225:18 UP007 [*] Use `X | Y` for type annotations
+  229:1  W293 Blank line contains whitespace
+  233:1  W293 Blank line contains whitespace
+  239:1  W293 [*] Blank line contains whitespace
+  242:1  W293 [*] Blank line contains whitespace
+  245:1  W293 [*] Blank line contains whitespace
+  251:1  W293 [*] Blank line contains whitespace
+  263:1  W293 [*] Blank line contains whitespace
+  266:1  W293 [*] Blank line contains whitespace
+  275:1  W293 [*] Blank line contains whitespace
+  281:17 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  282:1  W293 [*] Blank line contains whitespace
+  284:1  W293 [*] Blank line contains whitespace
+  288:1  W293 [*] Blank line contains whitespace
+  292:1  W293 [*] Blank line contains whitespace
+  312:19 UP006 [*] Use `list` instead of `List` for type annotation
+  313:18 UP007 [*] Use `X | Y` for type annotations
+  317:1  W293 Blank line contains whitespace
+  321:1  W293 Blank line contains whitespace
+  327:1  W293 [*] Blank line contains whitespace
+  330:1  W293 [*] Blank line contains whitespace
+  333:1  W293 [*] Blank line contains whitespace
+  339:1  W293 [*] Blank line contains whitespace
+  351:1  W293 [*] Blank line contains whitespace
+  361:1  W293 [*] Blank line contains whitespace
+  367:17 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  368:1  W293 [*] Blank line contains whitespace
+  372:1  W293 [*] Blank line contains whitespace
+  375:1  W293 [*] Blank line contains whitespace
+  384:1  W293 [*] Blank line contains whitespace
+  387:1  W293 [*] Blank line contains whitespace
+  391:1  W293 [*] Blank line contains whitespace
+  396:1  W293 [*] Blank line contains whitespace
+  400:1  W293 [*] Blank line contains whitespace
+  406:29 UP006 [*] Use `list` instead of `List` for type annotation
+  409:1  W293 Blank line contains whitespace
+
+plugins\stt_whisper\__init__.py:
+  10:1 I001 [*] Import block is un-sorted or un-formatted
+
+plugins\stt_whisper\plugin.py:
+   20:1  I001 [*] Import block is un-sorted or un-formatted
+   21:8  F401 [*] `io` imported but unused
+   24:1  UP035 [*] Import from `collections.abc` instead: `Callable`
+   24:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   24:1  UP035 `typing.List` is deprecated, use `list` instead
+   55:1  W293 Blank line contains whitespace
+   58:1  W293 Blank line contains whitespace
+   75:33 UP007 [*] Use `X | Y` for type annotations
+   80:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   83:1  W293 Blank line contains whitespace
+   86:1  W293 Blank line contains whitespace
+   95:1  W293 Blank line contains whitespace
+  106:1  W293 [*] Blank line contains whitespace
+  120:1  W293 [*] Blank line contains whitespace
+  124:1  W293 [*] Blank line contains whitespace
+  126:1  W293 [*] Blank line contains whitespace
+  129:13 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  140:1  W293 Blank line contains whitespace
+  153:1  W293 [*] Blank line contains whitespace
+  163:1  W293 Blank line contains whitespace
+  169:1  W293 [*] Blank line contains whitespace
+  171:1  W293 [*] Blank line contains whitespace
+  178:1  W293 [*] Blank line contains whitespace
+  185:18 UP007 [*] Use `X | Y` for type annotations
+  189:1  W293 Blank line contains whitespace
+  193:1  W293 Blank line contains whitespace
+  196:1  W293 Blank line contains whitespace
+  203:1  W293 [*] Blank line contains whitespace
+  206:1  W293 [*] Blank line contains whitespace
+  208:1  W293 [*] Blank line contains whitespace
+  214:1  W293 [*] Blank line contains whitespace
+  227:1  W293 [*] Blank line contains whitespace
+  231:1  W293 [*] Blank line contains whitespace
+  233:1  W293 [*] Blank line contains whitespace
+  237:1  W293 [*] Blank line contains whitespace
+  241:1  W293 [*] Blank line contains whitespace
+  260:1  W293 [*] Blank line contains whitespace
+  263:1  W293 [*] Blank line contains whitespace
+  278:1  W293 [*] Blank line contains whitespace
+  280:13 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  285:19 UP007 [*] Use `X | Y` for type annotations
+  289:1  W293 Blank line contains whitespace
+  299:49 UP007 [*] Use `X | Y` for type annotations
+  307:42 UP006 [*] Use `list` instead of `List` for type annotation
+  310:1  W293 Blank line contains whitespace
+  328:39 UP006 [*] Use `list` instead of `List` for type annotation
+  328:44 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  331:1  W293 Blank line contains whitespace
+
+plugins\tests\test_kokoro_tts.py:
+   14:1  I001 [*] Import block is un-sorted or un-formatted
+   25:1  W293 [*] Blank line contains whitespace
+   29:1  W293 [*] Blank line contains whitespace
+   41:1  W293 [*] Blank line contains whitespace
+   43:16 F401 `kokoro` imported but unused; consider using `importlib.util.find_spec` to test for availability
+   44:15 F541 [*] f-string without any placeholders
+   49:1  W293 [*] Blank line contains whitespace
+   51:29 F401 `soundfile` imported but unused; consider using `importlib.util.find_spec` to test for availability
+   52:15 F541 [*] f-string without any placeholders
+   56:1  W293 [*] Blank line contains whitespace
+   66:1  W293 [*] Blank line contains whitespace
+   78:1  W293 [*] Blank line contains whitespace
+   85:1  W293 [*] Blank line contains whitespace
+   90:1  W293 [*] Blank line contains whitespace
+   96:1  W293 [*] Blank line contains whitespace
+  100:1  W293 [*] Blank line contains whitespace
+  102:9  I001 [*] Import block is un-sorted or un-formatted
+  103:1  W293 [*] Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  110:1  W293 [*] Blank line contains whitespace
+  111:15 F541 [*] f-string without any placeholders
+  117:1  W293 [*] Blank line contains whitespace
+  123:1  W293 [*] Blank line contains whitespace
+  129:1  W293 [*] Blank line contains whitespace
+  132:1  W293 [*] Blank line contains whitespace
+
+plugins\tests\test_ollama_llm.py:
+   15:1  I001 [*] Import block is un-sorted or un-formatted
+   26:1  W293 [*] Blank line contains whitespace
+   30:1  W293 [*] Blank line contains whitespace
+   40:23 F541 [*] f-string without any placeholders
+   51:1  W293 [*] Blank line contains whitespace
+   61:1  W293 [*] Blank line contains whitespace
+   72:1  W293 [*] Blank line contains whitespace
+   79:1  W293 [*] Blank line contains whitespace
+   86:1  W293 [*] Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+   95:9  I001 [*] Import block is un-sorted or un-formatted
+   96:1  W293 [*] Blank line contains whitespace
+  100:1  W293 [*] Blank line contains whitespace
+  105:1  W293 [*] Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  109:15 F541 [*] f-string without any placeholders
+  113:1  W293 [*] Blank line contains whitespace
+  119:1  W293 [*] Blank line contains whitespace
+  122:1  W293 [*] Blank line contains whitespace
+  131:1  W293 [*] Blank line contains whitespace
+  135:1  W293 [*] Blank line contains whitespace
+  138:1  W293 [*] Blank line contains whitespace
+  141:19 F541 [*] f-string without any placeholders
+  143:1  W293 [*] Blank line contains whitespace
+  148:1  W293 [*] Blank line contains whitespace
+  152:1  W293 [*] Blank line contains whitespace
+  157:1  W293 [*] Blank line contains whitespace
+  160:1  W293 [*] Blank line contains whitespace
+  165:1  W293 [*] Blank line contains whitespace
+  176:1  W293 [*] Blank line contains whitespace
+
+plugins\tests\test_roundtrip.py:
+   18:1  I001 [*] Import block is un-sorted or un-formatted
+   30:1  W293 [*] Blank line contains whitespace
+   34:1  W293 [*] Blank line contains whitespace
+   37:1  W293 [*] Blank line contains whitespace
+   45:1  W293 [*] Blank line contains whitespace
+   46:9  I001 [*] Import block is un-sorted or un-formatted
+   48:1  W293 [*] Blank line contains whitespace
+   50:1  W293 [*] Blank line contains whitespace
+   57:1  W293 [*] Blank line contains whitespace
+   62:1  W293 [*] Blank line contains whitespace
+   69:1  W293 [*] Blank line contains whitespace
+   70:9  I001 [*] Import block is un-sorted or un-formatted
+   72:1  W293 [*] Blank line contains whitespace
+   74:1  W293 [*] Blank line contains whitespace
+   83:1  W293 [*] Blank line contains whitespace
+   88:1  W293 [*] Blank line contains whitespace
+   95:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  102:1  W293 [*] Blank line contains whitespace
+  105:27 W291 [*] Trailing whitespace
+  106:33 W291 [*] Trailing whitespace
+  109:1  W293 [*] Blank line contains whitespace
+  114:1  W293 [*] Blank line contains whitespace
+  121:1  W293 [*] Blank line contains whitespace
+  125:1  W293 [*] Blank line contains whitespace
+  132:1  W293 [*] Blank line contains whitespace
+  137:1  W293 [*] Blank line contains whitespace
+  140:1  W293 [*] Blank line contains whitespace
+  144:1  W293 [*] Blank line contains whitespace
+  147:1  W293 [*] Blank line contains whitespace
+  150:1  W293 [*] Blank line contains whitespace
+  152:19 F541 [*] f-string without any placeholders
+  154:19 F541 [*] f-string without any placeholders
+  156:19 F541 [*] f-string without any placeholders
+  157:1  W293 [*] Blank line contains whitespace
+  164:1  W293 [*] Blank line contains whitespace
+  169:1  W293 [*] Blank line contains whitespace
+  174:1  W293 [*] Blank line contains whitespace
+  177:1  W293 [*] Blank line contains whitespace
+  182:1  W293 [*] Blank line contains whitespace
+  186:1  W293 [*] Blank line contains whitespace
+  190:1  W293 [*] Blank line contains whitespace
+  192:15 F541 [*] f-string without any placeholders
+  193:15 F541 [*] f-string without any placeholders
+  194:15 F541 [*] f-string without any placeholders
+  197:1  W293 [*] Blank line contains whitespace
+  199:1  W293 [*] Blank line contains whitespace
+  204:1  W293 [*] Blank line contains whitespace
+  209:13 E722 Do not use bare `except`
+  214:13 E722 Do not use bare `except`
+  216:1  W293 [*] Blank line contains whitespace
+
+plugins\tests\test_services.py:
+   10:1  I001 [*] Import block is un-sorted or un-formatted
+   21:1  W293 [*] Blank line contains whitespace
+   25:1  W293 [*] Blank line contains whitespace
+   28:1  W293 [*] Blank line contains whitespace
+   34:1  W293 [*] Blank line contains whitespace
+   35:19 F541 [*] f-string without any placeholders
+   38:1  W293 [*] Blank line contains whitespace
+   42:1  W293 [*] Blank line contains whitespace
+   46:1  W293 [*] Blank line contains whitespace
+   52:1  W293 [*] Blank line contains whitespace
+   57:1  W293 [*] Blank line contains whitespace
+   67:1  W293 [*] Blank line contains whitespace
+   71:1  W293 [*] Blank line contains whitespace
+   80:1  W293 [*] Blank line contains whitespace
+   83:1  W293 [*] Blank line contains whitespace
+   86:1  W293 [*] Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+   92:19 F541 [*] f-string without any placeholders
+   94:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  105:1  W293 [*] Blank line contains whitespace
+  110:1  W293 [*] Blank line contains whitespace
+  120:1  W293 [*] Blank line contains whitespace
+  134:1  W293 [*] Blank line contains whitespace
+  137:1  W293 [*] Blank line contains whitespace
+  144:1  W293 [*] Blank line contains whitespace
+
+plugins\tests\test_whisper_stt.py:
+   13:1  I001 [*] Import block is un-sorted or un-formatted
+   24:1  W293 [*] Blank line contains whitespace
+   28:1  W293 [*] Blank line contains whitespace
+   33:15 F541 [*] f-string without any placeholders
+   44:1  W293 [*] Blank line contains whitespace
+   46:16 F401 `faster_whisper` imported but unused; consider using `importlib.util.find_spec` to test for availability
+   47:15 F541 [*] f-string without any placeholders
+   52:1  W293 [*] Blank line contains whitespace
+   54:29 F401 `soundfile` imported but unused; consider using `importlib.util.find_spec` to test for availability
+   55:15 F541 [*] f-string without any placeholders
+   59:1  W293 [*] Blank line contains whitespace
+   69:1  W293 [*] Blank line contains whitespace
+   83:1  W293 [*] Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  103:1  W293 [*] Blank line contains whitespace
+  106:1  W293 [*] Blank line contains whitespace
+  109:1  W293 [*] Blank line contains whitespace
+  119:1  W293 [*] Blank line contains whitespace
+  126:1  W293 [*] Blank line contains whitespace
+  128:1  W293 [*] Blank line contains whitespace
+  134:1  W293 [*] Blank line contains whitespace
+  136:1  W293 [*] Blank line contains whitespace
+  137:19 F541 [*] f-string without any placeholders
+  142:1  W293 [*] Blank line contains whitespace
+  145:1  W293 [*] Blank line contains whitespace
+  155:1  W293 [*] Blank line contains whitespace
+  158:1  W293 [*] Blank line contains whitespace
+
+plugins\tts_example_plugin\plugin.py:
+   17:1  I001 [*] Import block is un-sorted or un-formatted
+   18:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   18:1  UP035 `typing.List` is deprecated, use `list` instead
+   74:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  121:19 UP007 [*] Use `X | Y` for type annotations
+  122:18 UP007 [*] Use `X | Y` for type annotations
+  183:29 UP006 [*] Use `list` instead of `List` for type annotation
+  212:50 UP007 [*] Use `X | Y` for type annotations
+
+plugins\tts_kokoro\plugin.py:
+   22:1  I001 [*] Import block is un-sorted or un-formatted
+   24:8  F401 [*] `struct` imported but unused
+   25:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   25:1  UP035 `typing.List` is deprecated, use `list` instead
+  135:1  W293 Blank line contains whitespace
+  138:1  W293 Blank line contains whitespace
+  157:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  160:1  W293 Blank line contains whitespace
+  163:1  W293 Blank line contains whitespace
+  170:1  W293 Blank line contains whitespace
+  180:1  W293 [*] Blank line contains whitespace
+  187:1  W293 [*] Blank line contains whitespace
+  190:1  W293 [*] Blank line contains whitespace
+  195:1  W293 [*] Blank line contains whitespace
+  197:1  W293 [*] Blank line contains whitespace
+  200:13 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  207:1  W293 [*] Blank line contains whitespace
+  215:1  W293 Blank line contains whitespace
+  228:1  W293 [*] Blank line contains whitespace
+  234:1  W293 [*] Blank line contains whitespace
+  244:1  W293 Blank line contains whitespace
+  247:1  W293 Blank line contains whitespace
+  256:1  W293 [*] Blank line contains whitespace
+  259:1  W293 [*] Blank line contains whitespace
+  264:1  W293 [*] Blank line contains whitespace
+  271:1  W293 Blank line contains whitespace
+  274:1  W293 Blank line contains whitespace
+  277:1  W293 Blank line contains whitespace
+  287:36 UP006 [*] Use `list` instead of `List` for type annotation
+  290:1  W293 [*] Blank line contains whitespace
+  293:1  W293 [*] Blank line contains whitespace
+  303:1  W293 [*] Blank line contains whitespace
+  309:19 UP007 [*] Use `X | Y` for type annotations
+  310:18 UP007 [*] Use `X | Y` for type annotations
+  314:1  W293 Blank line contains whitespace
+  319:1  W293 Blank line contains whitespace
+  322:1  W293 Blank line contains whitespace
+  329:1  W293 [*] Blank line contains whitespace
+  334:1  W293 [*] Blank line contains whitespace
+  337:1  W293 [*] Blank line contains whitespace
+  340:1  W293 [*] Blank line contains whitespace
+  352:1  W293 [*] Blank line contains whitespace
+  355:1  W293 [*] Blank line contains whitespace
+  361:1  W293 [*] Blank line contains whitespace
+  363:1  W293 [*] Blank line contains whitespace
+  366:1  W293 [*] Blank line contains whitespace
+  369:1  W293 [*] Blank line contains whitespace
+  372:1  W293 [*] Blank line contains whitespace
+  388:1  W293 [*] Blank line contains whitespace
+  390:13 B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+  395:1  W293 Blank line contains whitespace
+  399:1  W293 Blank line contains whitespace
+  404:1  W293 [*] Blank line contains whitespace
+  417:1  W293 [*] Blank line contains whitespace
+  421:29 UP006 [*] Use `list` instead of `List` for type annotation
+  424:1  W293 Blank line contains whitespace
+  433:1  W293 Blank line contains whitespace
+  436:1  W293 Blank line contains whitespace
+  439:1  W293 Blank line contains whitespace
+  447:1  W293 [*] Blank line contains whitespace
+  451:42 UP006 [*] Use `list` instead of `List` for type annotation
+  454:1  W293 Blank line contains whitespace
+
+scripts\verify_agents.py:
+   9:1  I001 [*] Import block is un-sorted or un-formatted
+   9:61 F401 [*] `services.ai_team.orchestrator.AgentState` imported but unused
+  13:1  W293 [*] Blank line contains whitespace
+  19:1  W293 [*] Blank line contains whitespace
+  22:1  W293 [*] Blank line contains whitespace
+  26:1  W293 [*] Blank line contains whitespace
+  31:1  W293 [*] Blank line contains whitespace
+  36:1  W293 [*] Blank line contains whitespace
+  43:1  W293 [*] Blank line contains whitespace
+  47:1  W293 [*] Blank line contains whitespace
+  51:1  W293 [*] Blank line contains whitespace
+  57:1  W293 [*] Blank line contains whitespace
+
+services\__init__.py:
+  11:1 I001 [*] Import block is un-sorted or un-formatted
+
+services\ai_team\agents.py:
+   1:1  I001 [*] Import block is un-sorted or un-formatted
+   2:8  F401 [*] `asyncio` imported but unused
+   3:1  UP035 `typing.List` is deprecated, use `list` instead
+   3:20 F401 [*] `typing.Optional` imported but unused
+   3:30 F401 [*] `typing.List` imported but unused
+   4:32 F401 [*] `pydantic_ai.RunContext` imported but unused
+  20:1  W293 [*] Blank line contains whitespace
+  34:1  W293 [*] Blank line contains whitespace
+  44:1  W293 [*] Blank line contains whitespace
+  48:1  W293 [*] Blank line contains whitespace
+  51:13 I001 [*] Import block is un-sorted or un-formatted
+  53:1  W293 [*] Blank line contains whitespace
+  54:18 UP015 [*] Unnecessary open mode parameters
+  56:1  W293 [*] Blank line contains whitespace
+  81:1  W293 [*] Blank line contains whitespace
+
+services\ai_team\config.py:
+   1:1  I001 [*] Import block is un-sorted or un-formatted
+   3:33 F401 [*] `pydantic.Field` imported but unused
+   4:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   4:20 F401 [*] `typing.Dict` imported but unused
+   4:26 F401 [*] `typing.Any` imported but unused
+  25:1  W293 [*] Blank line contains whitespace
+  26:10 UP015 [*] Unnecessary open mode parameters
+  28:1  W293 [*] Blank line contains whitespace
+  31:1  W293 [*] Blank line contains whitespace
+
+services\ai_team\orchestrator.py:
+    1:1  I001 [*] Import block is un-sorted or un-formatted
+    3:1  UP035 `typing.List` is deprecated, use `list` instead
+    3:36 F401 [*] `typing.Union` imported but unused
+    5:8  F401 [*] `os` imported but unused
+    9:27 W291 [*] Trailing whitespace
+   10:27 W291 [*] Trailing whitespace
+   11:28 W291 [*] Trailing whitespace
+   19:23 UP006 [*] Use `list` instead of `List` for type annotation
+   20:23 UP007 [*] Use `X | Y` for type annotations
+   21:21 UP007 [*] Use `X | Y` for type annotations
+   22:16 UP007 [*] Use `X | Y` for type annotations
+   23:14 UP006 [*] Use `list` instead of `List` for type annotation
+   33:1  W293 [*] Blank line contains whitespace
+   36:1  W293 [*] Blank line contains whitespace
+   40:1  W293 [*] Blank line contains whitespace
+   49:1  W293 [*] Blank line contains whitespace
+   52:1  W293 [*] Blank line contains whitespace
+   57:1  W293 [*] Blank line contains whitespace
+   66:1  W293 [*] Blank line contains whitespace
+   69:1  W293 [*] Blank line contains whitespace
+   74:1  W293 [*] Blank line contains whitespace
+   83:1  W293 [*] Blank line contains whitespace
+   86:1  W293 [*] Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+  107:1  W293 [*] Blank line contains whitespace
+
+services\ai_team\tools\brave_search.py:
+   1:1  I001 [*] Import block is un-sorted or un-formatted
+   3:1  UP035 `typing.List` is deprecated, use `list` instead
+   3:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   4:25 F401 [*] `pydantic_ai.RunContext` imported but unused
+   6:47 UP007 [*] Use `X | Y` for type annotations
+   6:72 UP006 [*] Use `list` instead of `List` for type annotation
+   6:77 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   9:1  W293 Blank line contains whitespace
+  13:1  W293 Blank line contains whitespace
+  22:1  W293 [*] Blank line contains whitespace
+  32:1  W293 [*] Blank line contains whitespace
+
+services\ai_team\tools\skills_loader.py:
+  1:1  I001 [*] Import block is un-sorted or un-formatted
+  1:8  F401 [*] `os` imported but unused
+  3:1  UP035 `typing.List` is deprecated, use `list` instead
+  3:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+  3:26 F401 [*] `typing.Dict` imported but unused
+  3:32 F401 [*] `typing.Optional` imported but unused
+  7:22 UP006 [*] Use `list` instead of `List` for type annotation
+
+services\llm.py:
+   11:1  W293 Blank line contains whitespace
+   15:1  W293 Blank line contains whitespace
+   19:1  W293 Blank line contains whitespace
+   25:1  I001 [*] Import block is un-sorted or un-formatted
+   26:1  UP035 [*] Import from `collections.abc` instead: `AsyncIterator`
+   26:1  UP035 `typing.List` is deprecated, use `list` instead
+   26:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   26:62 F401 [*] `typing.Union` imported but unused
+   32:1  W293 Blank line contains whitespace
+   35:1  W293 Blank line contains whitespace
+   41:1  W293 [*] Blank line contains whitespace
+   44:16 UP007 [*] Use `X | Y` for type annotations
+   52:1  W293 Blank line contains whitespace
+   67:25 UP006 [*] Use `list` instead of `List` for type annotation
+   67:30 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   68:30 UP007 [*] Use `X | Y` for type annotations
+   69:1  W293 [*] Blank line contains whitespace
+   74:1  W293 [*] Blank line contains whitespace
+   79:1  W293 [*] Blank line contains whitespace
+   83:1  W293 Blank line contains whitespace
+   89:1  W293 [*] Blank line contains whitespace
+   91:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  105:1  W293 [*] Blank line contains whitespace
+  108:1  W293 [*] Blank line contains whitespace
+  114:1  W293 [*] Blank line contains whitespace
+  117:1  W293 [*] Blank line contains whitespace
+  122:1  W293 [*] Blank line contains whitespace
+  126:1  W293 [*] Blank line contains whitespace
+  130:16 UP007 [*] Use `X | Y` for type annotations
+  131:22 UP007 [*] Use `X | Y` for type annotations
+  132:21 UP007 [*] Use `X | Y` for type annotations
+  136:1  W293 Blank line contains whitespace
+  138:1  W293 Blank line contains whitespace
+  144:1  W293 Blank line contains whitespace
+  147:1  W293 Blank line contains whitespace
+  153:1  W293 [*] Blank line contains whitespace
+  154:9  I001 [*] Import block is un-sorted or un-formatted
+  155:1  W293 [*] Blank line contains whitespace
+  160:1  W293 [*] Blank line contains whitespace
+  166:1  W293 [*] Blank line contains whitespace
+  169:1  W293 [*] Blank line contains whitespace
+  172:18 UP007 [*] Use `X | Y` for type annotations
+  173:16 UP007 [*] Use `X | Y` for type annotations
+  174:22 UP007 [*] Use `X | Y` for type annotations
+  178:1  W293 Blank line contains whitespace
+  180:1  W293 Blank line contains whitespace
+  185:1  W293 Blank line contains whitespace
+  188:1  W293 Blank line contains whitespace
+  195:1  W293 [*] Blank line contains whitespace
+  198:1  W293 [*] Blank line contains whitespace
+  199:9  I001 [*] Import block is un-sorted or un-formatted
+  200:1  W293 [*] Blank line contains whitespace
+  204:1  W293 [*] Blank line contains whitespace
+  210:1  W293 [*] Blank line contains whitespace
+  216:1  W293 [*] Blank line contains whitespace
+  218:1  W293 [*] Blank line contains whitespace
+  221:1  W293 [*] Blank line contains whitespace
+  223:1  W293 [*] Blank line contains whitespace
+  227:16 UP007 [*] Use `X | Y` for type annotations
+  228:22 UP007 [*] Use `X | Y` for type annotations
+  232:1  W293 Blank line contains whitespace
+  237:1  W293 Blank line contains whitespace
+  240:1  W293 Blank line contains whitespace
+  246:1  W293 [*] Blank line contains whitespace
+  247:9  I001 [*] Import block is un-sorted or un-formatted
+  248:1  W293 [*] Blank line contains whitespace
+  253:1  W293 [*] Blank line contains whitespace
+  259:1  W293 [*] Blank line contains whitespace
+  262:1  W293 [*] Blank line contains whitespace
+  266:1  W293 [*] Blank line contains whitespace
+  270:1  W293 Blank line contains whitespace
+  273:1  W293 Blank line contains whitespace
+  278:1  W293 [*] Blank line contains whitespace
+  282:1  W293 Blank line contains whitespace
+  288:1  W293 [*] Blank line contains whitespace
+  292:1  W293 [*] Blank line contains whitespace
+  293:30 UP006 [*] Use `list` instead of `List` for type annotation
+  293:35 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  296:1  W293 [*] Blank line contains whitespace
+  300:1  W293 [*] Blank line contains whitespace
+  301:29 UP006 [*] Use `list` instead of `List` for type annotation
+  301:34 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  304:1  W293 Blank line contains whitespace
+  310:1  W293 [*] Blank line contains whitespace
+  320:1  W293 [*] Blank line contains whitespace
+  324:1  W293 Blank line contains whitespace
+  331:1  W293 [*] Blank line contains whitespace
+  332:39 UP006 [*] Use `list` instead of `List` for type annotation
+  332:44 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  335:1  W293 Blank line contains whitespace
+  342:1  W293 [*] Blank line contains whitespace
+  346:1  W293 [*] Blank line contains whitespace
+  351:1  W293 [*] Blank line contains whitespace
+  353:32 UP007 [*] Use `X | Y` for type annotations
+  356:1  W293 [*] Blank line contains whitespace
+
+services\voice.py:
+   11:1  W293 Blank line contains whitespace
+   16:1  W293 Blank line contains whitespace
+   23:1  I001 [*] Import block is un-sorted or un-formatted
+   23:8  F401 [*] `asyncio` imported but unused
+   24:1  UP035 `typing.List` is deprecated, use `list` instead
+   24:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   31:1  W293 Blank line contains whitespace
+   34:1  W293 Blank line contains whitespace
+   40:1  W293 [*] Blank line contains whitespace
+   51:1  W293 Blank line contains whitespace
+   67:1  W293 [*] Blank line contains whitespace
+   72:1  W293 [*] Blank line contains whitespace
+   77:1  W293 [*] Blank line contains whitespace
+   81:1  W293 Blank line contains whitespace
+   87:1  W293 [*] Blank line contains whitespace
+   97:1  W293 [*] Blank line contains whitespace
+  109:1  W293 [*] Blank line contains whitespace
+  112:1  W293 [*] Blank line contains whitespace
+  118:1  W293 [*] Blank line contains whitespace
+  122:1  W293 [*] Blank line contains whitespace
+  124:1  W293 [*] Blank line contains whitespace
+  129:1  W293 [*] Blank line contains whitespace
+  133:1  W293 [*] Blank line contains whitespace
+  137:16 UP007 [*] Use `X | Y` for type annotations
+  139:18 UP007 [*] Use `X | Y` for type annotations
+  143:1  W293 Blank line contains whitespace
+  149:1  W293 Blank line contains whitespace
+  152:1  W293 Blank line contains whitespace
+  158:1  W293 [*] Blank line contains whitespace
+  159:9  I001 [*] Import block is un-sorted or un-formatted
+  160:1  W293 [*] Blank line contains whitespace
+  165:1  W293 [*] Blank line contains whitespace
+  171:1  W293 [*] Blank line contains whitespace
+  174:1  W293 [*] Blank line contains whitespace
+  176:1  W293 [*] Blank line contains whitespace
+  179:16 UP007 [*] Use `X | Y` for type annotations
+  180:19 UP007 [*] Use `X | Y` for type annotations
+  186:1  W293 Blank line contains whitespace
+  192:1  W293 Blank line contains whitespace
+  195:1  W293 Blank line contains whitespace
+  202:1  W293 [*] Blank line contains whitespace
+  206:1  W293 [*] Blank line contains whitespace
+  208:1  W293 [*] Blank line contains whitespace
+  214:1  W293 [*] Blank line contains whitespace
+  217:1  W293 [*] Blank line contains whitespace
+  220:16 UP007 [*] Use `X | Y` for type annotations
+  221:19 UP007 [*] Use `X | Y` for type annotations
+  223:10 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  226:1  W293 Blank line contains whitespace
+  231:1  W293 Blank line contains whitespace
+  234:1  W293 Blank line contains whitespace
+  242:1  W293 [*] Blank line contains whitespace
+  245:1  W293 [*] Blank line contains whitespace
+  247:1  W293 [*] Blank line contains whitespace
+  253:1  W293 [*] Blank line contains whitespace
+  255:1  W293 [*] Blank line contains whitespace
+  270:1  W293 [*] Blank line contains whitespace
+  274:16 UP007 [*] Use `X | Y` for type annotations
+  278:1  W293 Blank line contains whitespace
+  282:1  W293 Blank line contains whitespace
+  287:1  W293 [*] Blank line contains whitespace
+  291:1  W293 [*] Blank line contains whitespace
+  292:29 UP006 [*] Use `list` instead of `List` for type annotation
+  292:34 UP006 [*] Use `dict` instead of `Dict` for type annotation
+  295:1  W293 Blank line contains whitespace
+  301:1  W293 [*] Blank line contains whitespace
+  311:1  W293 [*] Blank line contains whitespace
+  317:1  W293 [*] Blank line contains whitespace
+  321:1  W293 Blank line contains whitespace
+  325:1  W293 [*] Blank line contains whitespace
+  330:1  W293 [*] Blank line contains whitespace
+  332:29 UP007 [*] Use `X | Y` for type annotations
+  337:1  W293 [*] Blank line contains whitespace
+  339:29 UP007 [*] Use `X | Y` for type annotations
+
+skills\ppf_build_application\config.py:
+  29:68 W292 [*] No newline at end of file
+
+skills\ppf_build_application\executor.py:
+    6:1  I001 [*] Import block is un-sorted or un-formatted
+   28:1  W293 [*] Blank line contains whitespace
+   31:1  W293 [*] Blank line contains whitespace
+   36:1  W293 [*] Blank line contains whitespace
+   42:1  W293 [*] Blank line contains whitespace
+   44:14 UP015 [*] Unnecessary open mode parameters
+   46:1  W293 [*] Blank line contains whitespace
+   48:1  W293 [*] Blank line contains whitespace
+   51:32 W291 [*] Trailing whitespace
+   54:1  W293 [*] Blank line contains whitespace
+   62:1  W293 [*] Blank line contains whitespace
+   67:1  W293 [*] Blank line contains whitespace
+   71:1  W293 [*] Blank line contains whitespace
+   75:1  W293 [*] Blank line contains whitespace
+  146:1  W293 [*] Blank line contains whitespace
+  149:1  W293 [*] Blank line contains whitespace
+  153:1  W293 [*] Blank line contains whitespace
+  156:1  W293 [*] Blank line contains whitespace
+
+skills\ppf_create_application\audio_neutrality.py:
+   12:1  I001 [*] Import block is un-sorted or un-formatted
+   16:1  UP035 [*] Import from `collections.abc` instead: `Iterable`
+   16:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   16:1  UP035 `typing.List` is deprecated, use `list` instead
+   16:42 F401 [*] `typing.Optional` imported but unused
+   19:21 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   19:31 UP006 [*] Use `list` instead of `List` for type annotation
+   31:19 UP006 [*] Use `list` instead of `List` for type annotation
+   45:14 UP006 [*] Use `list` instead of `List` for type annotation
+   58:14 UP006 [*] Use `list` instead of `List` for type annotation
+   60:9  B007 Loop control variable `category` not used within loop body
+   90:17 UP006 [*] Use `list` instead of `List` for type annotation
+   94:21 UP006 [*] Use `list` instead of `List` for type annotation
+  133:17 UP006 [*] Use `list` instead of `List` for type annotation
+
+skills\ppf_create_application\config.py:
+   16:22 W291 Trailing whitespace
+   17:20 W291 Trailing whitespace
+   51:21 W291 Trailing whitespace
+  228:1  W293 Blank line contains whitespace
+
+skills\ppf_create_application\executor.py:
+    7:1  I001 [*] Import block is un-sorted or un-formatted
+   22:1  W293 [*] Blank line contains whitespace
+   25:1  W293 [*] Blank line contains whitespace
+   29:1  W293 [*] Blank line contains whitespace
+   35:1  W293 [*] Blank line contains whitespace
+   37:14 UP015 [*] Unnecessary open mode parameters
+   39:1  W293 [*] Blank line contains whitespace
+   41:1  W293 [*] Blank line contains whitespace
+   44:32 W291 [*] Trailing whitespace
+   47:1  W293 [*] Blank line contains whitespace
+   55:1  W293 [*] Blank line contains whitespace
+   60:1  W293 [*] Blank line contains whitespace
+   63:1  W293 [*] Blank line contains whitespace
+   66:1  W293 [*] Blank line contains whitespace
+   71:1  W293 [*] Blank line contains whitespace
+   77:30 W291 [*] Trailing whitespace
+   85:30 W291 [*] Trailing whitespace
+   93:1  W293 [*] Blank line contains whitespace
+   98:1  W293 [*] Blank line contains whitespace
+  100:1  W293 [*] Blank line contains whitespace
+  103:1  W293 [*] Blank line contains whitespace
+  106:17 W291 [*] Trailing whitespace
+  107:27 W291 [*] Trailing whitespace
+  108:36 W291 [*] Trailing whitespace
+  113:1  W293 [*] Blank line contains whitespace
+  116:1  W293 [*] Blank line contains whitespace
+  118:1  W293 [*] Blank line contains whitespace
+  121:1  W293 [*] Blank line contains whitespace
+  124:1  W293 [*] Blank line contains whitespace
+  127:1  W293 [*] Blank line contains whitespace
+  131:1  W293 [*] Blank line contains whitespace
+  134:1  W293 [*] Blank line contains whitespace
+  148:20 W292 [*] No newline at end of file
+
+skills\ppf_create_plugin\config.py:
+  55:1 W293 Blank line contains whitespace
+
+skills\ppf_create_plugin\executor.py:
+    6:1  I001 [*] Import block is un-sorted or un-formatted
+    8:8  F401 [*] `json` imported but unused
+   16:1  E402 Module level import not at top of file
+   16:1  I001 [*] Import block is un-sorted or un-formatted
+   17:23 W291 [*] Trailing whitespace
+   18:23 W291 [*] Trailing whitespace
+   19:21 W291 [*] Trailing whitespace
+   23:1  E402 Module level import not at top of file
+   45:1  W293 Blank line contains whitespace
+   71:1  W293 [*] Blank line contains whitespace
+   75:28 W291 [*] Trailing whitespace
+   91:60 W291 [*] Trailing whitespace
+  128:25 F541 [*] f-string without any placeholders
+  134:25 F541 [*] f-string without any placeholders
+  140:1  W293 [*] Blank line contains whitespace
+  145:1  W293 [*] Blank line contains whitespace
+  149:1  W293 [*] Blank line contains whitespace
+  169:1  W293 [*] Blank line contains whitespace
+  172:1  W293 [*] Blank line contains whitespace
+  181:1  W293 [*] Blank line contains whitespace
+  192:29 F541 [*] f-string without any placeholders
+  194:29 F541 [*] f-string without any placeholders
+  212:1  W293 [*] Blank line contains whitespace
+  218:1  W293 [*] Blank line contains whitespace
+  238:1  W293 [*] Blank line contains whitespace
+  241:1  W293 [*] Blank line contains whitespace
+  247:1  W293 [*] Blank line contains whitespace
+  253:1  W293 [*] Blank line contains whitespace
+
+skills\ppf_create_plugin\heavy_libs.py:
+  11:1  UP035 [*] Import from `collections.abc` instead: `Iterable`, `Mapping`
+  11:1  UP035 `typing.List` is deprecated, use `list` instead
+  33:35 UP007 [*] Use `X | Y` for type annotations
+  34:6  UP006 [*] Use `list` instead of `List` for type annotation
+  43:12 UP006 [*] Use `list` instead of `List` for type annotation
+  59:13 UP006 [*] Use `list` instead of `List` for type annotation
+
+skills\ppf_create_plugin\types_sync.py:
+   15:1  I001 [*] Import block is un-sorted or un-formatted
+   18:1  UP035 `typing.Dict` is deprecated, use `dict` instead
+   18:1  UP035 `typing.List` is deprecated, use `list` instead
+   34:1  E402 Module level import not at top of file
+   48:40 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   62:10 UP015 [*] Unnecessary open mode parameters
+   66:38 UP006 [*] Use `dict` instead of `Dict` for type annotation
+   80:23 UP006 [*] Use `list` instead of `List` for type annotation
+   81:21 UP006 [*] Use `list` instead of `List` for type annotation
+  138:14 UP015 [*] Unnecessary open mode parameters
+  156:16 UP006 [*] Use `list` instead of `List` for type annotation
+
+skills\ppf_manage_dependencies\config.py:
+   9:1  UP035 `typing.List` is deprecated, use `list` instead
+  12:31 UP006 [*] Use `list` instead of `List` for type annotation
+  27:1  W293 [*] Blank line contains whitespace
+  38:57 W291 [*] Trailing whitespace
+  41:1  W293 [*] Blank line contains whitespace
+  50:1  W293 [*] Blank line contains whitespace
+
+skills\ppf_manage_dependencies\executor.py:
+    7:1  I001 [*] Import block is un-sorted or un-formatted
+   27:1  E402 Module level import not at top of file
+   27:1  I001 [*] Import block is un-sorted or un-formatted
+   28:1  E402 Module level import not at top of file
+   28:48 F401 [*] `manifest_schema.ManifestValidationError` imported but unused
+   79:28 W291 [*] Trailing whitespace
+   88:28 W291 [*] Trailing whitespace
+  100:1  W293 [*] Blank line contains whitespace
+  102:14 UP015 [*] Unnecessary open mode parameters
+  207:14 UP015 [*] Unnecessary open mode parameters
+  311:16 C401 Unnecessary generator (rewrite as a set comprehension)
+  442:1  W293 [*] Blank line contains whitespace
+  445:1  W293 [*] Blank line contains whitespace
+  462:1  W293 [*] Blank line contains whitespace
+  465:1  W293 [*] Blank line contains whitespace
+  485:1  W293 [*] Blank line contains whitespace
+  492:1  W293 [*] Blank line contains whitespace
+  495:1  W293 [*] Blank line contains whitespace
+
+Found 2089 errors.
+[*] 1605 fixable with the `--fix` option (399 hidden fixes can be enabled with the `--unsafe-fixes` option).

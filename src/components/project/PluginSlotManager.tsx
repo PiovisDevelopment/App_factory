@@ -296,17 +296,7 @@ export const PluginSlotManager: React.FC<PluginSlotManagerProps> = ({
     return [...filteredSlots].sort((a, b) => a.priority - b.priority);
   }, [filteredSlots]);
 
-  // Group by position
-  const groupedSlots = useMemo(() => {
-    const groups: Record<string, PluginSlot[]> = {};
-    sortedSlots.forEach((slot) => {
-      if (!groups[slot.position]) {
-        groups[slot.position] = [];
-      }
-      groups[slot.position].push(slot);
-    });
-    return groups;
-  }, [sortedSlots]);
+
 
   // Get compatible plugins for a slot
   const getCompatiblePlugins = useCallback(
@@ -333,8 +323,7 @@ export const PluginSlotManager: React.FC<PluginSlotManagerProps> = ({
 
   // Get contract icon
   const getContractIcon = (contract: string) => {
-    const Icon = ContractIcons[contract] || ContractIcons.default;
-    return Icon;
+    return ContractIcons[contract] ?? ContractIcons["default"]!;
   };
 
   // Container styles
@@ -505,7 +494,7 @@ export const PluginSlotManager: React.FC<PluginSlotManagerProps> = ({
                           "w-10",
                           "rounded-lg",
                           "border",
-                          contractColors[slot.contract] || contractColors.default,
+                          contractColors[slot.contract] ?? contractColors["default"]!,
                         ].join(" ")}
                       >
                         <ContractIcon className="h-5 w-5" />

@@ -263,10 +263,10 @@ interface TreeNodeRowProps {
   showLock: boolean;
   onSelect: (ids: string[]) => void;
   onToggle: (id: string, expanded: boolean) => void;
-  onVisibilityChange?: (id: string, visible: boolean) => void;
-  onLockChange?: (id: string, locked: boolean) => void;
-  onMove?: (nodeId: string, targetId: string, position: "before" | "after" | "inside") => void;
-  searchQuery?: string;
+  onVisibilityChange?: ((id: string, visible: boolean) => void) | undefined;
+  onLockChange?: ((id: string, locked: boolean) => void) | undefined;
+  onMove?: ((nodeId: string, targetId: string, position: "before" | "after" | "inside") => void) | undefined;
+  searchQuery?: string | undefined;
 }
 
 const TreeNodeRow: React.FC<TreeNodeRowProps> = ({

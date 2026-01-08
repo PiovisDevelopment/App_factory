@@ -10,16 +10,18 @@ All STT plugins (Moonshine, Whisper, Vosk, etc.) MUST implement this contract.
 """
 
 from abc import abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, AsyncIterator, Callable
 from enum import Enum
+from typing import Any
 
 # Import from D001 - no forward references
-from .base import PluginBase, PluginStatus, HealthStatus
+from .base import PluginBase
 
 
 class TranscriptionStatus(Enum):
     """Status of transcription operation."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETE = "complete"
@@ -31,7 +33,7 @@ class TranscriptionStatus(Enum):
 class TranscriptionSegment:
     """
     A segment of transcribed text with timing information.
-    
+
     Attributes:
         text: Transcribed text for this segment
         start_ms: Start time in milliseconds from audio beginning
@@ -41,15 +43,16 @@ class TranscriptionSegment:
         language: Detected language code (optional)
         words: Word-level timing (optional)
     """
+
     text: str
     start_ms: float
     end_ms: float
     confidence: float = 1.0
-    speaker: Optional[str] = None
-    language: Optional[str] = None
-    words: List[Dict[str, Any]] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    speaker: str | None = None
+    language: str | None = None
+    words: list[dict[str, Any]] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize segment for JSON-RPC responses."""
         result = {
             "text": self.text,
@@ -70,7 +73,7 @@ class TranscriptionSegment:
 class TranscriptionResult:
     """
     Result of STT transcription operation.
-    
+
     Attributes:
         text: Full transcribed text
         segments: List of transcription segments with timing
@@ -79,14 +82,15 @@ class TranscriptionResult:
         status: Transcription status
         metadata: Optional additional metadata
     """
+
     text: str
-    segments: List[TranscriptionSegment]
+    segments: list[TranscriptionSegment]
     language: str
     duration_ms: float
     status: TranscriptionStatus = TranscriptionStatus.COMPLETE
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize result for JSON-RPC responses."""
         return {
             "text": self.text,
@@ -102,7 +106,7 @@ class TranscriptionResult:
 class TranscriptionOptions:
     """
     Options for STT transcription.
-    
+
     Attributes:
         language: Target language code (None = auto-detect)
         task: "transcribe" or "translate" (translate to English)
@@ -114,18 +118,19 @@ class TranscriptionOptions:
         initial_prompt: Prompt to guide transcription
         suppress_tokens: Token IDs to suppress
     """
-    language: Optional[str] = None
+
+    language: str | None = None
     task: str = "transcribe"
     word_timestamps: bool = False
     speaker_diarization: bool = False
     max_speakers: int = 2
     beam_size: int = 5
     temperature: float = 0.0
-    initial_prompt: Optional[str] = None
-    suppress_tokens: List[int] = field(default_factory=list)
-    
+    initial_prompt: str | None = None
+    suppress_tokens: list[int] = field(default_factory=list)
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TranscriptionOptions":
+    def from_dict(cls, data: dict[str, Any]) -> "TranscriptionOptions":
         """Create options from dictionary."""
         return cls(
             language=data.get("language"),
@@ -144,7 +149,7 @@ class TranscriptionOptions:
 class StreamingConfig:
     """
     Configuration for streaming transcription.
-    
+
     Attributes:
         sample_rate: Audio sample rate in Hz
         channels: Number of audio channels (1 = mono, 2 = stereo)
@@ -153,6 +158,7 @@ class StreamingConfig:
         vad_enabled: Enable voice activity detection
         vad_threshold: VAD confidence threshold (0.0 to 1.0)
     """
+
     sample_rate: int = 16000
     channels: int = 1
     encoding: str = "pcm_s16le"
@@ -164,24 +170,24 @@ class StreamingConfig:
 class STTContract(PluginBase):
     """
     Abstract contract for Speech-to-Text plugins.
-    
+
     All STT plugins must implement this interface to be compatible
     with the Plugin Host's STT slot.
-    
+
     JSON-RPC Methods (routed by Plugin Host):
         - stt/transcribe: Transcribe audio file or buffer
         - stt/stream/start: Start streaming transcription
         - stt/stream/feed: Feed audio chunk to stream
         - stt/stream/stop: Stop streaming and get final result
         - stt/languages: List supported languages
-    
+
     Example Implementation:
         class MoonshineSTTPlugin(STTContract):
             async def initialize(self, config):
                 self._model = MoonshineModel(config["model_size"])
                 self._status = PluginStatus.READY
                 return True
-            
+
             async def transcribe(self, audio_data, options=None):
                 result = self._model.transcribe(audio_data)
                 return TranscriptionResult(
@@ -190,122 +196,116 @@ class STTContract(PluginBase):
                     ...
                 )
     """
-    
-    def __init__(self):
+
+    def __init__(self) -> None:
         """Initialize STT plugin instance."""
         super().__init__()
         self._is_streaming: bool = False
-        self._stream_config: Optional[StreamingConfig] = None
-        self._stream_callback: Optional[Callable[[TranscriptionSegment], None]] = None
-    
+        self._stream_config: StreamingConfig | None = None
+        self._stream_callback: Callable[[TranscriptionSegment], None] | None = None
+
     @abstractmethod
-    async def transcribe(
-        self,
-        audio_data: bytes,
-        options: Optional[TranscriptionOptions] = None
-    ) -> TranscriptionResult:
+    async def transcribe(self, audio_data: bytes, options: TranscriptionOptions | None = None) -> TranscriptionResult:
         """
         Transcribe audio data to text.
-        
+
         Args:
             audio_data: Raw audio bytes (WAV, MP3, or raw PCM).
             options: Transcription options.
-        
+
         Returns:
             TranscriptionResult containing text and segments.
-        
+
         Raises:
             ValueError: If audio data is invalid or empty.
             RuntimeError: If transcription fails.
         """
         pass
-    
+
     @abstractmethod
     async def start_streaming(
-        self,
-        config: StreamingConfig,
-        callback: Optional[Callable[[TranscriptionSegment], None]] = None
+        self, config: StreamingConfig, callback: Callable[[TranscriptionSegment], None] | None = None
     ) -> bool:
         """
         Start streaming transcription session.
-        
+
         Args:
             config: Streaming configuration (sample rate, encoding, etc.)
             callback: Optional callback for real-time segments.
-        
+
         Returns:
             True if streaming started successfully.
-        
+
         Raises:
             RuntimeError: If already streaming or startup fails.
         """
         pass
-    
+
     @abstractmethod
-    async def feed_audio(self, chunk: bytes) -> Optional[TranscriptionSegment]:
+    async def feed_audio(self, chunk: bytes) -> TranscriptionSegment | None:
         """
         Feed audio chunk to streaming session.
-        
+
         Args:
             chunk: Raw audio bytes matching StreamingConfig.
-        
+
         Returns:
             TranscriptionSegment if new segment available, None otherwise.
-        
+
         Raises:
             RuntimeError: If not currently streaming.
         """
         pass
-    
+
     @abstractmethod
     async def stop_streaming(self) -> TranscriptionResult:
         """
         Stop streaming and get final transcription result.
-        
+
         Returns:
             Final TranscriptionResult with all segments.
-        
+
         Raises:
             RuntimeError: If not currently streaming.
         """
         pass
-    
-    def get_supported_languages(self) -> List[str]:
+
+    def get_supported_languages(self) -> list[str]:
         """
         Get list of supported language codes.
-        
+
         Returns:
             List of BCP-47 language codes (e.g., ["en", "ja", "de"]).
         """
         return ["en"]  # Default: English only
-    
+
     def supports_streaming(self) -> bool:
         """
         Check if plugin supports streaming transcription.
-        
+
         Returns:
             True if streaming is supported, False otherwise.
         """
         return False
-    
+
     def supports_diarization(self) -> bool:
         """
         Check if plugin supports speaker diarization.
-        
+
         Returns:
             True if diarization is supported, False otherwise.
         """
         return False
-    
+
     def supports_translation(self) -> bool:
         """
         Check if plugin supports translation to English.
-        
+
         Returns:
             True if translation is supported, False otherwise.
         """
         return False
-    
+
     @property
     def is_streaming(self) -> bool:
         """Check if currently in streaming mode."""

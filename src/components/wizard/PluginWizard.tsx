@@ -263,8 +263,8 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
   // Validation errors per step
   const [stepErrors, setStepErrors] = useState<Record<string, string[]>>({});
 
-  // Current step
-  const currentStep = steps[currentStepIndex];
+  // Current step - non-null assertion safe because currentStepIndex is always in bounds
+  const currentStep = steps[currentStepIndex]!;
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
@@ -349,7 +349,7 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
 
   // Step completion status
   const stepCompletion = useMemo(() => {
-    return steps.map((step, index) => {
+    return steps.map((_step, index) => {
       if (index < currentStepIndex) {
         return "completed";
       }
@@ -431,14 +431,14 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
                 stepCompletion[index] === "pending" && "cursor-not-allowed opacity-60",
               ].filter(Boolean).join(" ")}
             >
-              <div className={getStepIndicatorStyles(stepCompletion[index])}>
+              <div className={getStepIndicatorStyles(stepCompletion[index]!)}>
                 {stepCompletion[index] === "completed" ? (
                   <CheckIcon className="h-4 w-4" />
                 ) : (
                   index + 1
                 )}
               </div>
-              <span className={getStepTextStyles(stepCompletion[index])}>
+              <span className={getStepTextStyles(stepCompletion[index]!)}>
                 {step.title}
                 {step.optional && (
                   <span className="ml-1 text-xs text-neutral-400">(optional)</span>
@@ -448,7 +448,7 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
 
             {/* Connector */}
             {index < steps.length - 1 && (
-              <div className={getConnectorStyles(stepCompletion[index])} />
+              <div className={getConnectorStyles(stepCompletion[index]!)} />
             )}
           </React.Fragment>
         ))}
@@ -469,10 +469,10 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
         </div>
 
         {/* Validation errors */}
-        {stepErrors[currentStep.id]?.length > 0 && (
+        {(stepErrors[currentStep.id] ?? []).length > 0 && (
           <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg">
             <ul className="list-disc list-inside text-sm text-error-700">
-              {stepErrors[currentStep.id].map((error, index) => (
+              {(stepErrors[currentStep.id] ?? []).map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
             </ul>
@@ -602,8 +602,8 @@ interface DefaultStepContentProps {
 
 const DefaultStepContent: React.FC<DefaultStepContentProps> = ({
   stepId,
-  data,
-  onChange,
+  data: _data,
+  onChange: _onChange,
 }) => {
   // Placeholder content - real components will be provided via renderStep
   return (

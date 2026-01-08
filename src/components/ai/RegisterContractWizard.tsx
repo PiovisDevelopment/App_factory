@@ -24,7 +24,6 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select, type SelectOption } from "../ui/Select";
 import { Panel } from "../ui/Panel";
-import { Modal } from "../ui/Modal";
 import { type ContractMethod, type ContractParameter } from "./ContractWizard";
 
 /**
@@ -617,7 +616,10 @@ ${methodDefs}
     }
 
     if (stepIndex < steps.length - 1) {
-      setCurrentStep(steps[stepIndex + 1].key);
+      const nextStep = steps[stepIndex + 1];
+      if (nextStep) {
+        setCurrentStep(nextStep.key);
+      }
       setError(null);
     }
   }, [currentStep, steps, validatePrefix, validateMethods, smokeTestParamsJson]);
@@ -625,7 +627,10 @@ ${methodDefs}
   const goBack = useCallback(() => {
     const stepIndex = steps.findIndex((s) => s.key === currentStep);
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].key);
+      const prevStep = steps[stepIndex - 1];
+      if (prevStep) {
+        setCurrentStep(prevStep.key);
+      }
       setError(null);
     }
   }, [currentStep, steps]);
@@ -665,7 +670,7 @@ ${methodDefs}
       contractName: derivedContractName,
       description,
       requiredMethods: validMethods,
-      smokeTest: smokeTest.method ? smokeTest : undefined,
+      ...(smokeTest.method ? { smokeTest } : {}),
     };
 
     try {

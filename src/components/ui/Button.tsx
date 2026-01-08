@@ -13,7 +13,7 @@
  *   - Accessible by default (ARIA, keyboard navigation)
  */
 
-import React, {
+import {
   forwardRef,
   type ButtonHTMLAttributes,
   type ReactNode,
@@ -120,7 +120,7 @@ export interface ButtonProps
   /** Render as icon-only button (square) */
   iconOnly?: boolean;
   /** Loading state - shows spinner and disables interaction */
-  loading?: boolean;
+  loading?: boolean | undefined;
   /** Full width button */
   fullWidth?: boolean;
   /** Icon on the left side of text */

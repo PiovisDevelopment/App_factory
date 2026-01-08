@@ -9,14 +9,14 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - HealthMonitor for periodic health checks
-//! - HealthStatus tracking with history
-//! - SubprocessState enum for lifecycle tracking
+//! - `HealthMonitor` for periodic health checks
+//! - `HealthStatus` tracking with history
+//! - `SubprocessState` enum for lifecycle tracking
 //! - Automatic crash detection and recovery signaling
 //!
 //! Dependencies:
-//!     - D030: mod.rs (IpcError, constants)
-//!     - D031: request.rs (RequestBuilder)
+//!     - D030: mod.rs (`IpcError`, constants)
+//!     - D031: request.rs (`RequestBuilder`)
 //!
 //! Usage:
 //!     ```rust
@@ -325,7 +325,7 @@ impl HealthMonitor {
         let old_state = *guard;
         *guard = state;
 
-        log::info!("Subprocess state: {} -> {}", old_state, state);
+        log::info!("Subprocess state: {old_state} -> {state}");
 
         // Update health based on state
         match state {
@@ -381,7 +381,7 @@ impl HealthMonitor {
             self.set_state(SubprocessState::Running);
         }
 
-        log::debug!("Health check success: latency={:?}", latency);
+        log::debug!("Health check success: latency={latency:?}");
     }
 
     /// Record a failed health check.
@@ -398,10 +398,10 @@ impl HealthMonitor {
         let result = HealthCheckResult::failure(&error);
         self.add_to_history(result);
 
-        log::warn!("Health check failure #{}: {}", failures, error);
+        log::warn!("Health check failure #{failures}: {error}");
 
         // Check if we should mark as degraded
-        if failures >= self.max_consecutive_failures as u64 {
+        if failures >= u64::from(self.max_consecutive_failures) {
             self.is_healthy.store(false, Ordering::SeqCst);
             let current_state = self.state();
             if current_state == SubprocessState::Running {
@@ -480,7 +480,7 @@ impl HealthMonitor {
     /// Increment respawn attempt counter.
     pub fn increment_respawn(&self) -> u32 {
         let attempts = self.respawn_attempts.fetch_add(1, Ordering::SeqCst) + 1;
-        log::info!("Respawn attempt: {}/{}", attempts, MAX_RESPAWN_ATTEMPTS);
+        log::info!("Respawn attempt: {attempts}/{MAX_RESPAWN_ATTEMPTS}");
         attempts as u32
     }
 
@@ -491,7 +491,7 @@ impl HealthMonitor {
 
     /// Check if max respawn attempts exceeded.
     pub fn respawn_limit_exceeded(&self) -> bool {
-        self.respawn_attempts.load(Ordering::SeqCst) >= MAX_RESPAWN_ATTEMPTS as u64
+        self.respawn_attempts.load(Ordering::SeqCst) >= u64::from(MAX_RESPAWN_ATTEMPTS)
     }
 
     /// Reset all counters (typically on fresh start).
@@ -515,7 +515,7 @@ impl HealthMonitor {
     /// Mark subprocess as crashed.
     pub fn mark_crashed(&self, error: impl Into<String>) {
         let error = error.into();
-        log::error!("Subprocess crashed: {}", error);
+        log::error!("Subprocess crashed: {error}");
         self.set_state(SubprocessState::Crashed);
         self.record_failure(error);
     }

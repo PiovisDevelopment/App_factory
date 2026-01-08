@@ -1,0 +1,49 @@
+
+> app-factory@1.0.0 ci:js:types
+> tsc --noEmit
+
+src/components/factory/FactoryLayout.tsx(112,7): error TS6133: '_PanelIcons' is declared but its value is never read.
+src/components/factory/PluginCard.tsx(155,18): error TS2430: Interface 'PluginCardProps' incorrectly extends interface 'Omit<HTMLAttributes<HTMLDivElement>, "onSelect">'.
+  Types of property 'onLoad' are incompatible.
+    Type '((plugin: PluginInfo) => void) | undefined' is not assignable to type 'ReactEventHandler<HTMLDivElement> | undefined'.
+      Type '(plugin: PluginInfo) => void' is not assignable to type 'ReactEventHandler<HTMLDivElement>'.
+        Types of parameters 'plugin' and 'event' are incompatible.
+          Type 'SyntheticEvent<HTMLDivElement, Event>' is missing the following properties from type 'PluginInfo': id, name, version, description, and 2 more.
+src/components/factory/PluginCard.tsx(183,7): error TS6133: 'MoreIcon' is declared but its value is never read.
+src/components/factory/PluginCard.tsx(203,7): error TS6133: 'SettingsIcon' is declared but its value is never read.
+src/components/factory/PluginCard.tsx(222,7): error TS6133: 'InfoIcon' is declared but its value is never read.
+src/components/factory/PluginCard.tsx(363,11): error TS6133: 'handleConfigure' is declared but its value is never read.
+src/components/factory/PluginCard.tsx(369,11): error TS6133: 'handleInfo' is declared but its value is never read.
+src/components/factory/PropertyInspector.tsx(97,18): error TS2430: Interface 'PropertyInspectorProps' incorrectly extends interface 'HTMLAttributes<HTMLDivElement>'.
+  Types of property 'onChange' are incompatible.
+    Type '((key: string, value: unknown) => void) | undefined' is not assignable to type 'FormEventHandler<HTMLDivElement> | undefined'.
+      Type '(key: string, value: unknown) => void' is not assignable to type 'FormEventHandler<HTMLDivElement>'.
+        Target signature provides too few arguments. Expected 2 or more, but got 1.
+src/components/factory/TemplateComponentRenderer.tsx(345,21): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/project/PluginSlotManager.tsx(300,9): error TS6133: '_groupedSlots' is declared but its value is never read.
+src/components/project/ScreenEditor.tsx(220,7): error TS6133: '_EyeIcon' is declared but its value is never read.
+src/components/project/ScreenEditor.tsx(311,9): error TS6133: '_LayoutIcon' is declared but its value is never read.
+src/components/project/SwapPluginModal.tsx(228,10): error TS6133: 'showDetails' is declared but its value is never read.
+src/components/project/SwapPluginModal.tsx(271,9): error TS6133: 'selectedPlugin' is declared but its value is never read.
+src/components/testing/HealthDashboard.tsx(229,7): error TS6133: 'statusBorderColors' is declared but its value is never read.
+src/components/testing/LogViewer.tsx(193,7): error TS6133: 'levelBgColors' is declared but its value is never read.
+src/components/testing/MethodInvoker.tsx(162,7): error TS6133: 'generateId' is declared but its value is never read.
+src/components/testing/MethodInvoker.tsx(624,17): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/testing/PluginTester.tsx(621,25): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/components/ui/Panel.tsx(301,18): error TS2430: Interface 'PanelHeaderProps' incorrectly extends interface 'HTMLAttributes<HTMLDivElement>'.
+  Types of property 'title' are incompatible.
+    Type 'ReactNode' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/components/ui/ThemePreview.tsx(175,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/ui/ThemePreview.tsx(176,41): error TS2322: Type 'ColorScale' is not assignable to type 'Record<string | number, string>'.
+  Index signature for type 'string' is missing in type 'ColorScale'.
+src/components/wizard/PluginWizard.tsx(352,23): error TS6133: 'step' is declared but its value is never read.
+src/components/wizard/PluginWizard.tsx(605,3): error TS6133: 'data' is declared but its value is never read.
+src/components/wizard/PluginWizard.tsx(606,3): error TS6133: 'onChange' is declared but its value is never read.
+src/hooks/useIpc.ts(193,7): error TS6133: 'DEFAULT_STATS' is declared but its value is never read.
+src/hooks/useIpc.ts(317,9): error TS6133: 'addNotification' is declared but its value is never read.
+src/hooks/usePlugin.ts(325,9): error TS6133: 'clearPlugins' is declared but its value is never read.
+src/stores/pluginStore.ts(327,11): error TS6133: 'get' is declared but its value is never read.
+src/utils/exporter.ts(443,7): error TS2322: Type 'ThemeConfig | { name: string; primaryColor: string; secondaryColor: string; accentColor: string; backgroundColor: string; textColor: string; borderRadius: string; fontFamily: string; darkMode: false; customVariables: {}; }' is not assignable to type 'ThemeConfig'.
+  Object literal may only specify known properties, and 'primaryColor' does not exist in type 'ThemeConfig'.

@@ -1,0 +1,939 @@
+# Implementation Plan: Architecture Alignment
+
+**Version:** 2.0 | **Date:** 2026-01-08 | **Status:** Awaiting Approval
+
+---
+
+## Executive Summary
+
+This plan aligns App Factory with proven brownfield patterns by:
+1. Removing stale Pluggy documentation (not used in codebase)
+2. Migrating LLM calls from browser to backend plugins (security + hot-swap)
+3. Establishing a centralized design system (additive, HIG-compliant)
+4. Consolidating documentation sources of truth
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Breaking Change (Intentional):** [llmService.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/services/llmService.ts) and [aiChatLlmService.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/services/aiChatLlmService.ts) will be deprecated.
+> All LLM calls will route through backend plugins via Tauri IPC.
+
+> [!WARNING]
+> **Manual Testing Required:** Phases 3 and 5 require you to verify AI Chat and Component Generator work correctly.
+
+---
+
+## Research Findings (Embedded Context)
+
+### Finding 1: Pluggy vs ABC Pattern
+
+**Decision: Do NOT use Pluggy. Continue with ABC contracts.**
+
+| Criterion | Pluggy | ABC Inheritance | Winner |
+|-----------|--------|-----------------|--------|
+| Philosophy | Event-driven; multiple plugins respond to one event | Interface-driven; one plugin fulfills a contract | **ABC** |
+| Use Case | pytest, middleware chains | Service providers (TTS, LLM, STT) | **ABC** |
+| Enforcement | Runtime | **Import-time** (fails if methods missing) | **ABC** |
+| Dependency | `pluggy>=1.5.0` | **Python stdlib** (`abc` module) | **ABC** |
+
+**Source:** https://pluggy.readthedocs.io/en/stable/ — Pluggy is for "frameworks where multiple plugins react to the same event." Your plugins are 1:1 service providers.
+
+---
+
+### Finding 2: LLM Backend Migration
+
+**Decision: Route ALL LLM calls through Python plugins via Tauri IPC.**
+
+**Why direct browser SDK calls are forbidden:**
+- API keys exposed in browser network tab
+- No rate limiting or access control possible
+- Violates separation of concerns
+
+**Enforcement Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Frontend (React)                                                │
+│                                                                 │
+│  FORBIDDEN:                                                     │
+│  - import { GoogleGenAI } from '@google/genai';    ← REMOVE     │
+│  - import Anthropic from '@anthropic-ai/sdk';      ← REMOVE     │
+│                                                                 │
+│  REQUIRED:                                                      │
+│  await invoke('plugin_call', {                                  │
+│      plugin: 'llm_gemini',                                      │
+│      method: 'complete',                                        │
+│      args: { prompt, options }                                  │
+│  });                                                            │
+└─────────────────────────────────────────────────────────────────┘
+                              │ Tauri IPC
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Python Sidecar → Plugin System                                  │
+│                                                                 │
+│  plugins/llm_gemini/     ← google-generativeai runs HERE        │
+│  plugins/llm_anthropic/  ← anthropic SDK runs HERE              │
+│  plugins/llm_ollama/     ← Ollama API runs HERE                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Source:** https://docs.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends
+
+---
+
+### Finding 3: Design System Architecture
+
+**Decision: Three-tier token architecture with CSS Custom Properties.**
+
+```
+Tier 1: Reference Tokens (Primitive)
+  --color-blue-500: #0066cc;
+
+Tier 2: Semantic Tokens (Role)
+  --color-action-primary: var(--color-blue-500);
+
+Tier 3: Component Tokens (Specific)
+  --button-bg: var(--color-action-primary);
+```
+
+**Apple HIG Compliance:**
+| Principle | Implementation |
+|-----------|----------------|
+| Clarity | Semantic tokens, 4.5:1 contrast |
+| Deference | UI chrome uses `--color-surface` |
+| Depth | Z-index tokens (`--z-modal`) |
+| Accessibility | `:focus-visible`, 44px touch targets |
+
+**Source:** https://developer.apple.com/design/human-interface-guidelines/
+
+---
+
+## Document Consolidation Strategy
+
+### Current State (7 docs with overlap)
+```
+docs/
+├── ANALYSIS_ENFORCEMENT.md    ← Linting rules
+├── ARCHITECTURE.md            ← System design
+├── PLUGIN_DEVELOPMENT.md      ← Plugin guide
+├── TECHNICAL_REFERENCES.md    ← Mixed content (Pluggy, JSON-RPC)
+├── TOOL_STACK.md              ← Tool versions
+└── strategic_analysis.md      ← Gap analysis
+```
+
+### Target State (4 docs, clear ownership)
+```
+docs/
+├── ARCHITECTURE.md            ← System design + IPC protocol
+├── PLUGIN_DEVELOPMENT.md      ← Plugin guide (ABC contracts)
+├── ANALYSIS_ENFORCEMENT.md    ← Linting/CI rules (includes TOOL_STACK)
+└── strategic_analysis.md      ← Historical gap analysis (archive)
+
+DELETED:
+├── TECHNICAL_REFERENCES.md    ← Merged into ARCHITECTURE.md
+├── TOOL_STACK.md              ← Merged into ANALYSIS_ENFORCEMENT.md
+```
+
+---
+
+## Phase 1: Documentation Cleanup
+
+### 1.1 Remove Pluggy References
+
+#### [MODIFY] [TECHNICAL_REFERENCES.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/docs/TECHNICAL_REFERENCES.md)
+
+**Delete these sections:**
+- Lines 13: Remove `| Pluggy | https://pluggy.readthedocs.io/en/stable/ | Python plugin framework |`
+- Lines 78-132: Delete entire "Section 3: Pluggy Pattern (Embedded)"
+- Line 287: Remove `PluginManager (Pluggy-based)` from diagram
+- Line 310: Remove `| Plugins | Pluggy | 1.5.0+ | stdlib only |`
+
+#### [MODIFY] [CLAUDE.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/CLAUDE.md)
+
+**Delete:**
+- Line 408: Remove `| Backend | Pluggy | stdlib |`
+
+---
+
+### 1.2 Remove D-Codes from Contracts
+
+#### [MODIFY] [llm_contract.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/contracts/llm_contract.py)
+
+**Replace lines 1-10:**
+```python
+"""
+contracts/llm_contract.py
+=========================
+Large Language Model contract defining the interface for LLM plugins.
+All LLM plugins (Ollama, Gemini, Anthropic) MUST implement this contract.
+"""
+```
+
+#### [MODIFY] [tts_contract.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/contracts/tts_contract.py)
+
+**Replace docstring header:** Remove all `D00X` references, keep description.
+
+#### [MODIFY] [stt_contract.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/contracts/stt_contract.py)
+
+**Replace docstring header:** Remove all `D00X` references, keep description.
+
+#### [MODIFY] [base.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/contracts/base.py)
+
+**Replace docstring header:** Remove all `D00X` references, keep description.
+
+#### [MODIFY] [design_tokens.css](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/config/design_tokens.css)
+
+**Replace lines 1-16:**
+```css
+/**
+ * config/design_tokens.css
+ * ========================
+ * Design tokens as CSS custom properties.
+ * Single source of truth for all visual styling.
+ * 
+ * Usage:
+ *   - Imported in src/styles/index.css
+ *   - Extended by tailwind.config.js
+ *   - Referenced by all UI components
+ * 
+ * Rules:
+ *   - NO hardcoded values in components
+ *   - ALL styling must reference these tokens
+ *   - Use semantic names, not values
+ */
+```
+
+---
+
+### 1.3 Consolidate TOOL_STACK into ANALYSIS_ENFORCEMENT
+
+#### [DELETE] [TOOL_STACK.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/docs/TOOL_STACK.md)
+
+**Action:** Delete file after merging content below.
+
+#### [MODIFY] [ANALYSIS_ENFORCEMENT.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/docs/ANALYSIS_ENFORCEMENT.md)
+
+**Add new section after line 18:**
+```markdown
+## 1.1 Pinned Tool Versions (Source of Truth)
+
+### JavaScript / TypeScript
+| Tool | Version | Purpose |
+|------|---------|---------|
+| TypeScript (tsc) | `~5.9.3` | Type safety / Compiler |
+| ESLint | `~9.6.0` | Semantic linting (CI) |
+| typescript-eslint | `8.51.0` | TS integration |
+| eslint-plugin-react-hooks | `^7.0.1` | React hooks rules |
+| Oxlint | `1.0` | Fast local feedback (advisory) |
+
+### Python
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Ruff | `0.14.9` | Linting & formatting |
+| Mypy | `>=1.9,<2.0` | Static type checking |
+
+### Rust (Tauri)
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Rust Toolchain | `1.92.0` | Core language |
+| Clippy | `stable` | Linter |
+```
+
+---
+
+### 1.4 Merge JSON-RPC into ARCHITECTURE
+
+#### [MODIFY] [ARCHITECTURE.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/docs/ARCHITECTURE.md)
+
+**Verify section "Communication Protocol" (lines 169-235) contains:**
+- JSON-RPC 2.0 specification
+- Request/Response format
+- Standard error codes
+
+**If missing, add from TECHNICAL_REFERENCES.md Section 2.**
+
+#### [DELETE] [TECHNICAL_REFERENCES.md](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/docs/TECHNICAL_REFERENCES.md)
+
+**Action:** Delete file after verifying all needed content is in ARCHITECTURE.md.
+
+---
+
+## Phase 2: Backend LLM Plugins
+
+### 2.1 Create Gemini Plugin
+
+#### [NEW] [manifest.json](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/plugins/llm_gemini/manifest.json)
+```json
+{
+  "name": "llm_gemini",
+  "version": "1.0.0",
+  "description": "Google Gemini LLM integration via google-generativeai SDK",
+  "author": "Piovis",
+  "contracts": ["llm"],
+  "dependencies": ["google-generativeai"]
+}
+```
+
+#### [NEW] [plugin.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/plugins/llm_gemini/plugin.py)
+```python
+"""
+Plugin: llm_gemini
+Description: Google Gemini LLM integration.
+"""
+
+import os
+from plugins._host import PluginBase
+
+# Import SDK here (server-side only)
+import google.generativeai as genai
+
+
+class Plugin(PluginBase):
+    def initialize(self):
+        """Initialize the plugin."""
+        self.logger.info("Initializing llm_gemini...")
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            self.logger.warning("GEMINI_API_KEY not set")
+        else:
+            genai.configure(api_key=api_key)
+        self.register_method("complete", self.complete)
+        self.register_method("get_models", self.get_models)
+        self.logger.info("llm_gemini initialized")
+
+    def shutdown(self):
+        """Shutdown the plugin."""
+        self.logger.info("Shutting down llm_gemini")
+
+    def health_check(self) -> dict:
+        """Check if API key is configured."""
+        if os.environ.get("GEMINI_API_KEY"):
+            return {"status": "healthy", "details": "API key configured"}
+        return {"status": "degraded", "details": "GEMINI_API_KEY not set"}
+
+    def get_models(self) -> list:
+        """Get available models."""
+        return [
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-preview",
+            "gemini-2.5-pro-preview"
+        ]
+
+    def complete(
+        self,
+        prompt: str,
+        model: str = "gemini-2.0-flash",
+        temperature: float = 0.7,
+        system_prompt: str = ""
+    ) -> dict:
+        """Generate a completion."""
+        self.logger.info(f"Generating completion with {model}")
+        try:
+            gen_model = genai.GenerativeModel(model)
+            
+            full_prompt = prompt
+            if system_prompt:
+                full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            response = gen_model.generate_content(
+                full_prompt,
+                generation_config=genai.GenerationConfig(
+                    temperature=temperature
+                )
+            )
+            return {"text": response.text}
+        except Exception as e:
+            self.logger.error(f"Gemini API error: {e}")
+            return {"text": "", "error": str(e)}
+```
+
+---
+
+### 2.2 Create Anthropic Plugin
+
+#### [NEW] [manifest.json](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/plugins/llm_anthropic/manifest.json)
+```json
+{
+  "name": "llm_anthropic",
+  "version": "1.0.0",
+  "description": "Anthropic Claude LLM integration",
+  "author": "Piovis",
+  "contracts": ["llm"],
+  "dependencies": ["anthropic"]
+}
+```
+
+#### [NEW] [plugin.py](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/plugins/llm_anthropic/plugin.py)
+```python
+"""
+Plugin: llm_anthropic
+Description: Anthropic Claude LLM integration.
+"""
+
+import os
+from plugins._host import PluginBase
+
+import anthropic
+
+
+class Plugin(PluginBase):
+    def initialize(self):
+        """Initialize the plugin."""
+        self.logger.info("Initializing llm_anthropic...")
+        self.api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not self.api_key:
+            self.logger.warning("ANTHROPIC_API_KEY not set")
+        self.register_method("complete", self.complete)
+        self.register_method("get_models", self.get_models)
+        self.logger.info("llm_anthropic initialized")
+
+    def shutdown(self):
+        """Shutdown the plugin."""
+        self.logger.info("Shutting down llm_anthropic")
+
+    def health_check(self) -> dict:
+        """Check if API key is configured."""
+        if self.api_key:
+            return {"status": "healthy", "details": "API key configured"}
+        return {"status": "degraded", "details": "ANTHROPIC_API_KEY not set"}
+
+    def get_models(self) -> list:
+        """Get available models."""
+        return [
+            "claude-3-5-sonnet-20241022",
+            "claude-3-opus-20240229",
+            "claude-3-haiku-20240307"
+        ]
+
+    def complete(
+        self,
+        prompt: str,
+        model: str = "claude-3-5-sonnet-20241022",
+        temperature: float = 0.7,
+        system_prompt: str = ""
+    ) -> dict:
+        """Generate a completion."""
+        self.logger.info(f"Generating completion with {model}")
+        try:
+            client = anthropic.Anthropic(api_key=self.api_key)
+            
+            messages = [{"role": "user", "content": prompt}]
+            
+            response = client.messages.create(
+                model=model,
+                max_tokens=4096,
+                system=system_prompt if system_prompt else "",
+                messages=messages,
+                temperature=temperature
+            )
+            
+            text = response.content[0].text if response.content else ""
+            return {"text": text}
+        except Exception as e:
+            self.logger.error(f"Anthropic API error: {e}")
+            return {"text": "", "error": str(e)}
+```
+
+---
+
+### 2.3 Update Dependencies
+
+#### [MODIFY] [requirements.txt](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/requirements.txt)
+
+**Add after line 23:**
+```
+# LLM Provider SDKs (server-side only)
+google-generativeai>=0.8.0
+anthropic>=0.39.0
+```
+
+---
+
+## Phase 3: Frontend Service Refactor
+
+### 3.1 Create New IPC Service
+
+#### [NEW] [llmPluginService.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/services/llmPluginService.ts)
+```typescript
+/**
+ * llmPluginService.ts
+ * ===================
+ * LLM service that routes ALL calls through backend plugins via Tauri IPC.
+ * 
+ * REPLACES: llmService.ts, aiChatLlmService.ts (both deprecated)
+ * 
+ * Security: API keys are stored in .env and accessed only by Python backend.
+ * Hot-swap: Change 'plugin' parameter to switch providers at runtime.
+ */
+
+import { invoke } from '@tauri-apps/api/tauri';
+
+export interface LLMResult {
+    success: boolean;
+    text?: string;
+    error?: string;
+}
+
+export interface LLMOptions {
+    model?: string;
+    temperature?: number;
+    systemPrompt?: string;
+}
+
+/**
+ * Available LLM plugin names.
+ * These must match plugin directory names in plugins/
+ */
+export type LLMPluginName = 'llm_gemini' | 'llm_anthropic' | 'llm_ollama';
+
+/**
+ * Generate text using a backend LLM plugin.
+ * 
+ * @param plugin - Plugin to use (e.g., 'llm_gemini')
+ * @param prompt - User prompt
+ * @param options - Optional: model, temperature, systemPrompt
+ * @returns LLMResult with success status and text or error
+ */
+export async function generateText(
+    plugin: LLMPluginName,
+    prompt: string,
+    options?: LLMOptions
+): Promise<LLMResult> {
+    try {
+        const result = await invoke<{ text?: string; error?: string }>('plugin_call', {
+            plugin,
+            method: 'complete',
+            args: {
+                prompt,
+                model: options?.model,
+                temperature: options?.temperature ?? 0.7,
+                system_prompt: options?.systemPrompt ?? ''
+            }
+        });
+        
+        if (result.error) {
+            return { success: false, error: result.error };
+        }
+        return { success: true, text: result.text ?? '' };
+    } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        return { success: false, error: message };
+    }
+}
+
+/**
+ * Get available models for a plugin.
+ */
+export async function getModels(plugin: LLMPluginName): Promise<string[]> {
+    try {
+        return await invoke<string[]>('plugin_call', {
+            plugin,
+            method: 'get_models',
+            args: {}
+        });
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Check plugin health.
+ */
+export async function checkHealth(plugin: LLMPluginName): Promise<{ status: string; details: string }> {
+    try {
+        return await invoke<{ status: string; details: string }>('plugin_call', {
+            plugin,
+            method: 'health_check',
+            args: {}
+        });
+    } catch (err) {
+        return { status: 'error', details: err instanceof Error ? err.message : 'Unknown error' };
+    }
+}
+```
+
+---
+
+### 3.2 Update Component Generator
+
+#### [MODIFY] [useComponentGenerator.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/hooks/useComponentGenerator.ts)
+
+**Line 21 - Replace import:**
+```typescript
+// OLD: import { generateText } from "../services/llmService";
+import { generateText, type LLMPluginName } from "../services/llmPluginService";
+```
+
+**Line 360 - Update function call:**
+```typescript
+// OLD: const result = await generateText(llmPrompt);
+const plugin: LLMPluginName = 'llm_gemini'; // TODO: Get from settings
+const result = await generateText(plugin, llmPrompt, {
+    temperature: settings.temperature,
+    systemPrompt: settings.systemPrompt
+});
+```
+
+#### [MODIFY] [ComponentGenerator.tsx](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/components/ai/ComponentGenerator.tsx)
+
+**Line 20 - Replace import:**
+```typescript
+// OLD: import { generateText } from "../../services/llmService";
+import { generateText, type LLMPluginName } from "../../services/llmPluginService";
+```
+
+**Line 444 - Update function call:**
+```typescript
+// OLD: const result = await generateText(refinementPrompt);
+const plugin: LLMPluginName = 'llm_gemini'; // TODO: Get from settings
+const result = await generateText(plugin, refinementPrompt);
+```
+
+---
+
+### 3.3 Update AI Chat Panel
+
+#### [MODIFY] [AiAppChatPanel.tsx](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/components/ai/AiAppChatPanel.tsx)
+
+**Line 21 - Replace import:**
+```typescript
+// OLD: import { generateWithConfig, type ChatMessage } from '../../services/aiChatLlmService';
+import { generateText, type LLMPluginName, type LLMResult } from '../../services/llmPluginService';
+```
+
+**Lines 480-481 - Update function call:**
+```typescript
+// OLD: const result = await generateWithConfig(config, finalPrompt, history, images);
+const plugin: LLMPluginName = config.provider === 'gemini' ? 'llm_gemini' 
+                            : config.provider === 'anthropic' ? 'llm_anthropic' 
+                            : 'llm_ollama';
+const result = await generateText(plugin, finalPrompt, {
+    model: config.model,
+    temperature: config.temperature,
+    systemPrompt: config.systemPrompt
+});
+```
+
+---
+
+### 3.4 Deprecate Old Services
+
+#### [MODIFY] [llmService.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/services/llmService.ts)
+
+**Add at top of file (line 1):**
+```typescript
+/**
+ * @deprecated This file is deprecated. Use llmPluginService.ts instead.
+ * 
+ * REASON: Direct browser SDK calls expose API keys and bypass plugin architecture.
+ * MIGRATION: Import from './llmPluginService' and use generateText(plugin, prompt, options)
+ * 
+ * This file will be removed in a future version.
+ */
+```
+
+#### [MODIFY] [aiChatLlmService.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/services/aiChatLlmService.ts)
+
+**Add at top of file (line 1):**
+```typescript
+/**
+ * @deprecated This file is deprecated. Use llmPluginService.ts instead.
+ * 
+ * REASON: Direct browser SDK calls expose API keys and bypass plugin architecture.
+ * MIGRATION: Import from './llmPluginService' and use generateText(plugin, prompt, options)
+ * 
+ * This file will be removed in a future version.
+ */
+```
+
+---
+
+### 3.5 Add CI Enforcement Gate
+
+#### [MODIFY] [package.json](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/package.json)
+
+**Add after line 24 (ci:validate):**
+```json
+"ci:no-browser-sdk": "powershell -Command \"if (Select-String -Path 'src/**/*.ts' -Pattern '@google/genai|@anthropic-ai/sdk' -SimpleMatch) { exit 1 }\"",
+```
+
+**Update ci:validate (line 24):**
+```json
+"ci:validate": "npm run ci:js:types && npm run ci:js:lint && npm run ci:no-browser-sdk && npm run ci:py && npm run ci:rs",
+```
+
+---
+
+## Phase 4: Design System Foundation
+
+### 4.1 Create Directory Structure
+
+```
+src/design-system/
+├── tokens/
+│   └── index.ts
+├── primitives/
+│   └── Box.tsx
+└── hooks/
+    ├── useDraggable.ts
+    └── useResizable.ts
+```
+
+### 4.2 Token Exports
+
+#### [NEW] [index.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/design-system/tokens/index.ts)
+```typescript
+/**
+ * Design Tokens - TypeScript Exports
+ * ===================================
+ * These mirror config/design_tokens.css for programmatic access.
+ * Source of truth: config/design_tokens.css
+ */
+
+export const spacing = {
+  0: 'var(--space-0)',
+  1: 'var(--space-1)',
+  2: 'var(--space-2)',
+  3: 'var(--space-3)',
+  4: 'var(--space-4)',
+  6: 'var(--space-6)',
+  8: 'var(--space-8)',
+} as const;
+
+export const colors = {
+  bgPrimary: 'var(--bg-primary)',
+  bgSecondary: 'var(--bg-secondary)',
+  textPrimary: 'var(--text-primary)',
+  textSecondary: 'var(--text-secondary)',
+  borderPrimary: 'var(--border-primary)',
+  brandPrimary: 'var(--color-primary-500)',
+} as const;
+
+export const zIndex = {
+  dropdown: 'var(--z-dropdown)',
+  modal: 'var(--z-modal)',
+  popover: 'var(--z-popover)',
+  tooltip: 'var(--z-tooltip)',
+} as const;
+
+export const duration = {
+  fast: 'var(--duration-100)',
+  normal: 'var(--duration-200)',
+  slow: 'var(--duration-300)',
+} as const;
+```
+
+### 4.3 Primitive Components
+
+#### [NEW] [Box.tsx](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/design-system/primitives/Box.tsx)
+```tsx
+/**
+ * Box - Layout Primitive
+ * ======================
+ * Base component for all layout needs.
+ * Uses design tokens for spacing and styling.
+ */
+
+import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+
+interface BoxProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
+  as?: 'div' | 'section' | 'article' | 'aside' | 'main';
+}
+
+export const Box = forwardRef<HTMLDivElement, BoxProps>(
+  ({ children, as: Component = 'div', className = '', ...props }, ref) => {
+    return (
+      <Component ref={ref} className={className} {...props}>
+        {children}
+      </Component>
+    );
+  }
+);
+
+Box.displayName = 'Box';
+```
+
+### 4.4 Interaction Hooks
+
+#### [NEW] [useDraggable.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/design-system/hooks/useDraggable.ts)
+```typescript
+/**
+ * useDraggable - Drag Interaction Hook
+ * =====================================
+ * Enables dragging for floating windows and modals.
+ */
+
+import { useState, useCallback, type RefObject } from 'react';
+
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface UseDraggableOptions {
+  initialPosition?: Position;
+  bounds?: 'parent' | 'window' | null;
+}
+
+export function useDraggable(
+  ref: RefObject<HTMLElement | null>,
+  options: UseDraggableOptions = {}
+) {
+  const [position, setPosition] = useState<Position>(
+    options.initialPosition ?? { x: 0, y: 0 }
+  );
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }, []);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging) return;
+    setPosition(prev => ({
+      x: prev.x + e.movementX,
+      y: prev.y + e.movementY,
+    }));
+  }, [isDragging]);
+
+  const handlePointerUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  return {
+    position,
+    isDragging,
+    dragHandlers: {
+      onPointerDown: handlePointerDown,
+      onPointerMove: handlePointerMove,
+      onPointerUp: handlePointerUp,
+    },
+    style: {
+      transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+      cursor: isDragging ? 'grabbing' : 'grab',
+    },
+  };
+}
+```
+
+#### [NEW] [useResizable.ts](file:///c:/Users/anujd/Documents/01_AI/173_piovisstudio/app_factory/src/design-system/hooks/useResizable.ts)
+```typescript
+/**
+ * useResizable - Resize Interaction Hook
+ * =======================================
+ * Enables resizing for windows, panels, and modals.
+ */
+
+import { useState, useCallback } from 'react';
+
+interface Size {
+  width: number;
+  height: number;
+}
+
+interface UseResizableOptions {
+  initialSize: Size;
+  minSize?: Size;
+  maxSize?: Size;
+}
+
+export function useResizable(options: UseResizableOptions) {
+  const [size, setSize] = useState<Size>(options.initialSize);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const handleResizeStart = useCallback(() => {
+    setIsResizing(true);
+  }, []);
+
+  const handleResize = useCallback((deltaWidth: number, deltaHeight: number) => {
+    setSize(prev => {
+      const newWidth = Math.max(
+        options.minSize?.width ?? 100,
+        Math.min(options.maxSize?.width ?? Infinity, prev.width + deltaWidth)
+      );
+      const newHeight = Math.max(
+        options.minSize?.height ?? 100,
+        Math.min(options.maxSize?.height ?? Infinity, prev.height + deltaHeight)
+      );
+      return { width: newWidth, height: newHeight };
+    });
+  }, [options.minSize, options.maxSize]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  return {
+    size,
+    isResizing,
+    handlers: {
+      onResizeStart: handleResizeStart,
+      onResize: handleResize,
+      onResizeEnd: handleResizeEnd,
+    },
+    style: {
+      width: size.width,
+      height: size.height,
+    },
+  };
+}
+```
+
+---
+
+## Phase 5: Verification
+
+### Automated Tests
+
+#### Python Plugin Health Checks
+**Command:**
+```powershell
+cd c:\Users\anujd\Documents\01_AI\173_piovisstudio\app_factory
+python -c "from plugins.llm_gemini.plugin import Plugin; p = Plugin(); p.initialize(); print(p.health_check())"
+python -c "from plugins.llm_anthropic.plugin import Plugin; p = Plugin(); p.initialize(); print(p.health_check())"
+```
+
+#### Full CI Validation
+**Command:**
+```powershell
+npm run ci:all
+```
+
+**Expected:** All checks pass with zero warnings.
+
+### Manual Verification (User Required)
+
+| Test | Steps | Expected Result |
+|------|-------|-----------------|
+| Component Generator | Open App Factory → Component Generator → Enter "Create a button" → Generate | Code appears in preview |
+| AI Chat | Open AI Chat → Send "Hello" | Response received |
+| Dark Mode | Toggle theme to dark | All panels render correctly |
+| Plugin Health | Settings → Check Gemini status | Shows "healthy" if API key set |
+
+---
+
+## Reference URLs
+
+| Topic | URL |
+|-------|-----|
+| Pluggy Documentation | https://pluggy.readthedocs.io/en/stable/ |
+| Python ABC Module | https://docs.python.org/3/library/abc.html |
+| BFF Pattern | https://docs.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends |
+| Apple HIG | https://developer.apple.com/design/human-interface-guidelines/ |
+| CSS Custom Properties | https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties |
+| Tauri IPC | https://v1.tauri.app/v1/guides/features/command/ |
+| Design Tokens W3C | https://design-tokens.github.io/community-group/format/ |
+
+---
+
+## Rollback Strategy
+
+| Phase | Rollback Command |
+|-------|------------------|
+| Phase 1 | `git checkout -- docs/ contracts/ config/` |
+| Phase 2 | `Remove-Item -Recurse plugins/llm_gemini, plugins/llm_anthropic` |
+| Phase 3 | `git checkout -- src/services/ src/hooks/ src/components/` |
+| Phase 4 | `Remove-Item -Recurse src/design-system/` |

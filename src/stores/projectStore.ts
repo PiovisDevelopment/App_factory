@@ -792,7 +792,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               theme: state.theme,
               buildConfig: state.buildConfig,
               canvasElements: state.canvasElements,
-              windowConfig: state.windowConfig ?? undefined,
+              ...(state.windowConfig ? { windowConfig: state.windowConfig } : {}),
               activeScreenId: state.activeScreenId,
               activeComponentId: state.activeComponentId,
             };
@@ -882,7 +882,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               theme: state.theme,
               buildConfig: state.buildConfig,
               canvasElements: state.canvasElements,
-              windowConfig: state.windowConfig ?? undefined,
+              ...(state.windowConfig ? { windowConfig: state.windowConfig } : {}),
               activeScreenId: state.activeScreenId,
               activeComponentId: state.activeComponentId,
             };
@@ -1240,8 +1240,8 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               const component = components[componentId];
               if (component?.parentId && components[component.parentId]) {
                 components[component.parentId] = {
-                  ...components[component.parentId],
-                  children: components[component.parentId].children.filter(
+                  ...components[component.parentId]!,
+                  children: components[component.parentId]!.children.filter(
                     (id) => id !== componentId
                   ),
                 };
@@ -1292,7 +1292,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
                   children.push(componentId);
                 }
                 components[newParentId] = {
-                  ...components[newParentId],
+                  ...components[newParentId]!,
                   children,
                 };
               }
@@ -1329,7 +1329,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
 
               // Add to parent's children if has parent
               if (newComponent.parentId && components[newComponent.parentId]) {
-                const parent = components[newComponent.parentId];
+                const parent = components[newComponent.parentId]!;
                 const insertIndex = parent.children.indexOf(componentId) + 1;
                 const children = [...parent.children];
                 children.splice(insertIndex, 0, newComponent.id);

@@ -534,8 +534,6 @@ interface AppHeaderProps {
   onTogglePreview?: () => void;
   showBackendBlueprint?: boolean;
   onToggleBackendBlueprint?: () => void;
-  showAiTeam?: boolean;
-  onToggleAiTeam?: () => void;
   onToggleSettings?: () => void;
   onSaveProject?: () => void;
 
@@ -554,8 +552,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onTogglePreview,
   showBackendBlueprint = false,
   onToggleBackendBlueprint,
-  showAiTeam = false,
-  onToggleAiTeam,
   onToggleSettings,
   onSaveProject,
 
@@ -1038,7 +1034,7 @@ export const App: React.FC = () => {
       id: p.id,
       contract: p.contract.toUpperCase(),
       name: p.name,
-      pluginName: p.status === 'loaded' ? p.name : undefined,
+      ...(p.status === 'loaded' ? { pluginName: p.name } : {}),
       status: p.status === 'loaded' ? 'healthy' as const :
         p.status === 'loading' ? 'degraded' as const :
           p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
@@ -1506,7 +1502,6 @@ export const App: React.FC = () => {
       id: `slot-${Date.now()}`,
       contract: contract.toUpperCase(),
       name: `${contract} Slot`,
-      pluginName: undefined,
       status: 'empty',
     };
     setManualPluginSlots((prev) => [...prev, newSlot]);
@@ -1530,7 +1525,7 @@ export const App: React.FC = () => {
   // Undo handler - pops last state from history and restores it
   const handleUndo = useCallback(() => {
     if (canvasHistory.length === 0) return;
-    const previousState = canvasHistory[canvasHistory.length - 1];
+    const previousState = canvasHistory[canvasHistory.length - 1]!;
     setCanvasHistory((prev) => prev.slice(0, -1));
     setCanvasElements(previousState);
     setSelectedElementIds([]);
@@ -1607,7 +1602,7 @@ export const App: React.FC = () => {
       id: `element-${Date.now()}`,
       type: 'component',
       name: droppedComponent.name || 'New Component',
-      componentId: droppedComponent.id,
+      ...(droppedComponent.id ? { componentId: droppedComponent.id } : {}),
       bounds: {
         x: position.x,
         y: position.y,
@@ -1660,7 +1655,7 @@ export const App: React.FC = () => {
             </div>
             <ProjectLoader
               projects={projects}
-              selectedProjectId={selectedProjectId}
+              {...(selectedProjectId ? { selectedProjectId } : {})}
               onSelectProject={handleSelectProject}
               onOpenProject={handleOpenProject}
               onNewProject={handleNewProject}
@@ -1684,7 +1679,7 @@ export const App: React.FC = () => {
           header={
             <AppHeader
               projectName={projectName}
-              projectFileName={projectFileName}
+              {...(projectFileName ? { projectFileName } : {})}
               onBackToLauncher={handleBackToLauncher}
               isThemePanelOpen={isThemePanelOpen}
               onToggleThemePanel={handleToggleThemePanel}
@@ -1771,7 +1766,7 @@ export const App: React.FC = () => {
                         ? plugins.filter(p => p.contract.toUpperCase() === pluginCategoryFilter)
                         : plugins
                       }
-                      selectedId={selectedPluginId}
+                      {...(selectedPluginId ? { selectedId: selectedPluginId } : {})}
                       onSelect={handlePluginSelect}
                       onLoad={handlePluginLoad}
                       onUnload={handlePluginUnload}
@@ -2005,7 +2000,7 @@ export const App: React.FC = () => {
               canvasWidth={windowConfig.width}
               canvasHeight={windowConfig.height}
               getComponentCode={getComponentCode}
-              templateName={loadedTemplateName ?? undefined}
+              {...(loadedTemplateName ? { templateName: loadedTemplateName } : {})}
               className="bg-neutral-100" // Add a background to distinguish the canvas area
               initialZoom={0.6}
               gridSettings={{ size: 16, snap: true, visible: true }}
@@ -2066,16 +2061,18 @@ export const App: React.FC = () => {
                   </div>
                   <div className="flex-1 overflow-auto">
                     <PropertyInspector
-                      selectedElement={
-                        selectedElement
-                          ? {
+                      {...(selectedElement
+                        ? {
+                          selectedElement: {
                             id: selectedElement.id,
                             name: selectedElement.name,
                             type: selectedElement.type,
-                            componentId: selectedElement.componentId,
-                          }
-                          : undefined
-                      }
+                            ...(selectedElement.componentId
+                              ? { componentId: selectedElement.componentId }
+                              : {}),
+                          },
+                        }
+                        : {})}
                       properties={
                         selectedElement
                           ? [

@@ -19,8 +19,9 @@
  */
 
 import { invoke } from "@tauri-apps/api/tauri";
-import type { ProjectState, ProjectBuildConfig, ProjectTheme, ProjectScreen, ProjectComponent } from "../stores/projectStore";
+import type { ProjectState, ProjectTheme, ProjectScreen } from "../stores/projectStore";
 import type { Plugin } from "../stores/pluginStore";
+import { defaultLightTheme } from "../context/ThemeProvider";
 
 // ============================================
 // TYPES
@@ -141,7 +142,7 @@ export interface ExportProgress {
   /** Progress percentage (0-100) */
   percentage: number;
   /** Current file being processed */
-  currentFile?: string;
+  currentFile?: string | undefined;
 }
 
 /**
@@ -373,7 +374,7 @@ export function validateProjectState(state: Partial<ProjectState>): ValidationRe
  * Replaces {{variable}} and {{variable.nested}} patterns.
  */
 export function renderTemplate(template: string, context: TemplateContext): string {
-  return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+  return template.replace(/\{\{([^}]+)\}\}/g, (_match, path) => {
     const keys = path.trim().split(".");
     let value: unknown = context;
 
@@ -421,7 +422,7 @@ export function buildTemplateContext(
 
   const pluginList = config.bundledPlugins
     .map((id) => plugins[id])
-    .filter(Boolean)
+    .filter((p): p is Plugin => p !== undefined)
     .map((p) => ({
       id: p.manifest.id,
       name: p.manifest.name,
@@ -438,18 +439,7 @@ export function buildTemplateContext(
       identifier: config.identifier,
     },
     build: config,
-    theme: projectState.theme || {
-      name: "Default",
-      primaryColor: "#3b82f6",
-      secondaryColor: "#64748b",
-      accentColor: "#8b5cf6",
-      backgroundColor: "#ffffff",
-      textColor: "#0f172a",
-      borderRadius: "md",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      darkMode: false,
-      customVariables: {},
-    },
+    theme: projectState.theme || defaultLightTheme,
     screens,
     plugins: pluginList,
     env: config.envVariables,
@@ -910,7 +900,7 @@ export async function exportProject(
  */
 export function estimateExportSize(
   projectState: Partial<ProjectState>,
-  plugins: Record<string, Plugin>,
+  _plugins: Record<string, Plugin>,
   config: Partial<ExportConfig>
 ): number {
   let estimatedSize = 0;

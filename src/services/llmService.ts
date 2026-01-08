@@ -17,8 +17,8 @@ import { generateWithOllama } from './ollamaService';
  */
 export interface LLMResult {
     success: boolean;
-    text?: string;
-    error?: string;
+    text?: string | undefined;
+    error?: string | undefined;
 }
 
 /**

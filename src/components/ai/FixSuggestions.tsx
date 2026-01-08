@@ -14,7 +14,6 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "../ui/Button";
 import { Panel } from "../ui/Panel";
-import { Modal } from "../ui/Modal";
 
 /**
  * Severity levels for issues.
@@ -319,8 +318,8 @@ const DiffViewer: React.FC<{ diff: string }> = ({ diff }) => {
  */
 const SuggestionCard: React.FC<{
   suggestion: FixSuggestion;
-  onApply?: () => void;
-  isApplying?: boolean;
+  onApply?: (() => void) | undefined;
+  isApplying?: boolean | undefined;
 }> = ({ suggestion, onApply, isApplying }) => {
   const [showDiff, setShowDiff] = useState(false);
 
@@ -425,8 +424,8 @@ const SuggestionCard: React.FC<{
 const IssueCard: React.FC<{
   issue: Issue;
   onGetSuggestions: () => Promise<FixSuggestion[]>;
-  onApplyFix?: (suggestion: FixSuggestion) => Promise<void>;
-  onDismiss?: () => void;
+  onApplyFix?: ((suggestion: FixSuggestion) => Promise<void>) | undefined;
+  onDismiss?: (() => void) | undefined;
 }> = ({ issue, onGetSuggestions, onApplyFix, onDismiss }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [suggestions, setSuggestions] = useState<FixSuggestion[]>([]);

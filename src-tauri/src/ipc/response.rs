@@ -9,14 +9,14 @@
 //! Protocol: JSON-RPC 2.0 over stdin/stdout (newline-delimited)
 //!
 //! This module provides:
-//! - JsonRpcResponse structure matching JSON-RPC 2.0 spec
-//! - JsonRpcError for error responses
-//! - ResponseResult helper for handling success/error
+//! - `JsonRpcResponse` structure matching JSON-RPC 2.0 spec
+//! - `JsonRpcError` for error responses
+//! - `ResponseResult` helper for handling success/error
 //! - Response parsing utilities
 //!
 //! Dependencies:
-//!     - D030: mod.rs (IpcError)
-//!     - D009: config/error_codes.yaml (error codes)
+//!     - D030: mod.rs (`IpcError`)
+//!     - D009: `config/error_codes.yaml` (error codes)
 //!
 //! Usage:
 //!     ```rust
@@ -66,10 +66,10 @@ pub mod error_codes {
     /// Plugin load failed: Failed to load the plugin.
     pub const PLUGIN_LOAD_FAILED: i32 = -32002;
     
-    /// Plugin initialization failed: Plugin loaded but initialize() failed.
+    /// Plugin initialization failed: Plugin loaded but `initialize()` failed.
     pub const PLUGIN_INITIALIZE_FAILED: i32 = -32003;
     
-    /// Plugin shutdown failed: Plugin shutdown() method failed.
+    /// Plugin shutdown failed: Plugin `shutdown()` method failed.
     pub const PLUGIN_SHUTDOWN_FAILED: i32 = -32004;
     
     /// Plugin already loaded: Attempted to load an already loaded plugin.
@@ -232,7 +232,7 @@ impl JsonRpcError {
         let method = method.into();
         Self::with_data(
             error_codes::METHOD_NOT_FOUND,
-            format!("Method not found: {}", method),
+            format!("Method not found: {method}"),
             serde_json::json!({"method": method}),
         )
     }
@@ -272,7 +272,7 @@ impl JsonRpcError {
         error_codes::description(self.code)
     }
 
-    /// Convert to IpcError.
+    /// Convert to `IpcError`.
     pub fn into_ipc_error(self) -> IpcError {
         IpcError::RpcError {
             code: self.code,
@@ -486,9 +486,9 @@ impl JsonRpcResponse {
 impl fmt::Display for JsonRpcResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(ref error) = self.error {
-            write!(f, "Error: {}", error)
+            write!(f, "Error: {error}")
         } else if let Some(ref result) = self.result {
-            write!(f, "Result: {}", result)
+            write!(f, "Result: {result}")
         } else {
             write!(f, "Empty response")
         }
@@ -501,10 +501,10 @@ impl fmt::Display for JsonRpcResponse {
 
 /// Convenience type for JSON-RPC response results.
 ///
-/// Wraps the common pattern of Result<Value, JsonRpcError>.
+/// Wraps the common pattern of Result<Value, `JsonRpcError`>.
 pub type ResponseResult = Result<Value, JsonRpcError>;
 
-/// Extension trait for ResponseResult.
+/// Extension trait for `ResponseResult`.
 pub trait ResponseResultExt {
     /// Extract typed value from result.
     fn extract<T: serde::de::DeserializeOwned>(self) -> Result<T, IpcError>;
@@ -566,7 +566,7 @@ impl BatchResponse {
 
     /// Check if all responses are successful.
     pub fn all_success(&self) -> bool {
-        self.responses.iter().all(|r| r.is_success())
+        self.responses.iter().all(JsonRpcResponse::is_success)
     }
 
     /// Get all errors.
@@ -594,7 +594,7 @@ impl BatchResponse {
 
 /// Utilities for reading responses from stdio.
 pub mod reader {
-    use super::*;
+    use super::{JsonRpcResponse, IpcError};
     use std::io::{BufRead, BufReader, Read};
 
     /// Read a single JSON-RPC response from a reader.

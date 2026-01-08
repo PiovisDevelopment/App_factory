@@ -355,7 +355,8 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
 
     // Use custom presets if provided, otherwise use built-in
     const presets = customPresets || devicePresets;
-    const currentDevice = presets[currentDeviceIndex] || presets[0];
+    // Non-null assertion safe: presets is always non-empty (devicePresets fallback has 6 items)
+    const currentDevice = presets[currentDeviceIndex] ?? presets[0]!;
 
     // Calculate effective dimensions based on orientation
     const effectiveWidth =
@@ -389,7 +390,10 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
     const handleDeviceChange = useCallback(
       (index: number) => {
         setCurrentDeviceIndex(index);
-        onDeviceChange?.(presets[index]);
+        const preset = presets[index];
+        if (preset) {
+          onDeviceChange?.(preset);
+        }
       },
       [presets, onDeviceChange]
     );
@@ -692,7 +696,7 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
                 }}
                 applyBackground
               >
-                {children ? children : <LivePreview screenId={screenId} />}
+                {children ? children : <LivePreview screenId={screenId!} />}
               </ThemedCanvasWrapper>
             </div>
           )}

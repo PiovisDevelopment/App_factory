@@ -16,7 +16,7 @@
 //!
 //! Dependencies:
 //!     - D025: plugins/_host/__main__.py (Python plugin host)
-//!     - D009: config/error_codes.yaml (error codes)
+//!     - D009: `config/error_codes.yaml` (error codes)
 //!
 //! Usage:
 //!     ```rust
@@ -352,7 +352,7 @@ impl IpcManager {
 
     /// Get subprocess PID.
     pub fn pid(&self) -> Option<u32> {
-        self.child.as_ref().map(|c| c.id())
+        self.child.as_ref().map(std::process::Child::id)
     }
 
     /// Spawn the Python plugin host subprocess.
@@ -405,10 +405,10 @@ impl IpcManager {
         // Spawn process
         let mut child = cmd
             .spawn()
-            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn: {}", e)))?;
+            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn: {e}")))?;
 
         let pid = child.id();
-        log::info!("Python subprocess spawned with PID: {}", pid);
+        log::info!("Python subprocess spawned with PID: {pid}");
 
         // Get stdio handles
         let stdin = child
@@ -433,7 +433,7 @@ impl IpcManager {
             .spawn(move || {
                 Self::writer_task(stdin, writer_rx);
             })
-            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn writer thread: {}", e)))?;
+            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn writer thread: {e}")))?;
 
         // Spawn reader thread
         let pending_clone = Arc::clone(&self.pending);
@@ -443,7 +443,7 @@ impl IpcManager {
             .spawn(move || {
                 Self::reader_task(stdout, pending_clone, is_running_clone);
             })
-            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn reader thread: {}", e)))?;
+            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn reader thread: {e}")))?;
 
         // Spawn stderr logger thread
         let stderr_handle = std::thread::Builder::new()
@@ -451,7 +451,7 @@ impl IpcManager {
             .spawn(move || {
                 Self::stderr_task(stderr);
             })
-            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn stderr thread: {}", e)))?;
+            .map_err(|e| IpcError::SpawnError(format!("Failed to spawn stderr thread: {e}")))?;
 
         // Update state
         self.child = Some(child);
@@ -481,17 +481,17 @@ impl IpcManager {
         while let Some(msg) = rx.blocking_recv() {
             match msg {
                 WriterMessage::Request(json) => {
-                    log::debug!("Sending request: {}", json);
+                    log::debug!("Sending request: {json}");
                     
                     // Write JSON line
-                    if let Err(e) = writeln!(stdin, "{}", json) {
-                        log::error!("Failed to write to stdin: {}", e);
+                    if let Err(e) = writeln!(stdin, "{json}") {
+                        log::error!("Failed to write to stdin: {e}");
                         break;
                     }
                     
                     // Flush immediately (critical for IPC)
                     if let Err(e) = stdin.flush() {
-                        log::error!("Failed to flush stdin: {}", e);
+                        log::error!("Failed to flush stdin: {e}");
                         break;
                     }
                 }
@@ -526,7 +526,7 @@ impl IpcManager {
                         continue;
                     }
 
-                    log::debug!("Received response: {}", json);
+                    log::debug!("Received response: {json}");
 
                     // Parse JSON-RPC response
                     match serde_json::from_str::<JsonRpcResponse>(&json) {
@@ -539,20 +539,20 @@ impl IpcManager {
                                 if let Some(tx) = pending_guard.remove(&id) {
                                     let _ = tx.send(Ok(response));
                                 } else {
-                                    log::warn!("No pending request for id {}", id);
+                                    log::warn!("No pending request for id {id}");
                                 }
                             } else {
                                 // Notification (no id) - log and ignore
-                                log::debug!("Received notification: {:?}", response);
+                                log::debug!("Received notification: {response:?}");
                             }
                         }
                         Err(e) => {
-                            log::error!("Failed to parse response: {} - {}", e, json);
+                            log::error!("Failed to parse response: {e} - {json}");
                         }
                     }
                 }
                 Err(e) => {
-                    log::error!("Failed to read from stdout: {}", e);
+                    log::error!("Failed to read from stdout: {e}");
                     break;
                 }
             }
@@ -565,7 +565,7 @@ impl IpcManager {
         // Cancel all pending requests
         let mut pending_guard = futures::executor::block_on(pending.write());
         for (id, tx) in pending_guard.drain() {
-            log::warn!("Cancelling pending request {}", id);
+            log::warn!("Cancelling pending request {id}");
             let _ = tx.send(Err(IpcError::SubprocessCrashed));
         }
 
@@ -586,17 +586,17 @@ impl IpcManager {
                 Ok(text) => {
                     // Detect log level from Python logging format
                     if text.contains("[ERROR]") || text.contains("ERROR:") {
-                        log::error!("[Python] {}", text);
+                        log::error!("[Python] {text}");
                     } else if text.contains("[WARNING]") || text.contains("WARNING:") {
-                        log::warn!("[Python] {}", text);
+                        log::warn!("[Python] {text}");
                     } else if text.contains("[DEBUG]") || text.contains("DEBUG:") {
-                        log::debug!("[Python] {}", text);
+                        log::debug!("[Python] {text}");
                     } else {
-                        log::info!("[Python] {}", text);
+                        log::info!("[Python] {text}");
                     }
                 }
                 Err(e) => {
-                    log::error!("Failed to read from stderr: {}", e);
+                    log::error!("Failed to read from stderr: {e}");
                     break;
                 }
             }

@@ -1,0 +1,71 @@
+contracts\base.py:118: error: Incompatible types in assignment (expression has type "float", target has type "dict[str, Any] | str")  [assignment]
+contracts\base.py:120: error: Incompatible types in assignment (expression has type "float", target has type "dict[str, Any] | str")  [assignment]
+contracts\base.py:155: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\base.py:155: note: Use "-> None" if function does not return a value
+contracts\tts_contract.py:175: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\tts_contract.py:175: note: Use "-> None" if function does not return a value
+contracts\tts_contract.py:177: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+contracts\stt_contract.py:200: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\stt_contract.py:200: note: Use "-> None" if function does not return a value
+contracts\stt_contract.py:202: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+contracts\llm_contract.py:71: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+contracts\llm_contract.py:243: error: Incompatible types in assignment (expression has type "list[dict[str, Any]]", target has type "str")  [assignment]
+contracts\llm_contract.py:278: error: Function is missing a return type annotation  [no-untyped-def]
+contracts\llm_contract.py:278: note: Use "-> None" if function does not return a value
+contracts\llm_contract.py:280: error: Call to untyped function "__init__" in typed context  [no-untyped-call]
+plugins\_host\discovery.py:30: error: Library stubs not installed for "yaml"  [import-untyped]
+plugins\_host\discovery.py:30: note: Hint: "python3 -m pip install types-PyYAML"
+plugins\_host\discovery.py:30: note: (or run "mypy --install-types" to install all missing stub packages)
+plugins\_host\discovery.py:30: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+plugins\_host\discovery.py:107: error: Missing type parameters for generic type "Pattern"  [type-arg]
+plugins\_host\shutdown.py:165: error: Incompatible types in assignment (expression has type "Callable[[int, FrameType | None], Any] | int | None", variable has type "None")  [assignment]
+plugins\_host\shutdown.py:166: error: Incompatible types in assignment (expression has type "Callable[[int, FrameType | None], Any] | int | None", variable has type "None")  [assignment]
+plugins\_host\shutdown.py:186: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+plugins\_host\shutdown.py:191: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+plugins\_host\shutdown.py:336: error: Incompatible types in assignment (expression has type "Callable[[], None]", variable has type "Callable[[], Coroutine[Any, Any, None]]")  [assignment]
+plugins\_host\shutdown.py:338: error: Value of type "Coroutine[Any, Any, None]" must be used  [unused-coroutine]
+plugins\_host\shutdown.py:338: note: Are you missing an await?
+plugins\_host\shutdown.py:466: error: Function is missing a type annotation for one or more arguments  [no-untyped-def]
+plugins\_host\isolation.py:380: error: Missing type parameters for generic type "tuple"  [type-arg]
+plugins\_host\isolation.py:461: error: Missing type parameters for generic type "tuple"  [type-arg]
+plugins\_host\isolation.py:579: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\isolation.py:594: error: Missing type parameters for generic type "Callable"  [type-arg]
+plugins\_host\isolation.py:596: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:176: error: Incompatible types in assignment (expression has type "dict[str, Any]", target has type "str | int | None")  [assignment]
+plugins\_host\protocol.py:319: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:325: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:337: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:347: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:368: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:382: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:402: error: Function is missing a type annotation  [no-untyped-def]
+plugins\_host\protocol.py:433: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\validator.py:31: error: Library stubs not installed for "yaml"  [import-untyped]
+plugins\_host\validator.py:31: note: Hint: "python3 -m pip install types-PyYAML"
+plugins\_host\validator.py:31: note: (or run "mypy --install-types" to install all missing stub packages)
+plugins\_host\validator.py:31: note: See https://mypy.readthedocs.io/en/stable/running_mypy.html#missing-imports
+plugins\_host\validator.py:370: error: Incompatible types in assignment (expression has type "str", variable has type "FunctionType")  [assignment]
+plugins\_host\validator.py:371: error: Argument 1 to "append" of "list" has incompatible type "FunctionType"; expected "str"  [arg-type]
+plugins\_host\manager.py:574: error: Unsupported target for indexed assignment ("object")  [index]
+plugins\_host\manager.py:582: error: Unsupported right operand type for in ("object")  [operator]
+plugins\_host\manager.py:583: error: Unsupported target for indexed assignment ("object")  [index]
+plugins\_host\manager.py:584: error: Value of type "object" is not indexable  [index]
+plugins\_host\manager.py:587: error: Unsupported right operand type for in ("object")  [operator]
+plugins\_host\manager.py:588: error: Unsupported target for indexed assignment ("object")  [index]
+plugins\_host\manager.py:589: error: Value of type "object" is not indexable  [index]
+plugins\_host\manager.py:647: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\manager.py:647: note: Use "-> None" if function does not return a value
+plugins\_host\manager.py:663: error: Call to untyped function "test_manager" in typed context  [no-untyped-call]
+plugins\_host\__init__.py:111: error: Missing type parameters for generic type "StreamHandler"  [type-arg]
+plugins\_host\__init__.py:119: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:119: note: Use "-> None" if function does not return a value
+plugins\_host\__init__.py:190: error: Call to untyped function "StderrHandler" in typed context  [no-untyped-call]
+plugins\_host\__init__.py:200: error: Incompatible types in assignment (expression has type "Formatter", variable has type "JsonRpcSafeFormatter")  [assignment]
+plugins\_host\__init__.py:320: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:326: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:332: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:338: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:344: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:350: error: Function is missing a return type annotation  [no-untyped-def]
+plugins\_host\__init__.py:356: error: Function is missing a return type annotation  [no-untyped-def]
+Found 57 errors in 11 files (checked 3 source files)

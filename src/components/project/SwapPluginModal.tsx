@@ -225,7 +225,7 @@ export const SwapPluginModal: React.FC<SwapPluginModalProps> = ({
   const [swapResult, setSwapResult] = useState<SwapResult | null>(null);
 
   // Show details panel
-  const [showDetails, setShowDetails] = useState<string | null>(null);
+
 
   // Reset state when modal opens
   useEffect(() => {
@@ -233,7 +233,7 @@ export const SwapPluginModal: React.FC<SwapPluginModalProps> = ({
       setSearchQuery("");
       setSelectedPluginId(null);
       setSwapResult(null);
-      setShowDetails(null);
+
     }
   }, [isOpen]);
 
@@ -267,11 +267,7 @@ export const SwapPluginModal: React.FC<SwapPluginModalProps> = ({
     });
   }, [filteredPlugins]);
 
-  // Selected plugin details
-  const selectedPlugin = useMemo(
-    () => availablePlugins.find((p) => p.id === selectedPluginId),
-    [availablePlugins, selectedPluginId]
-  );
+
 
   // Handle swap
   const handleSwap = useCallback(async () => {

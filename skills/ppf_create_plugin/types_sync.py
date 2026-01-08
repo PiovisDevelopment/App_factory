@@ -12,10 +12,10 @@ Usage:
   python skills/ppf_create_plugin/types_sync.py <plugin_name> --check
 """
 
-import sys
-import os
 import logging
-from typing import Dict, Any, List
+import os
+import sys
+from typing import Any
 
 # Ensure we can import config from this directory
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,10 +25,7 @@ if CURRENT_DIR not in sys.path:
 try:
     import yaml  # type: ignore
 except ImportError:
-    print(
-        "PyYAML is required for types_sync.\n"
-        "Please run 'pip install pyyaml' in your environment and retry."
-    )
+    print("PyYAML is required for types_sync.\nPlease run 'pip install pyyaml' in your environment and retry.")
     sys.exit(1)
 
 from config import TS_INTERFACE_TEMPLATE, TYPE_MAP  # type: ignore
@@ -45,7 +42,7 @@ def map_type_to_ts(py_type: str) -> str:
     return TYPE_MAP.get(py_type, "any")
 
 
-def load_manifest(plugin_name: str) -> Dict[str, Any]:
+def load_manifest(plugin_name: str) -> dict[str, Any]:
     """
     Load component.yaml for a given plugin.
 
@@ -59,11 +56,11 @@ def load_manifest(plugin_name: str) -> Dict[str, Any]:
     if not os.path.exists(manifest_path):
         raise FileNotFoundError(f"Manifest not found for plugin '{plugin_name}' at {manifest_path}")
 
-    with open(manifest_path, "r", encoding="utf-8") as f:
+    with open(manifest_path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
-def build_ts_from_manifest(manifest: Dict[str, Any]) -> str:
+def build_ts_from_manifest(manifest: dict[str, Any]) -> str:
     """
     Render TS interfaces from the manifest's contract metadata.
 
@@ -77,8 +74,8 @@ def build_ts_from_manifest(manifest: Dict[str, Any]) -> str:
     if not domain:
         raise ValueError("Manifest contract domain is missing.")
 
-    interfaces_parts: List[str] = []
-    api_signatures: List[str] = []
+    interfaces_parts: list[str] = []
+    api_signatures: list[str] = []
 
     for m in methods:
         name = m.get("name")
@@ -104,9 +101,7 @@ def build_ts_from_manifest(manifest: Dict[str, Any]) -> str:
                 interfaces_parts.append(f"  {field_name}: {map_type_to_ts(str(py_type))};")
         interfaces_parts.append("}\n")
 
-        api_signatures.append(
-            f"  {name}(req: {method_pascal}Request): Promise<{method_pascal}Response>;"
-        )
+        api_signatures.append(f"  {name}(req: {method_pascal}Request): Promise<{method_pascal}Response>;")
 
     interfaces_str = "\n".join(interfaces_parts)
     class_name = to_pascal_case(domain)
@@ -135,7 +130,7 @@ def sync_types(plugin_name: str, check_only: bool = False) -> int:
 
     if check_only and os.path.exists(ts_path):
         existing = ""
-        with open(ts_path, "r", encoding="utf-8") as f:
+        with open(ts_path, encoding="utf-8") as f:
             existing = f.read()
 
         if existing.strip() == ts_content.strip():
@@ -153,7 +148,7 @@ def sync_types(plugin_name: str, check_only: bool = False) -> int:
     return 0
 
 
-def main(argv: List[str]) -> int:  # type: ignore[name-defined]
+def main(argv: list[str]) -> int:  # type: ignore[name-defined]
     if len(argv) < 1:
         print("Usage: types_sync.py <plugin_name> [--check]")
         return 1
@@ -170,4 +165,3 @@ def main(argv: List[str]) -> int:  # type: ignore[name-defined]
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1:]))
-

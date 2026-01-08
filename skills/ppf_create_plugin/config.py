@@ -122,5 +122,5 @@ TYPE_MAP = {
     "list": "any[]",
     "List": "any[]",
     "Any": "any",
-    "None": "void"
+    "None": "void",
 }

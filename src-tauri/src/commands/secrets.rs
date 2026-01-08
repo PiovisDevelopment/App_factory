@@ -6,7 +6,7 @@
 //! Keys are stored in .env file and persist across app restarts/rebuilds.
 //!
 //! Architecture: Keys stored as APIKEY_<SERVICE>_<UUID>=<value>
-//! Active key tracked as ACTIVE_APIKEY_<SERVICE>=<UUID>
+//! Active key tracked as `ACTIVE_APIKEY`_<SERVICE>=<UUID>
 //!
 //! Usage (TypeScript):
 //!     ```typescript
@@ -50,7 +50,7 @@ pub struct ApiKeyEntry {
     pub service: String,
     /// User-friendly name
     pub name: String,
-    /// Masked key display (e.g., "AIz***xyz")
+    /// Masked key display (e.g., "`AIz`***xyz")
     pub key_masked: String,
     /// Whether this key is currently active for the service
     pub is_active: bool,
@@ -99,18 +99,18 @@ fn get_env_path() -> PathBuf {
     
     // Strategy 1: Search up from executable path
     let exe_path = std::env::current_exe().unwrap_or_default();
-    log::debug!("get_env_path: exe_path = {:?}", exe_path);
+    log::debug!("get_env_path: exe_path = {exe_path:?}");
     
-    let mut current = exe_path.parent().map(|p| p.to_path_buf());
+    let mut current = exe_path.parent().map(std::path::Path::to_path_buf);
 
     for _ in 0..10 {
         if let Some(ref dir) = current {
             let plugins_dir = dir.join("plugins");
             if plugins_dir.exists() && plugins_dir.is_dir() {
-                log::debug!("get_env_path: Found via exe path traversal: {:?}", dir);
+                log::debug!("get_env_path: Found via exe path traversal: {dir:?}");
                 return dir.join(".env");
             }
-            current = dir.parent().map(|p| p.to_path_buf());
+            current = dir.parent().map(std::path::Path::to_path_buf);
         } else {
             break;
         }
@@ -118,18 +118,18 @@ fn get_env_path() -> PathBuf {
 
     // Strategy 2: Check current working directory
     let cwd = std::env::current_dir().unwrap_or_default();
-    log::debug!("get_env_path: cwd = {:?}", cwd);
+    log::debug!("get_env_path: cwd = {cwd:?}");
     
     if cwd.join("plugins").exists() {
-        log::debug!("get_env_path: Found via cwd: {:?}", cwd);
+        log::debug!("get_env_path: Found via cwd: {cwd:?}");
         return cwd.join(".env");
     }
     
     // Strategy 3: If cwd is src-tauri, go up one level
-    if cwd.file_name().map(|n| n == "src-tauri").unwrap_or(false) {
+    if cwd.file_name().is_some_and(|n| n == "src-tauri") {
         if let Some(parent) = cwd.parent() {
             if parent.join("plugins").exists() {
-                log::debug!("get_env_path: Found via src-tauri parent: {:?}", parent);
+                log::debug!("get_env_path: Found via src-tauri parent: {parent:?}");
                 return parent.join(".env");
             }
         }
@@ -138,7 +138,7 @@ fn get_env_path() -> PathBuf {
     // Strategy 4: Check parent of cwd
     if let Some(parent) = cwd.parent() {
         if parent.join("plugins").exists() {
-            log::debug!("get_env_path: Found via cwd parent: {:?}", parent);
+            log::debug!("get_env_path: Found via cwd parent: {parent:?}");
             return parent.join(".env");
         }
     }
@@ -148,7 +148,7 @@ fn get_env_path() -> PathBuf {
     let mut search = cwd.clone();
     for _ in 0..5 {
         if search.join("src-tauri").exists() && search.join("plugins").exists() {
-            log::debug!("get_env_path: Found via src-tauri sibling search: {:?}", search);
+            log::debug!("get_env_path: Found via src-tauri sibling search: {search:?}");
             return search.join(".env");
         }
         if let Some(parent) = search.parent() {
@@ -159,7 +159,7 @@ fn get_env_path() -> PathBuf {
     }
 
     // Fallback
-    log::warn!("get_env_path: Could not find project root, using cwd: {:?}", cwd);
+    log::warn!("get_env_path: Could not find project root, using cwd: {cwd:?}");
     cwd.join(".env")
 }
 
@@ -172,7 +172,7 @@ fn mask_key(key: &str) -> String {
     format!("{}***{}", &key[..3], &key[len - 3..])
 }
 
-/// Parse .env file into HashMap.
+/// Parse .env file into `HashMap`.
 fn parse_env_file(path: &PathBuf) -> HashMap<String, String> {
     let mut map = HashMap::new();
 
@@ -208,7 +208,7 @@ fn parse_env_file(path: &PathBuf) -> HashMap<String, String> {
     map
 }
 
-/// Write HashMap back to .env file, preserving comments.
+/// Write `HashMap` back to .env file, preserving comments.
 fn write_env_file(path: &PathBuf, env_vars: &HashMap<String, String>) -> Result<(), String> {
     let mut lines: Vec<String> = Vec::new();
     let mut written_keys: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -225,7 +225,7 @@ fn write_env_file(path: &PathBuf, env_vars: &HashMap<String, String>) -> Result<
                     let key = trimmed[..pos].trim();
                     if let Some(value) = env_vars.get(key) {
                         // Update existing key
-                        lines.push(format!("{}={}", key, value));
+                        lines.push(format!("{key}={value}"));
                         written_keys.insert(key.to_string());
                     }
                     // If key is not in env_vars, it's been deleted - don't write it
@@ -237,13 +237,13 @@ fn write_env_file(path: &PathBuf, env_vars: &HashMap<String, String>) -> Result<
     // Add new keys that weren't in the original file
     for (key, value) in env_vars {
         if !written_keys.contains(key) {
-            lines.push(format!("{}={}", key, value));
+            lines.push(format!("{key}={value}"));
         }
     }
 
     // Write to file
     let content = lines.join("\n") + "\n";
-    fs::write(path, content).map_err(|e| format!("Failed to write .env: {}", e))
+    fs::write(path, content).map_err(|e| format!("Failed to write .env: {e}"))
 }
 
 /// Parse API key entries from env vars for a specific service.
@@ -264,12 +264,12 @@ fn parse_api_keys(env_vars: &HashMap<String, String>, service: &str) -> Vec<ApiK
             }
 
             let name = env_vars
-                .get(&format!("{}{}", name_prefix, id))
+                .get(&format!("{name_prefix}{id}"))
                 .cloned()
                 .unwrap_or_else(|| format!("Key {}", &id[..8.min(id.len())]));
 
             let created_at = env_vars
-                .get(&format!("{}{}", created_prefix, id))
+                .get(&format!("{created_prefix}{id}"))
                 .cloned()
                 .unwrap_or_else(|| Utc::now().to_rfc3339());
 
@@ -304,10 +304,10 @@ fn get_active_id(env_vars: &HashMap<String, String>, service: &str) -> Option<St
 ///
 /// # Returns
 ///
-/// Array of ApiKeyEntry (with masked keys).
+/// Array of `ApiKeyEntry` (with masked keys).
 #[tauri::command]
 pub fn get_api_keys(service: String) -> CommandResult<Vec<ApiKeyEntry>> {
-    log::debug!("Command: get_api_keys service={}", service);
+    log::debug!("Command: get_api_keys service={service}");
 
     let env_path = get_env_path();
     let env_vars = parse_env_file(&env_path);
@@ -335,10 +335,10 @@ pub fn get_api_keys(service: String) -> CommandResult<Vec<ApiKeyEntry>> {
 ///
 /// # Returns
 ///
-/// The created ApiKeyEntry.
+/// The created `ApiKeyEntry`.
 #[tauri::command]
 pub fn add_api_key(service: String, name: String, key: String) -> CommandResult<ApiKeyEntry> {
-    log::info!("Command: add_api_key service={} name={}", service, name);
+    log::info!("Command: add_api_key service={service} name={name}");
 
     let env_path = get_env_path();
     let mut env_vars = parse_env_file(&env_path);
@@ -395,7 +395,7 @@ pub fn update_api_key(
     name: Option<String>,
     key: Option<String>,
 ) -> CommandResult<ApiKeyEntry> {
-    log::info!("Command: update_api_key service={} id={}", service, id);
+    log::info!("Command: update_api_key service={service} id={id}");
 
     let env_path = get_env_path();
     let mut env_vars = parse_env_file(&env_path);
@@ -405,7 +405,7 @@ pub fn update_api_key(
     if !env_vars.contains_key(&key_var) {
         return Err(CommandError {
             code: "KEY_NOT_FOUND".to_string(),
-            message: format!("API key with ID {} not found", id),
+            message: format!("API key with ID {id} not found"),
             details: None,
         });
     }
@@ -452,7 +452,7 @@ pub fn update_api_key(
 /// * `id` - Key ID to delete
 #[tauri::command]
 pub fn delete_api_key(service: String, id: String) -> CommandResult<()> {
-    log::info!("Command: delete_api_key service={} id={}", service, id);
+    log::info!("Command: delete_api_key service={service} id={id}");
 
     let env_path = get_env_path();
     let mut env_vars = parse_env_file(&env_path);
@@ -465,7 +465,7 @@ pub fn delete_api_key(service: String, id: String) -> CommandResult<()> {
     if !env_vars.contains_key(&key_var) {
         return Err(CommandError {
             code: "KEY_NOT_FOUND".to_string(),
-            message: format!("API key with ID {} not found", id),
+            message: format!("API key with ID {id} not found"),
             details: None,
         });
     }
@@ -504,10 +504,10 @@ pub fn delete_api_key(service: String, id: String) -> CommandResult<()> {
 ///
 /// # Returns
 ///
-/// The active ApiKeyEntry or None.
+/// The active `ApiKeyEntry` or None.
 #[tauri::command]
 pub fn get_active_api_key(service: String) -> CommandResult<Option<ApiKeyEntry>> {
-    log::debug!("Command: get_active_api_key service={}", service);
+    log::debug!("Command: get_active_api_key service={service}");
 
     let env_path = get_env_path();
     let env_vars = parse_env_file(&env_path);
@@ -531,7 +531,7 @@ pub fn get_active_api_key(service: String) -> CommandResult<Option<ApiKeyEntry>>
 /// * `id` - Key ID to set as active
 #[tauri::command]
 pub fn set_active_api_key(service: String, id: String) -> CommandResult<()> {
-    log::info!("Command: set_active_api_key service={} id={}", service, id);
+    log::info!("Command: set_active_api_key service={service} id={id}");
 
     let env_path = get_env_path();
     let mut env_vars = parse_env_file(&env_path);
@@ -541,7 +541,7 @@ pub fn set_active_api_key(service: String, id: String) -> CommandResult<()> {
     if !env_vars.contains_key(&key_var) {
         return Err(CommandError {
             code: "KEY_NOT_FOUND".to_string(),
-            message: format!("API key with ID {} not found", id),
+            message: format!("API key with ID {id} not found"),
             details: None,
         });
     }
@@ -572,7 +572,7 @@ pub fn set_active_api_key(service: String, id: String) -> CommandResult<()> {
 /// The actual API key value or None if no active key.
 #[tauri::command]
 pub fn get_active_api_key_value(service: String) -> CommandResult<Option<String>> {
-    log::debug!("Command: get_active_api_key_value service={}", service);
+    log::debug!("Command: get_active_api_key_value service={service}");
 
     let env_path = get_env_path();
     let env_vars = parse_env_file(&env_path);

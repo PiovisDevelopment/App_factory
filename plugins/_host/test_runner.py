@@ -24,11 +24,12 @@ import asyncio
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +38,10 @@ logger = logging.getLogger(__name__)
 # TEST RESULT TYPES
 # ============================================
 
+
 class TestStatus(Enum):
     """Test execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -65,23 +68,24 @@ class TestResult:
         timestamp: When the test was executed
         metadata: Additional test metadata
     """
+
     test_id: str
     test_name: str
     status: TestStatus
     duration_ms: float = 0.0
-    expected: Optional[Any] = None
-    actual: Optional[Any] = None
-    error_message: Optional[str] = None
-    error_code: Optional[int] = None
+    expected: Any | None = None
+    actual: Any | None = None
+    error_message: str | None = None
+    error_code: int | None = None
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
         """Check if test passed."""
         return self.status == TestStatus.PASSED
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC responses."""
         return {
             "test_id": self.test_id,
@@ -110,12 +114,13 @@ class TestSuiteResult:
         started_at: When suite started
         finished_at: When suite finished
     """
+
     suite_name: str
     plugin_name: str
-    results: List[TestResult] = field(default_factory=list)
+    results: list[TestResult] = field(default_factory=list)
     total_duration_ms: float = 0.0
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
 
     @property
     def total(self) -> int:
@@ -154,7 +159,7 @@ class TestSuiteResult:
         """Check if all tests passed."""
         return self.failed == 0 and self.errors == 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC responses."""
         return {
             "suite_name": self.suite_name,
@@ -179,6 +184,7 @@ class TestSuiteResult:
 # TEST CASE TYPES
 # ============================================
 
+
 @dataclass
 class TestCase:
     """
@@ -197,20 +203,21 @@ class TestCase:
         skip_reason: Reason for skipping
         tags: Test tags for filtering
     """
+
     id: str
     name: str
     description: str = ""
     method: str = ""
-    params: Dict[str, Any] = field(default_factory=dict)
-    expected_result: Optional[Any] = None
-    expected_error: Optional[int] = None
+    params: dict[str, Any] = field(default_factory=dict)
+    expected_result: Any | None = None
+    expected_error: int | None = None
     timeout_seconds: float = 30.0
     skip: bool = False
     skip_reason: str = ""
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TestCase":
+    def from_dict(cls, data: dict[str, Any]) -> "TestCase":
         """Create from dictionary."""
         return cls(
             id=data.get("id", ""),
@@ -240,15 +247,16 @@ class TestFixture:
         teardown: Teardown parameters
         test_cases: List of test cases
     """
+
     name: str
     contract: str
     description: str = ""
-    setup: Dict[str, Any] = field(default_factory=dict)
-    teardown: Dict[str, Any] = field(default_factory=dict)
-    test_cases: List[TestCase] = field(default_factory=list)
+    setup: dict[str, Any] = field(default_factory=dict)
+    teardown: dict[str, Any] = field(default_factory=dict)
+    test_cases: list[TestCase] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TestFixture":
+    def from_dict(cls, data: dict[str, Any]) -> "TestFixture":
         """Create from dictionary."""
         cases = [TestCase.from_dict(tc) for tc in data.get("test_cases", [])]
         return cls(
@@ -264,6 +272,7 @@ class TestFixture:
 # ============================================
 # TEST RUNNER
 # ============================================
+
 
 class PluginTestRunner:
     """
@@ -290,10 +299,7 @@ class PluginTestRunner:
     """
 
     def __init__(
-        self,
-        manager: Optional["PluginManager"] = None,
-        config_dir: Optional[Path] = None,
-        default_timeout: float = 30.0
+        self, manager: Optional["PluginManager"] = None, config_dir: Path | None = None, default_timeout: float = 30.0
     ):
         """
         Initialize test runner.
@@ -308,21 +314,18 @@ class PluginTestRunner:
         self.default_timeout = default_timeout
 
         # Loaded fixtures
-        self._fixtures: Dict[str, TestFixture] = {}
+        self._fixtures: dict[str, TestFixture] = {}
 
         # Test history
-        self._history: List[TestResult] = []
+        self._history: list[TestResult] = []
         self._max_history = 1000
 
         # Progress callback
-        self._progress_callback: Optional[Callable[[str, int, int], None]] = None
+        self._progress_callback: Callable[[str, int, int], None] | None = None
 
         logger.debug("PluginTestRunner initialized")
 
-    def set_progress_callback(
-        self,
-        callback: Callable[[str, int, int], None]
-    ) -> None:
+    def set_progress_callback(self, callback: Callable[[str, int, int], None]) -> None:
         """
         Set progress callback for test execution.
 
@@ -331,12 +334,7 @@ class PluginTestRunner:
         """
         self._progress_callback = callback
 
-    def _report_progress(
-        self,
-        test_name: str,
-        current: int,
-        total: int
-    ) -> None:
+    def _report_progress(self, test_name: str, current: int, total: int) -> None:
         """Report test progress."""
         if self._progress_callback:
             try:
@@ -361,7 +359,7 @@ class PluginTestRunner:
             return 0
 
         try:
-            with open(yaml_path, "r", encoding="utf-8") as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
         except Exception as e:
             logger.error(f"Failed to load fixtures from {yaml_path}: {e}")
@@ -380,15 +378,15 @@ class PluginTestRunner:
 
         return count
 
-    def get_fixture(self, name: str) -> Optional[TestFixture]:
+    def get_fixture(self, name: str) -> TestFixture | None:
         """Get a loaded fixture by name."""
         return self._fixtures.get(name)
 
-    def get_fixtures_for_contract(self, contract: str) -> List[TestFixture]:
+    def get_fixtures_for_contract(self, contract: str) -> list[TestFixture]:
         """Get all fixtures for a specific contract."""
         return [f for f in self._fixtures.values() if f.contract == contract]
 
-    def list_fixtures(self) -> List[Dict[str, Any]]:
+    def list_fixtures(self) -> list[dict[str, Any]]:
         """List all loaded fixtures."""
         return [
             {
@@ -401,12 +399,8 @@ class PluginTestRunner:
         ]
 
     async def _invoke_method(
-        self,
-        plugin_name: str,
-        method: str,
-        params: Dict[str, Any],
-        timeout: float
-    ) -> tuple[bool, Any, Optional[str], Optional[int]]:
+        self, plugin_name: str, method: str, params: dict[str, Any], timeout: float
+    ) -> tuple[bool, Any, str | None, int | None]:
         """
         Invoke a plugin method.
 
@@ -440,32 +434,24 @@ class PluginTestRunner:
         try:
             # Execute with timeout
             if asyncio.iscoroutinefunction(method_callable):
-                result = await asyncio.wait_for(
-                    method_callable(**params),
-                    timeout=timeout
-                )
+                result = await asyncio.wait_for(method_callable(**params), timeout=timeout)
             else:
                 # Wrap sync function in executor
                 loop = asyncio.get_event_loop()
                 result = await asyncio.wait_for(
-                    loop.run_in_executor(None, lambda: method_callable(**params)),
-                    timeout=timeout
+                    loop.run_in_executor(None, lambda: method_callable(**params)), timeout=timeout
                 )
 
             return True, result, None, None
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False, None, f"Method timed out after {timeout}s", -32603
         except TypeError as e:
             return False, None, f"Invalid parameters: {e}", -32602
         except Exception as e:
             return False, None, f"Method error: {type(e).__name__}: {e}", -32603
 
-    def _compare_results(
-        self,
-        expected: Any,
-        actual: Any
-    ) -> tuple[bool, str]:
+    def _compare_results(self, expected: Any, actual: Any) -> tuple[bool, str]:
         """
         Compare expected and actual results.
 
@@ -516,11 +502,7 @@ class PluginTestRunner:
 
         return False, f"Values differ: expected {expected!r}, got {actual!r}"
 
-    async def run_test(
-        self,
-        plugin_name: str,
-        test_case: TestCase
-    ) -> TestResult:
+    async def run_test(self, plugin_name: str, test_case: TestCase) -> TestResult:
         """
         Run a single test case against a plugin.
 
@@ -539,7 +521,7 @@ class PluginTestRunner:
                 "plugin": plugin_name,
                 "method": test_case.method,
                 "tags": test_case.tags,
-            }
+            },
         )
 
         # Check if skipped
@@ -557,7 +539,7 @@ class PluginTestRunner:
                 plugin_name=plugin_name,
                 method=test_case.method,
                 params=test_case.params,
-                timeout=test_case.timeout_seconds
+                timeout=test_case.timeout_seconds,
             )
 
             result.duration_ms = (time.perf_counter() - start_time) * 1000
@@ -587,10 +569,7 @@ class PluginTestRunner:
                     result.status = TestStatus.FAILED
                     result.error_message = f"Expected error {test_case.expected_error} but method succeeded"
                 else:
-                    match, compare_msg = self._compare_results(
-                        test_case.expected_result,
-                        actual
-                    )
+                    match, compare_msg = self._compare_results(test_case.expected_result, actual)
                     if match:
                         result.status = TestStatus.PASSED
                     else:
@@ -606,15 +585,11 @@ class PluginTestRunner:
         # Add to history
         self._history.append(result)
         if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+            self._history = self._history[-self._max_history :]
 
         return result
 
-    async def run_fixture(
-        self,
-        plugin_name: str,
-        fixture: TestFixture
-    ) -> TestSuiteResult:
+    async def run_fixture(self, plugin_name: str, fixture: TestFixture) -> TestSuiteResult:
         """
         Run all tests in a fixture against a plugin.
 
@@ -625,11 +600,7 @@ class PluginTestRunner:
         Returns:
             TestSuiteResult
         """
-        suite = TestSuiteResult(
-            suite_name=fixture.name,
-            plugin_name=plugin_name,
-            started_at=datetime.now()
-        )
+        suite = TestSuiteResult(suite_name=fixture.name, plugin_name=plugin_name, started_at=datetime.now())
 
         start_time = time.perf_counter()
         total_tests = len(fixture.test_cases)
@@ -655,11 +626,7 @@ class PluginTestRunner:
 
         return suite
 
-    async def run_contract_compliance(
-        self,
-        plugin_name: str,
-        contract: Optional[str] = None
-    ) -> TestSuiteResult:
+    async def run_contract_compliance(self, plugin_name: str, contract: str | None = None) -> TestSuiteResult:
         """
         Run contract compliance tests against a plugin.
 
@@ -673,9 +640,7 @@ class PluginTestRunner:
             TestSuiteResult
         """
         suite = TestSuiteResult(
-            suite_name=f"Contract Compliance: {plugin_name}",
-            plugin_name=plugin_name,
-            started_at=datetime.now()
+            suite_name=f"Contract Compliance: {plugin_name}", plugin_name=plugin_name, started_at=datetime.now()
         )
 
         start_time = time.perf_counter()
@@ -685,7 +650,7 @@ class PluginTestRunner:
                 test_id="compliance_check",
                 test_name="Manager Check",
                 status=TestStatus.ERROR,
-                error_message="Plugin manager not available"
+                error_message="Plugin manager not available",
             )
             suite.results.append(result)
             return suite
@@ -696,7 +661,7 @@ class PluginTestRunner:
                 test_id="plugin_loaded",
                 test_name="Plugin Loaded",
                 status=TestStatus.ERROR,
-                error_message=f"Plugin not loaded: {plugin_name}"
+                error_message=f"Plugin not loaded: {plugin_name}",
             )
             suite.results.append(result)
             return suite
@@ -717,45 +682,50 @@ class PluginTestRunner:
                 test_id="contract_known",
                 test_name="Contract Known",
                 status=TestStatus.FAILED,
-                error_message=f"Unknown contract type: {actual_contract}"
+                error_message=f"Unknown contract type: {actual_contract}",
             )
             suite.results.append(result)
             return suite
 
         # Test: Plugin loaded
-        suite.results.append(TestResult(
-            test_id="plugin_loaded",
-            test_name="Plugin Loaded",
-            status=TestStatus.PASSED,
-            metadata={"plugin": plugin_name, "contract": actual_contract}
-        ))
+        suite.results.append(
+            TestResult(
+                test_id="plugin_loaded",
+                test_name="Plugin Loaded",
+                status=TestStatus.PASSED,
+                metadata={"plugin": plugin_name, "contract": actual_contract},
+            )
+        )
 
         # Test: Plugin initialized
         init_status = TestStatus.PASSED if loaded.initialized else TestStatus.FAILED
-        suite.results.append(TestResult(
-            test_id="plugin_initialized",
-            test_name="Plugin Initialized",
-            status=init_status,
-            error_message=None if loaded.initialized else "Plugin not initialized"
-        ))
+        suite.results.append(
+            TestResult(
+                test_id="plugin_initialized",
+                test_name="Plugin Initialized",
+                status=init_status,
+                error_message=None if loaded.initialized else "Plugin not initialized",
+            )
+        )
 
         # Test: Health check
         try:
             health = loaded.instance.health_check()
             health_status = TestStatus.PASSED if health.status.value != "error" else TestStatus.FAILED
-            suite.results.append(TestResult(
-                test_id="health_check",
-                test_name="Health Check",
-                status=health_status,
-                actual={"status": health.status.value, "message": health.message}
-            ))
+            suite.results.append(
+                TestResult(
+                    test_id="health_check",
+                    test_name="Health Check",
+                    status=health_status,
+                    actual={"status": health.status.value, "message": health.message},
+                )
+            )
         except Exception as e:
-            suite.results.append(TestResult(
-                test_id="health_check",
-                test_name="Health Check",
-                status=TestStatus.ERROR,
-                error_message=str(e)
-            ))
+            suite.results.append(
+                TestResult(
+                    test_id="health_check", test_name="Health Check", status=TestStatus.ERROR, error_message=str(e)
+                )
+            )
 
         # Test: Required methods exist
         required_methods = {
@@ -768,25 +738,29 @@ class PluginTestRunner:
         for method_name in methods:
             method = getattr(loaded.instance, method_name, None)
             if method is None:
-                suite.results.append(TestResult(
-                    test_id=f"method_{method_name}_exists",
-                    test_name=f"Method Exists: {method_name}",
-                    status=TestStatus.FAILED,
-                    error_message=f"Method not found: {method_name}"
-                ))
+                suite.results.append(
+                    TestResult(
+                        test_id=f"method_{method_name}_exists",
+                        test_name=f"Method Exists: {method_name}",
+                        status=TestStatus.FAILED,
+                        error_message=f"Method not found: {method_name}",
+                    )
+                )
             elif not callable(method):
-                suite.results.append(TestResult(
-                    test_id=f"method_{method_name}_callable",
-                    test_name=f"Method Callable: {method_name}",
-                    status=TestStatus.FAILED,
-                    error_message=f"Method not callable: {method_name}"
-                ))
+                suite.results.append(
+                    TestResult(
+                        test_id=f"method_{method_name}_callable",
+                        test_name=f"Method Callable: {method_name}",
+                        status=TestStatus.FAILED,
+                        error_message=f"Method not callable: {method_name}",
+                    )
+                )
             else:
-                suite.results.append(TestResult(
-                    test_id=f"method_{method_name}",
-                    test_name=f"Method: {method_name}",
-                    status=TestStatus.PASSED
-                ))
+                suite.results.append(
+                    TestResult(
+                        test_id=f"method_{method_name}", test_name=f"Method: {method_name}", status=TestStatus.PASSED
+                    )
+                )
 
         suite.total_duration_ms = (time.perf_counter() - start_time) * 1000
         suite.finished_at = datetime.now()
@@ -794,13 +768,8 @@ class PluginTestRunner:
         return suite
 
     async def benchmark_method(
-        self,
-        plugin_name: str,
-        method: str,
-        params: Dict[str, Any],
-        iterations: int = 10,
-        warmup: int = 2
-    ) -> Dict[str, Any]:
+        self, plugin_name: str, method: str, params: dict[str, Any], iterations: int = 10, warmup: int = 2
+    ) -> dict[str, Any]:
         """
         Benchmark a plugin method.
 
@@ -814,21 +783,17 @@ class PluginTestRunner:
         Returns:
             Benchmark results
         """
-        times: List[float] = []
-        errors: List[str] = []
+        times: list[float] = []
+        errors: list[str] = []
 
         # Warmup
         for _ in range(warmup):
-            await self._invoke_method(
-                plugin_name, method, params, self.default_timeout
-            )
+            await self._invoke_method(plugin_name, method, params, self.default_timeout)
 
         # Benchmark
         for i in range(iterations):
             start = time.perf_counter()
-            success, result, error, code = await self._invoke_method(
-                plugin_name, method, params, self.default_timeout
-            )
+            success, result, error, code = await self._invoke_method(plugin_name, method, params, self.default_timeout)
             elapsed = (time.perf_counter() - start) * 1000
 
             if success:
@@ -862,11 +827,8 @@ class PluginTestRunner:
         }
 
     def get_history(
-        self,
-        limit: int = 100,
-        plugin_name: Optional[str] = None,
-        status: Optional[TestStatus] = None
-    ) -> List[TestResult]:
+        self, limit: int = 100, plugin_name: str | None = None, status: TestStatus | None = None
+    ) -> list[TestResult]:
         """
         Get test history.
 
@@ -881,10 +843,7 @@ class PluginTestRunner:
         results = self._history
 
         if plugin_name:
-            results = [
-                r for r in results
-                if r.metadata.get("plugin") == plugin_name
-            ]
+            results = [r for r in results if r.metadata.get("plugin") == plugin_name]
 
         if status:
             results = [r for r in results if r.status == status]

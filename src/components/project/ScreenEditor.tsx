@@ -13,7 +13,7 @@
  *   - Fully typed props with TypeScript
  */
 
-import React, { useState, useCallback, useMemo, type HTMLAttributes } from "react";
+import React, { useState, useCallback, type HTMLAttributes } from "react";
 
 /**
  * Widget slot definition.
@@ -214,15 +214,7 @@ const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-/**
- * Eye icon.
- */
-const EyeIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
+
 
 /**
  * Grid icon.
@@ -308,7 +300,7 @@ export const ScreenEditor: React.FC<ScreenEditorProps> = ({
 
   // Get screen type icon
   const ScreenTypeIcon = ScreenTypeIcons[screen.type];
-  const LayoutIcon = LayoutIcons[screen.layout];
+
 
   // Handle canvas click for adding widgets
   const handleCanvasClick = useCallback(

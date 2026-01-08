@@ -223,14 +223,14 @@ const statusBgColors: Record<HealthStatus, string> = {
   unknown: "bg-neutral-50",
 };
 
-/**
- * Status border color mapping.
- */
-const statusBorderColors: Record<HealthStatus, string> = {
-  healthy: "border-success-200",
-  degraded: "border-warning-200",
-  unhealthy: "border-error-200",
-  unknown: "border-neutral-200",
+
+
+// Preserved for future use
+const _statusBorderColors: Record<HealthStatus, string> = {
+  healthy: "border-success-500",
+  degraded: "border-warning-500",
+  unhealthy: "border-error-500",
+  unknown: "border-neutral-400",
 };
 
 /**

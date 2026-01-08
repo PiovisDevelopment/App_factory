@@ -18,13 +18,11 @@ Dependencies:
 
 import json
 import logging
-import os
 import re
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from string import Template
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -64,17 +62,17 @@ class PluginManifest:
     description: str = ""
     author: str = ""
     license: str = "MIT"
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     python_requires: str = ">=3.11"
     gpu_required: bool = False
     gpu_recommended: bool = False
     min_memory_mb: int = 512
-    tags: List[str] = field(default_factory=list)
-    capabilities: List[str] = field(default_factory=list)
-    config_schema: Dict[str, Any] = field(default_factory=dict)
-    default_config: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
+    config_schema: dict[str, Any] = field(default_factory=dict)
+    default_config: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to manifest.json format."""
         return {
             "name": self.name,
@@ -97,7 +95,7 @@ class PluginManifest:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PluginManifest":
+    def from_dict(cls, data: dict[str, Any]) -> "PluginManifest":
         """Create from dictionary."""
         return cls(
             name=data.get("name", ""),
@@ -133,11 +131,11 @@ class ScaffoldResult:
     """
 
     success: bool
-    plugin_path: Optional[Path] = None
-    files_created: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    plugin_path: Path | None = None
+    files_created: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC response."""
         return {
             "success": self.success,
@@ -195,7 +193,7 @@ class PluginScaffold:
             self.templates_dir = Path(__file__).parent / "templates"
 
         # Load contract registry for method signatures
-        self._contracts: Dict[str, Any] = {}
+        self._contracts: dict[str, Any] = {}
         self._load_contracts()
 
         logger.debug(f"PluginScaffold initialized: plugins={self.plugins_dir}")
@@ -204,14 +202,14 @@ class PluginScaffold:
         """Load contract definitions from registry."""
         registry_path = self.config_dir / "contracts_registry.yaml"
         if registry_path.exists():
-            with open(registry_path, "r", encoding="utf-8") as f:
+            with open(registry_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 self._contracts = data.get("contracts", {})
                 logger.debug(f"Loaded {len(self._contracts)} contract definitions")
         else:
             logger.warning(f"Contracts registry not found: {registry_path}")
 
-    def validate_manifest(self, manifest: PluginManifest) -> List[str]:
+    def validate_manifest(self, manifest: PluginManifest) -> list[str]:
         """
         Validate manifest before generation.
 
@@ -227,9 +225,7 @@ class PluginScaffold:
         if not manifest.name:
             errors.append("Plugin name is required")
         elif not re.match(r"^[a-z][a-z0-9_]*_plugin$", manifest.name):
-            errors.append(
-                "Plugin name must be lowercase with underscores, ending in _plugin"
-            )
+            errors.append("Plugin name must be lowercase with underscores, ending in _plugin")
 
         # Validate contract
         if not manifest.contract:
@@ -242,9 +238,7 @@ class PluginScaffold:
         if manifest.name and manifest.contract:
             expected_prefix = f"{manifest.contract}_"
             if not manifest.name.startswith(expected_prefix):
-                errors.append(
-                    f"Plugin name must start with '{expected_prefix}' for {manifest.contract} contract"
-                )
+                errors.append(f"Plugin name must start with '{expected_prefix}' for {manifest.contract} contract")
 
         # Validate version format
         if not re.match(r"^\d+\.\d+\.\d+", manifest.version):
@@ -311,9 +305,7 @@ class PluginScaffold:
                 logger.debug(f"Created: {file_path}")
 
             result.success = True
-            logger.info(
-                f"Scaffold complete: {manifest.name} ({len(result.files_created)} files)"
-            )
+            logger.info(f"Scaffold complete: {manifest.name} ({len(result.files_created)} files)")
 
         except Exception as e:
             result.errors.append(f"Generation failed: {e}")
@@ -328,9 +320,7 @@ class PluginScaffold:
 
         return result
 
-    def _get_files_for_contract(
-        self, manifest: PluginManifest
-    ) -> List[Dict[str, str]]:
+    def _get_files_for_contract(self, manifest: PluginManifest) -> list[dict[str, str]]:
         """
         Get list of files to create for a contract type.
 
@@ -343,35 +333,45 @@ class PluginScaffold:
         files = []
 
         # manifest.json
-        files.append({
-            "path": "manifest.json",
-            "content": json.dumps(manifest.to_dict(), indent=2),
-        })
+        files.append(
+            {
+                "path": "manifest.json",
+                "content": json.dumps(manifest.to_dict(), indent=2),
+            }
+        )
 
         # __init__.py
-        files.append({
-            "path": "__init__.py",
-            "content": self._generate_init(manifest),
-        })
+        files.append(
+            {
+                "path": "__init__.py",
+                "content": self._generate_init(manifest),
+            }
+        )
 
         # Main plugin file
-        files.append({
-            "path": f"{manifest.entry_point}.py",
-            "content": self._generate_plugin_code(manifest),
-        })
+        files.append(
+            {
+                "path": f"{manifest.entry_point}.py",
+                "content": self._generate_plugin_code(manifest),
+            }
+        )
 
         # requirements.txt (if dependencies exist)
         if manifest.dependencies:
-            files.append({
-                "path": "requirements.txt",
-                "content": "\n".join(manifest.dependencies) + "\n",
-            })
+            files.append(
+                {
+                    "path": "requirements.txt",
+                    "content": "\n".join(manifest.dependencies) + "\n",
+                }
+            )
 
         # README.md
-        files.append({
-            "path": "README.md",
-            "content": self._generate_readme(manifest),
-        })
+        files.append(
+            {
+                "path": "README.md",
+                "content": self._generate_readme(manifest),
+            }
+        )
 
         return files
 
@@ -392,11 +392,9 @@ __version__ = "{manifest.version}"
     def _generate_plugin_code(self, manifest: PluginManifest) -> str:
         """Generate main plugin file."""
         # Get class name from display name
-        class_name = "".join(
-            word.capitalize()
-            for word in re.split(r"[\s_-]+", manifest.display_name)
-            if word
-        ).replace("'", "")
+        class_name = "".join(word.capitalize() for word in re.split(r"[\s_-]+", manifest.display_name) if word).replace(
+            "'", ""
+        )
 
         if not class_name:
             class_name = "Plugin"
@@ -412,9 +410,7 @@ __version__ = "{manifest.version}"
         required_methods = methods.get("required", [])
 
         # Generate method implementations
-        method_impls = self._generate_method_implementations(
-            manifest.contract, required_methods
-        )
+        method_impls = self._generate_method_implementations(manifest.contract, required_methods)
 
         return f'''"""
 {manifest.name}
@@ -504,9 +500,7 @@ class {class_name}(PluginBase, {contract_class}):
 plugin = {class_name}()
 '''
 
-    def _generate_method_implementations(
-        self, contract: str, methods: List[Dict[str, Any]]
-    ) -> str:
+    def _generate_method_implementations(self, contract: str, methods: list[dict[str, Any]]) -> str:
         """Generate method implementations for contract."""
         impls = []
 
@@ -627,7 +621,7 @@ This plugin implements the **{manifest.contract.upper()}** contract.
 
 
 def create_plugin(
-    manifest_data: Dict[str, Any],
+    manifest_data: dict[str, Any],
     plugins_dir: str | Path = "./plugins",
     config_dir: str | Path = "./config",
 ) -> ScaffoldResult:

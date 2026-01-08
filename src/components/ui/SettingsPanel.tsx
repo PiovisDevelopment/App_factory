@@ -90,8 +90,9 @@ FINAL CHECK:
                 setIsLoadingModels(false);
 
                 // Auto-select first model if current model is not valid
-                if (models.length > 0 && !models.includes(model)) {
-                    setModel(models[0]);
+                const firstModel = models[0];
+                if (models.length > 0 && !models.includes(model) && firstModel) {
+                    setModel(firstModel);
                 }
             };
 
