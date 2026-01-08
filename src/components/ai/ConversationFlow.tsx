@@ -199,10 +199,10 @@ const StepRenderer: React.FC<{
           <Input
             value={(value as string) || ""}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={step.placeholder}
+            {...(step.placeholder ? { placeholder: step.placeholder } : {})}
             error={!!error}
-            errorMessage={error || undefined}
-            helperText={step.helperText}
+            {...(error !== undefined && error !== null ? { errorMessage: error } : {})}
+            {...(step.helperText ? { helperText: step.helperText } : {})}
             fullWidth
           />
         );
@@ -215,8 +215,8 @@ const StepRenderer: React.FC<{
             onChange={(e) => onChange(e.target.value)}
             placeholder="Select an option"
             error={!!error}
-            errorMessage={error || undefined}
-            helperText={step.helperText}
+            {...(error !== undefined && error !== null ? { errorMessage: error } : {})}
+            {...(step.helperText ? { helperText: step.helperText } : {})}
             fullWidth
           />
         );
@@ -500,7 +500,7 @@ export const ConversationFlow: React.FC<ConversationFlowProps> = ({
             step={currentStep}
             value={answers[currentStep.id] ?? currentStep.defaultValue}
             onChange={handleValueChange}
-            error={errors[currentStep.id]}
+            {...(errors[currentStep.id] !== undefined ? { error: errors[currentStep.id] } : {})}
           />
         </div>
 

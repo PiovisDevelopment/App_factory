@@ -266,18 +266,25 @@ export const ComponentEditor: React.FC<ComponentEditorProps> = ({
   }, []);
 
   // Group properties by category
-  const groupedProperties = useMemo(() => {
-    const groups: Record<string, ComponentProperty[]> = {
+  type PropertyGroups = {
+    required: ComponentProperty[];
+    optional: ComponentProperty[];
+  };
+
+  const groupedProperties = useMemo<PropertyGroups>(() => {
+    const groups: PropertyGroups = {
       required: [],
       optional: [],
     };
-    component.properties.forEach((prop) => {
+
+    (component.properties ?? []).forEach((prop) => {
       if (prop.required) {
         groups.required.push(prop);
       } else {
         groups.optional.push(prop);
       }
     });
+
     return groups;
   }, [component.properties]);
 

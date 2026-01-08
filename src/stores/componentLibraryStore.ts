@@ -75,11 +75,11 @@ export interface AddComponentInput {
     name: string;
     code: string;
     framework: ComponentFramework;
-    description?: string;
-    category?: ComponentCategory;
-    tags?: string[];
-    thumbnail?: string;
-    prompt?: string;
+    description?: string | undefined;
+    category?: ComponentCategory | undefined;
+    tags?: string[] | undefined;
+    thumbnail?: string | undefined;
+    prompt?: string | undefined;
 }
 
 /**
@@ -229,13 +229,13 @@ export const useComponentLibraryStore = create<ComponentLibraryState & Component
                 const newComponent: LibraryComponent = {
                     id,
                     name: input.name || extractNameFromCode(input.code),
-                    description: input.description,
+                    ...(input.description ? { description: input.description } : {}),
                     code: input.code,
                     framework: input.framework,
                     category: input.category || 'other',
                     tags: input.tags || [],
-                    thumbnail: input.thumbnail,
-                    prompt: input.prompt,
+                    ...(input.thumbnail ? { thumbnail: input.thumbnail } : {}),
+                    ...(input.prompt ? { prompt: input.prompt } : {}),
                     createdAt: now,
                     updatedAt: now,
                     isFavorite: false,
@@ -249,10 +249,25 @@ export const useComponentLibraryStore = create<ComponentLibraryState & Component
             },
 
             updateComponent: (id, input) => {
+                // Remove undefined fields to satisfy exactOptionalPropertyTypes
+                const sanitizedEntries = Object.entries(input).filter(([, value]) => value !== undefined);
+                const sanitizedInput = Object.fromEntries(sanitizedEntries);
+
+                // Ensure string fields are concrete strings
+                if ('description' in sanitizedInput) {
+                    sanitizedInput.description = (sanitizedInput.description as string) ?? '';
+                }
+                if ('thumbnail' in sanitizedInput) {
+                    sanitizedInput.thumbnail = (sanitizedInput.thumbnail as string) ?? '';
+                }
+                if ('prompt' in sanitizedInput) {
+                    sanitizedInput.prompt = (sanitizedInput.prompt as string) ?? '';
+                }
+
                 set((state) => ({
                     components: state.components.map((comp) =>
                         comp.id === id
-                            ? { ...comp, ...input, updatedAt: Date.now() }
+                            ? { ...comp, ...sanitizedInput, updatedAt: Date.now() }
                             : comp
                     ),
                 }));

@@ -292,7 +292,7 @@ const MethodEditor: React.FC<{
               >
                 <div className="col-span-3">
                   <Input
-                    label={index === 0 ? "Name" : undefined}
+                    {...(index === 0 ? { label: "Name" } : {})}
                     value={param.name}
                     onChange={(e) =>
                       updateParameter(index, { ...param, name: e.target.value })
@@ -304,7 +304,7 @@ const MethodEditor: React.FC<{
                 </div>
                 <div className="col-span-3">
                   <Select
-                    label={index === 0 ? "Type" : undefined}
+                    {...(index === 0 ? { label: "Type" } : {})}
                     options={pythonTypes}
                     value={param.type}
                     onChange={(e) =>
@@ -316,7 +316,7 @@ const MethodEditor: React.FC<{
                 </div>
                 <div className="col-span-4">
                   <Input
-                    label={index === 0 ? "Description" : undefined}
+                    {...(index === 0 ? { label: "Description" } : {})}
                     value={param.description}
                     onChange={(e) =>
                       updateParameter(index, { ...param, description: e.target.value })

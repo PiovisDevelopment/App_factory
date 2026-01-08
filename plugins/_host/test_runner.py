@@ -24,11 +24,12 @@ import asyncio
 import json
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -69,19 +70,19 @@ class TestResult:
     test_name: str
     status: TestStatus
     duration_ms: float = 0.0
-    expected: Optional[Any] = None
-    actual: Optional[Any] = None
-    error_message: Optional[str] = None
-    error_code: Optional[int] = None
+    expected: Any | None = None
+    actual: Any | None = None
+    error_message: str | None = None
+    error_code: int | None = None
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
         """Check if test passed."""
         return self.status == TestStatus.PASSED
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC responses."""
         return {
             "test_id": self.test_id,
@@ -112,10 +113,10 @@ class TestSuiteResult:
     """
     suite_name: str
     plugin_name: str
-    results: List[TestResult] = field(default_factory=list)
+    results: list[TestResult] = field(default_factory=list)
     total_duration_ms: float = 0.0
-    started_at: Optional[datetime] = None
-    finished_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
 
     @property
     def total(self) -> int:
@@ -154,7 +155,7 @@ class TestSuiteResult:
         """Check if all tests passed."""
         return self.failed == 0 and self.errors == 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC responses."""
         return {
             "suite_name": self.suite_name,
@@ -201,16 +202,16 @@ class TestCase:
     name: str
     description: str = ""
     method: str = ""
-    params: Dict[str, Any] = field(default_factory=dict)
-    expected_result: Optional[Any] = None
-    expected_error: Optional[int] = None
+    params: dict[str, Any] = field(default_factory=dict)
+    expected_result: Any | None = None
+    expected_error: int | None = None
     timeout_seconds: float = 30.0
     skip: bool = False
     skip_reason: str = ""
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TestCase":
+    def from_dict(cls, data: dict[str, Any]) -> "TestCase":
         """Create from dictionary."""
         return cls(
             id=data.get("id", ""),
@@ -243,12 +244,12 @@ class TestFixture:
     name: str
     contract: str
     description: str = ""
-    setup: Dict[str, Any] = field(default_factory=dict)
-    teardown: Dict[str, Any] = field(default_factory=dict)
-    test_cases: List[TestCase] = field(default_factory=list)
+    setup: dict[str, Any] = field(default_factory=dict)
+    teardown: dict[str, Any] = field(default_factory=dict)
+    test_cases: list[TestCase] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TestFixture":
+    def from_dict(cls, data: dict[str, Any]) -> "TestFixture":
         """Create from dictionary."""
         cases = [TestCase.from_dict(tc) for tc in data.get("test_cases", [])]
         return cls(
@@ -292,7 +293,7 @@ class PluginTestRunner:
     def __init__(
         self,
         manager: Optional["PluginManager"] = None,
-        config_dir: Optional[Path] = None,
+        config_dir: Path | None = None,
         default_timeout: float = 30.0
     ):
         """
@@ -308,14 +309,14 @@ class PluginTestRunner:
         self.default_timeout = default_timeout
 
         # Loaded fixtures
-        self._fixtures: Dict[str, TestFixture] = {}
+        self._fixtures: dict[str, TestFixture] = {}
 
         # Test history
-        self._history: List[TestResult] = []
+        self._history: list[TestResult] = []
         self._max_history = 1000
 
         # Progress callback
-        self._progress_callback: Optional[Callable[[str, int, int], None]] = None
+        self._progress_callback: Callable[[str, int, int], None] | None = None
 
         logger.debug("PluginTestRunner initialized")
 
@@ -361,7 +362,7 @@ class PluginTestRunner:
             return 0
 
         try:
-            with open(yaml_path, "r", encoding="utf-8") as f:
+            with open(yaml_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
         except Exception as e:
             logger.error(f"Failed to load fixtures from {yaml_path}: {e}")
@@ -380,15 +381,15 @@ class PluginTestRunner:
 
         return count
 
-    def get_fixture(self, name: str) -> Optional[TestFixture]:
+    def get_fixture(self, name: str) -> TestFixture | None:
         """Get a loaded fixture by name."""
         return self._fixtures.get(name)
 
-    def get_fixtures_for_contract(self, contract: str) -> List[TestFixture]:
+    def get_fixtures_for_contract(self, contract: str) -> list[TestFixture]:
         """Get all fixtures for a specific contract."""
         return [f for f in self._fixtures.values() if f.contract == contract]
 
-    def list_fixtures(self) -> List[Dict[str, Any]]:
+    def list_fixtures(self) -> list[dict[str, Any]]:
         """List all loaded fixtures."""
         return [
             {
@@ -404,9 +405,9 @@ class PluginTestRunner:
         self,
         plugin_name: str,
         method: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         timeout: float
-    ) -> tuple[bool, Any, Optional[str], Optional[int]]:
+    ) -> tuple[bool, Any, str | None, int | None]:
         """
         Invoke a plugin method.
 
@@ -454,7 +455,7 @@ class PluginTestRunner:
 
             return True, result, None, None
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False, None, f"Method timed out after {timeout}s", -32603
         except TypeError as e:
             return False, None, f"Invalid parameters: {e}", -32602
@@ -658,7 +659,7 @@ class PluginTestRunner:
     async def run_contract_compliance(
         self,
         plugin_name: str,
-        contract: Optional[str] = None
+        contract: str | None = None
     ) -> TestSuiteResult:
         """
         Run contract compliance tests against a plugin.
@@ -797,10 +798,10 @@ class PluginTestRunner:
         self,
         plugin_name: str,
         method: str,
-        params: Dict[str, Any],
+        params: dict[str, Any],
         iterations: int = 10,
         warmup: int = 2
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Benchmark a plugin method.
 
@@ -814,8 +815,8 @@ class PluginTestRunner:
         Returns:
             Benchmark results
         """
-        times: List[float] = []
-        errors: List[str] = []
+        times: list[float] = []
+        errors: list[str] = []
 
         # Warmup
         for _ in range(warmup):
@@ -824,7 +825,7 @@ class PluginTestRunner:
             )
 
         # Benchmark
-        for i in range(iterations):
+        for _i in range(iterations):
             start = time.perf_counter()
             success, result, error, code = await self._invoke_method(
                 plugin_name, method, params, self.default_timeout
@@ -864,9 +865,9 @@ class PluginTestRunner:
     def get_history(
         self,
         limit: int = 100,
-        plugin_name: Optional[str] = None,
-        status: Optional[TestStatus] = None
-    ) -> List[TestResult]:
+        plugin_name: str | None = None,
+        status: TestStatus | None = None
+    ) -> list[TestResult]:
         """
         Get test history.
 

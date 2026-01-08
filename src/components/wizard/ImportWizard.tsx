@@ -400,7 +400,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         }
         const urlValidation = validateUrl(sourceUrl);
         if (!urlValidation.isValid) {
-          setError(urlValidation.errors[0]);
+          setError(urlValidation.errors[0] ?? "Invalid URL");
           return;
         }
         setCurrentStep("fetch");

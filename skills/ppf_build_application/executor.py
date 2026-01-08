@@ -3,16 +3,16 @@
 PPF Build Executor (Windows Native)
 """
 
-import sys
-import os
-import subprocess
+import glob
 import json
 import logging
-import glob
+import os
+import subprocess
+import sys
 
+from env_detection import detect_windows_native_environment
 from env_preflight import run_preflight_env_check
 from path_risk import check_path_length_risk
-from env_detection import detect_windows_native_environment
 from runtime_bundler import build_runtime_bundle
 
 # Configure Logging
@@ -25,33 +25,33 @@ def get_project_root():
     # Go up two levels
     current = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(os.path.dirname(current))
-    
+
     if os.path.exists(os.path.join(root, "src-tauri")):
         return root
-    
+
     # Fallback: Check current working directory
     cwd = os.getcwd()
     if os.path.exists(os.path.join(cwd, "src-tauri")):
         return cwd
-        
+
     return None
 
 def check_bundle_identifier(root_path):
     """Ensures the bundle identifier is not the default."""
     conf_path = os.path.join(root_path, "src-tauri", "tauri.conf.json")
-    
+
     try:
-        with open(conf_path, 'r') as f:
+        with open(conf_path) as f:
             conf = json.load(f)
-            
+
         identifier = conf.get('tauri', {}).get('bundle', {}).get('identifier', '')
-        
+
         if identifier == "com.tauri.dev":
             return {
-                "valid": False, 
+                "valid": False,
                 "error": "Bundle Identifier is still 'com.tauri.dev'. Please change it in src-tauri/tauri.conf.json before building."
             }
-            
+
         return {"valid": True}
     except Exception as e:
         return {"valid": False, "error": f"Failed to read tauri.conf.json: {e}"}
@@ -59,20 +59,20 @@ def check_bundle_identifier(root_path):
 def find_artifacts(root_path):
     """Locates the generated installers."""
     release_dir = os.path.join(root_path, "src-tauri", "target", "release", "bundle")
-    
+
     artifacts = {
         "msi": [],
         "nsis": [] # .exe setup files
     }
-    
+
     # Check MSI
     msi_path = os.path.join(release_dir, "msi", "*.msi")
     artifacts["msi"] = glob.glob(msi_path)
-    
+
     # Check NSIS (Exe)
     nsis_path = os.path.join(release_dir, "nsis", "*.exe")
     artifacts["nsis"] = glob.glob(nsis_path)
-    
+
     return artifacts
 
 def build_application():
@@ -143,17 +143,17 @@ def build_application():
 
     except Exception as e:
         return {"success": False, "error": f"Failed to execute build command: {e}"}
-    
+
     # 3. Locate Artifacts
     artifacts = find_artifacts(root_path)
-    
+
     found_paths = []
     found_paths.extend(artifacts['msi'])
     found_paths.extend(artifacts['nsis'])
-    
+
     if not found_paths:
         return {"success": False, "error": "Build finished but no artifacts found."}
-        
+
     return {
         "success": True,
         "installer_path": found_paths[0], # Return the first one found

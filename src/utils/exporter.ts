@@ -19,7 +19,8 @@
  */
 
 import { invoke } from "@tauri-apps/api/tauri";
-import type { ProjectState, ProjectBuildConfig, ProjectTheme, ProjectScreen, ProjectComponent } from "../stores/projectStore";
+import { defaultDarkTheme, defaultLightTheme } from "../context/ThemeProvider";
+import type { ProjectState, ProjectTheme, ProjectScreen } from "../stores/projectStore";
 import type { Plugin } from "../stores/pluginStore";
 
 // ============================================
@@ -141,7 +142,7 @@ export interface ExportProgress {
   /** Progress percentage (0-100) */
   percentage: number;
   /** Current file being processed */
-  currentFile?: string;
+  currentFile?: string | undefined;
 }
 
 /**
@@ -190,6 +191,158 @@ export interface TemplateContext {
   /** Timestamp */
   timestamp: string;
 }
+
+// ============================================
+// THEME NORMALIZATION
+// ============================================
+
+type LegacyThemeConfig = {
+  name?: string;
+  mode?: "light" | "dark";
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  borderRadius?: string;
+  fontFamily?: string;
+  darkMode?: boolean;
+  customVariables?: Record<string, string>;
+};
+
+const isModernThemeConfig = (theme: unknown): theme is Partial<ProjectTheme> & { colors: ProjectTheme["colors"] } => {
+  if (!theme || typeof theme !== "object") {
+    return false;
+  }
+
+  const candidate = theme as Record<string, unknown>;
+  return (
+    typeof candidate.colors === "object" &&
+    candidate.colors !== null &&
+    typeof candidate.typography === "object" &&
+    candidate.typography !== null &&
+    typeof candidate.spacing === "object" &&
+    candidate.spacing !== null &&
+    typeof candidate.radius === "object" &&
+    candidate.radius !== null &&
+    typeof candidate.shadows === "object" &&
+    candidate.shadows !== null
+  );
+};
+
+const mergeThemeWithDefaults = (theme: Partial<ProjectTheme>, base: ProjectTheme): ProjectTheme => {
+  return {
+    ...base,
+    ...theme,
+    colors: {
+      ...base.colors,
+      ...theme.colors,
+      primary: {
+        ...base.colors.primary,
+        ...(theme.colors?.primary || {}),
+      },
+      neutral: {
+        ...base.colors.neutral,
+        ...(theme.colors?.neutral || {}),
+      },
+      success: {
+        ...base.colors.success,
+        ...(theme.colors?.success || {}),
+      },
+      warning: {
+        ...base.colors.warning,
+        ...(theme.colors?.warning || {}),
+      },
+      error: {
+        ...base.colors.error,
+        ...(theme.colors?.error || {}),
+      },
+      info: {
+        ...base.colors.info,
+        ...(theme.colors?.info || {}),
+      },
+    },
+    typography: {
+      ...base.typography,
+      ...theme.typography,
+      fontFamily: {
+        ...base.typography.fontFamily,
+        ...(theme.typography?.fontFamily || {}),
+      },
+      fontSize: {
+        ...base.typography.fontSize,
+        ...(theme.typography?.fontSize || {}),
+      },
+    },
+    spacing: {
+      ...base.spacing,
+      ...(theme.spacing || {}),
+    },
+    radius: {
+      ...base.radius,
+      ...(theme.radius || {}),
+    },
+    shadows: {
+      ...base.shadows,
+      ...(theme.shadows || {}),
+    },
+  };
+};
+
+const normalizeTheme = (theme?: ProjectTheme | Partial<ProjectTheme> | LegacyThemeConfig | null): ProjectTheme => {
+  if (isModernThemeConfig(theme)) {
+    const base = theme.mode === "dark" ? defaultDarkTheme : defaultLightTheme;
+    return mergeThemeWithDefaults(theme, base);
+  }
+
+  const legacyTheme = theme as LegacyThemeConfig | null;
+  const prefersDarkMode = legacyTheme?.darkMode || legacyTheme?.mode === "dark";
+  const base = prefersDarkMode ? defaultDarkTheme : defaultLightTheme;
+
+  return {
+    ...base,
+    name: legacyTheme?.name || base.name,
+    mode: legacyTheme?.darkMode ? "dark" : base.mode,
+    colors: {
+      ...base.colors,
+      primary: {
+        ...base.colors.primary,
+        500: legacyTheme?.primaryColor || base.colors.primary[500],
+      },
+      neutral: {
+        ...base.colors.neutral,
+        50: legacyTheme?.backgroundColor || base.colors.neutral[50],
+        500: legacyTheme?.secondaryColor || base.colors.neutral[500],
+        900: legacyTheme?.textColor || base.colors.neutral[900],
+      },
+      info: {
+        ...base.colors.info,
+        500: legacyTheme?.accentColor ?? base.colors.info[500] ?? '',
+      },
+    },
+    typography: {
+      ...base.typography,
+      fontFamily: {
+        ...base.typography.fontFamily,
+        sans: legacyTheme?.fontFamily || base.typography.fontFamily.sans,
+        mono: base.typography.fontFamily.mono,
+      },
+      fontSize: {
+        ...base.typography.fontSize,
+      },
+    },
+    spacing: {
+      ...base.spacing,
+    },
+    radius: {
+      ...base.radius,
+      md: legacyTheme?.borderRadius || base.radius.md,
+    },
+    shadows: {
+      ...base.shadows,
+    },
+  };
+};
 
 // ============================================
 // CONSTANTS
@@ -419,15 +572,23 @@ export function buildTemplateContext(
 
   const screens = projectState.screens ? Object.values(projectState.screens) : [];
 
-  const pluginList = config.bundledPlugins
-    .map((id) => plugins[id])
-    .filter(Boolean)
-    .map((p) => ({
-      id: p.manifest.id,
-      name: p.manifest.name,
-      version: p.manifest.version,
-      category: p.manifest.category,
-    }));
+  const pluginList = config.bundledPlugins.flatMap((id) => {
+    const plugin = plugins[id];
+    if (!plugin) {
+      return [];
+    }
+
+    return [
+      {
+        id: plugin.manifest.id,
+        name: plugin.manifest.name,
+        version: plugin.manifest.version,
+        category: plugin.manifest.category,
+      },
+    ];
+  });
+
+  const theme = normalizeTheme(projectState.theme);
 
   return {
     project: {
@@ -438,18 +599,7 @@ export function buildTemplateContext(
       identifier: config.identifier,
     },
     build: config,
-    theme: projectState.theme || {
-      name: "Default",
-      primaryColor: "#3b82f6",
-      secondaryColor: "#64748b",
-      accentColor: "#8b5cf6",
-      backgroundColor: "#ffffff",
-      textColor: "#0f172a",
-      borderRadius: "md",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      darkMode: false,
-      customVariables: {},
-    },
+    theme,
     screens,
     plugins: pluginList,
     env: config.envVariables,

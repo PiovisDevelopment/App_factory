@@ -1,6 +1,11 @@
-# B010 - .gitignore
+# .gitignore
 # ==================
 # Git ignore rules for App Factory
+
+# ===================
+# Archived - Old read-only files
+# ===================
+00_archive/
 
 # ===================
 # Dependencies

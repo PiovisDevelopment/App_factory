@@ -534,8 +534,6 @@ interface AppHeaderProps {
   onTogglePreview?: () => void;
   showBackendBlueprint?: boolean;
   onToggleBackendBlueprint?: () => void;
-  showAiTeam?: boolean;
-  onToggleAiTeam?: () => void;
   onToggleSettings?: () => void;
   onSaveProject?: () => void;
 
@@ -554,8 +552,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onTogglePreview,
   showBackendBlueprint = false,
   onToggleBackendBlueprint,
-  showAiTeam = false,
-  onToggleAiTeam,
   onToggleSettings,
   onSaveProject,
 
@@ -1034,15 +1030,17 @@ export const App: React.FC = () => {
 
   // Derive plugin slots for BackendBlueprintPanel from plugins state
   const pluginSlots: PluginSlot[] = React.useMemo(() => {
-    return plugins.map(p => ({
-      id: p.id,
-      contract: p.contract.toUpperCase(),
-      name: p.name,
-      pluginName: p.status === 'loaded' ? p.name : undefined,
-      status: p.status === 'loaded' ? 'healthy' as const :
-        p.status === 'loading' ? 'degraded' as const :
-          p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
-    }));
+    return plugins.map((p) => {
+      const base = {
+        id: p.id,
+        contract: p.contract.toUpperCase(),
+        name: p.name,
+        status: p.status === 'loaded' ? 'healthy' as const :
+          p.status === 'loading' ? 'degraded' as const :
+            p.status === 'error' ? 'unhealthy' as const : 'empty' as const,
+      };
+      return p.status === 'loaded' ? { ...base, pluginName: p.name } : base;
+    });
   }, [plugins]);
 
   // Manual plugin slots (user-added via + button in Blueprint)
@@ -1506,7 +1504,6 @@ export const App: React.FC = () => {
       id: `slot-${Date.now()}`,
       contract: contract.toUpperCase(),
       name: `${contract} Slot`,
-      pluginName: undefined,
       status: 'empty',
     };
     setManualPluginSlots((prev) => [...prev, newSlot]);
@@ -1531,6 +1528,7 @@ export const App: React.FC = () => {
   const handleUndo = useCallback(() => {
     if (canvasHistory.length === 0) return;
     const previousState = canvasHistory[canvasHistory.length - 1];
+    if (!previousState) return;
     setCanvasHistory((prev) => prev.slice(0, -1));
     setCanvasElements(previousState);
     setSelectedElementIds([]);
@@ -1607,7 +1605,6 @@ export const App: React.FC = () => {
       id: `element-${Date.now()}`,
       type: 'component',
       name: droppedComponent.name || 'New Component',
-      componentId: droppedComponent.id,
       bounds: {
         x: position.x,
         y: position.y,
@@ -1615,6 +1612,9 @@ export const App: React.FC = () => {
       },
       zIndex: canvasElements.length + 1,
     };
+    if (droppedComponent.id) {
+      newElement.componentId = droppedComponent.id;
+    }
     setCanvasElements((prev) => [...prev, newElement]);
     setSelectedElementIds([newElement.id]);
   }, [canvasElements.length]);
@@ -1660,7 +1660,7 @@ export const App: React.FC = () => {
             </div>
             <ProjectLoader
               projects={projects}
-              selectedProjectId={selectedProjectId}
+              {...(selectedProjectId ? { selectedProjectId } : {})}
               onSelectProject={handleSelectProject}
               onOpenProject={handleOpenProject}
               onNewProject={handleNewProject}
@@ -1682,23 +1682,23 @@ export const App: React.FC = () => {
         <FactoryLayout
           key={`layout-${showBackendBlueprint ? 'with-blueprint' : 'no-blueprint'}`}
           header={
-            <AppHeader
-              projectName={projectName}
-              projectFileName={projectFileName}
-              onBackToLauncher={handleBackToLauncher}
-              isThemePanelOpen={isThemePanelOpen}
-              onToggleThemePanel={handleToggleThemePanel}
-              isWindowConfigOpen={isWindowConfigOpen}
-              onToggleWindowConfig={handleToggleWindowConfig}
-              showPreview={showPreview}
-              onTogglePreview={handleTogglePreview}
-              showBackendBlueprint={showBackendBlueprint}
-              onToggleBackendBlueprint={handleToggleBackendBlueprint}
-              onToggleSettings={handleToggleSettings}
+          <AppHeader
+            projectName={projectName}
+            {...(projectFileName ? { projectFileName } : {})}
+            onBackToLauncher={handleBackToLauncher}
+            isThemePanelOpen={isThemePanelOpen}
+            onToggleThemePanel={handleToggleThemePanel}
+            isWindowConfigOpen={isWindowConfigOpen}
+            onToggleWindowConfig={handleToggleWindowConfig}
+            showPreview={showPreview}
+            onTogglePreview={handleTogglePreview}
+            showBackendBlueprint={showBackendBlueprint}
+            onToggleBackendBlueprint={handleToggleBackendBlueprint}
+            onToggleSettings={handleToggleSettings}
 
-              onSaveProject={handleSaveProject}
-              onSaveProjectAs={handleSaveProjectAs}
-            />
+            onSaveProject={handleSaveProject}
+            onSaveProjectAs={handleSaveProjectAs}
+          />
           }
           leftSidebar={
             <div className="h-full flex flex-col">
@@ -1771,7 +1771,7 @@ export const App: React.FC = () => {
                         ? plugins.filter(p => p.contract.toUpperCase() === pluginCategoryFilter)
                         : plugins
                       }
-                      selectedId={selectedPluginId}
+                      {...(selectedPluginId ? { selectedId: selectedPluginId } : {})}
                       onSelect={handlePluginSelect}
                       onLoad={handlePluginLoad}
                       onUnload={handlePluginUnload}
@@ -2005,7 +2005,7 @@ export const App: React.FC = () => {
               canvasWidth={windowConfig.width}
               canvasHeight={windowConfig.height}
               getComponentCode={getComponentCode}
-              templateName={loadedTemplateName ?? undefined}
+              {...(loadedTemplateName ? { templateName: loadedTemplateName } : {})}
               className="bg-neutral-100" // Add a background to distinguish the canvas area
               initialZoom={0.6}
               gridSettings={{ size: 16, snap: true, visible: true }}
@@ -2066,16 +2066,14 @@ export const App: React.FC = () => {
                   </div>
                   <div className="flex-1 overflow-auto">
                     <PropertyInspector
-                      selectedElement={
-                        selectedElement
-                          ? {
-                            id: selectedElement.id,
-                            name: selectedElement.name,
-                            type: selectedElement.type,
-                            componentId: selectedElement.componentId,
-                          }
-                          : undefined
-                      }
+                      {...(selectedElement ? {
+                        selectedElement: {
+                          id: selectedElement.id,
+                          name: selectedElement.name,
+                          type: selectedElement.type,
+                          ...(selectedElement.componentId ? { componentId: selectedElement.componentId } : {}),
+                        }
+                      } : {})}
                       properties={
                         selectedElement
                           ? [

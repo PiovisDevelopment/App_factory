@@ -108,8 +108,8 @@ async function generateWithGemini(
     });
 
     // Extract text from response
-    const text = response.text;
-    console.log(`[LLM Service] Received response length: ${text?.length} chars`);
+    const text = response.text ?? "";
+    console.log(`[LLM Service] Received response length: ${text.length} chars`);
 
     return { success: true, text };
 }

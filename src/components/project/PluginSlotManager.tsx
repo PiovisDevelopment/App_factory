@@ -296,18 +296,6 @@ export const PluginSlotManager: React.FC<PluginSlotManagerProps> = ({
     return [...filteredSlots].sort((a, b) => a.priority - b.priority);
   }, [filteredSlots]);
 
-  // Group by position
-  const groupedSlots = useMemo(() => {
-    const groups: Record<string, PluginSlot[]> = {};
-    sortedSlots.forEach((slot) => {
-      if (!groups[slot.position]) {
-        groups[slot.position] = [];
-      }
-      groups[slot.position].push(slot);
-    });
-    return groups;
-  }, [sortedSlots]);
-
   // Get compatible plugins for a slot
   const getCompatiblePlugins = useCallback(
     (slot: PluginSlot) => {
@@ -332,9 +320,8 @@ export const PluginSlotManager: React.FC<PluginSlotManagerProps> = ({
   }, []);
 
   // Get contract icon
-  const getContractIcon = (contract: string) => {
-    const Icon = ContractIcons[contract] || ContractIcons.default;
-    return Icon;
+  const getContractIcon = (contract?: string): React.FC<{ className?: string }> => {
+    return ContractIcons[contract ?? "default"] ?? ContractIcons["default"]!;
   };
 
   // Container styles

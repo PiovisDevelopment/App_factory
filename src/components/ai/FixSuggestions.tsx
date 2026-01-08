@@ -14,7 +14,6 @@
 import React, { useState, useCallback } from "react";
 import { Button } from "../ui/Button";
 import { Panel } from "../ui/Panel";
-import { Modal } from "../ui/Modal";
 
 /**
  * Severity levels for issues.
@@ -345,7 +344,7 @@ const SuggestionCard: React.FC<{
             variant="primary"
             size="sm"
             onClick={onApply}
-            loading={isApplying}
+            loading={!!isApplying}
             leftIcon={<CheckIcon />}
           >
             Apply
@@ -543,11 +542,9 @@ const IssueCard: React.FC<{
                 <SuggestionCard
                   key={suggestion.id}
                   suggestion={suggestion}
-                  onApply={
-                    onApplyFix && suggestion.autoApplicable
-                      ? () => handleApply(suggestion)
-                      : undefined
-                  }
+                  {...(onApplyFix && suggestion.autoApplicable
+                    ? { onApply: () => handleApply(suggestion) }
+                    : {})}
                   isApplying={applyingId === suggestion.id}
                 />
               ))}
@@ -683,8 +680,8 @@ export const FixSuggestions: React.FC<FixSuggestionsProps> = ({
             key={issue.id}
             issue={issue}
             onGetSuggestions={() => onGetSuggestions(issue)}
-            onApplyFix={onApplyFix}
-            onDismiss={onDismissIssue ? () => handleDismiss(issue) : undefined}
+            {...(onApplyFix ? { onApplyFix } : {})}
+            {...(onDismissIssue ? { onDismiss: () => handleDismiss(issue) } : {})}
           />
         ))}
       </div>

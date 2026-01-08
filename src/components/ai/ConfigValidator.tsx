@@ -2,20 +2,18 @@
  * ConfigValidator.tsx
  * ===================
  * Validation utilities for agent configuration.
- * 
+ *
  * Validates: provider set, API key exists, model valid, system prompt non-empty.
  */
 
 import type { AgentConfiguration } from '../../stores/aiTeamStore';
+// Re-export ApiKeyInfo from the canonical source
+export type { ApiKeyInfo } from '../../stores/apiKeyStore';
+import type { ApiKeyInfo } from '../../stores/apiKeyStore';
 
 export interface ValidationResult {
     valid: boolean;
     errors: string[];
-}
-
-export interface ApiKeyInfo {
-    service: string;
-    hasKey: boolean;
 }
 
 /**

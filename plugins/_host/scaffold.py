@@ -18,13 +18,11 @@ Dependencies:
 
 import json
 import logging
-import os
 import re
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from string import Template
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -64,17 +62,17 @@ class PluginManifest:
     description: str = ""
     author: str = ""
     license: str = "MIT"
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     python_requires: str = ">=3.11"
     gpu_required: bool = False
     gpu_recommended: bool = False
     min_memory_mb: int = 512
-    tags: List[str] = field(default_factory=list)
-    capabilities: List[str] = field(default_factory=list)
-    config_schema: Dict[str, Any] = field(default_factory=dict)
-    default_config: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
+    config_schema: dict[str, Any] = field(default_factory=dict)
+    default_config: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to manifest.json format."""
         return {
             "name": self.name,
@@ -97,7 +95,7 @@ class PluginManifest:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PluginManifest":
+    def from_dict(cls, data: dict[str, Any]) -> "PluginManifest":
         """Create from dictionary."""
         return cls(
             name=data.get("name", ""),
@@ -133,11 +131,11 @@ class ScaffoldResult:
     """
 
     success: bool
-    plugin_path: Optional[Path] = None
-    files_created: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    plugin_path: Path | None = None
+    files_created: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize for JSON-RPC response."""
         return {
             "success": self.success,
@@ -195,7 +193,7 @@ class PluginScaffold:
             self.templates_dir = Path(__file__).parent / "templates"
 
         # Load contract registry for method signatures
-        self._contracts: Dict[str, Any] = {}
+        self._contracts: dict[str, Any] = {}
         self._load_contracts()
 
         logger.debug(f"PluginScaffold initialized: plugins={self.plugins_dir}")
@@ -204,14 +202,14 @@ class PluginScaffold:
         """Load contract definitions from registry."""
         registry_path = self.config_dir / "contracts_registry.yaml"
         if registry_path.exists():
-            with open(registry_path, "r", encoding="utf-8") as f:
+            with open(registry_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 self._contracts = data.get("contracts", {})
                 logger.debug(f"Loaded {len(self._contracts)} contract definitions")
         else:
             logger.warning(f"Contracts registry not found: {registry_path}")
 
-    def validate_manifest(self, manifest: PluginManifest) -> List[str]:
+    def validate_manifest(self, manifest: PluginManifest) -> list[str]:
         """
         Validate manifest before generation.
 
@@ -330,7 +328,7 @@ class PluginScaffold:
 
     def _get_files_for_contract(
         self, manifest: PluginManifest
-    ) -> List[Dict[str, str]]:
+    ) -> list[dict[str, str]]:
         """
         Get list of files to create for a contract type.
 
@@ -505,7 +503,7 @@ plugin = {class_name}()
 '''
 
     def _generate_method_implementations(
-        self, contract: str, methods: List[Dict[str, Any]]
+        self, contract: str, methods: list[dict[str, Any]]
     ) -> str:
         """Generate method implementations for contract."""
         impls = []
@@ -627,7 +625,7 @@ This plugin implements the **{manifest.contract.upper()}** contract.
 
 
 def create_plugin(
-    manifest_data: Dict[str, Any],
+    manifest_data: dict[str, Any],
     plugins_dir: str | Path = "./plugins",
     config_dir: str | Path = "./config",
 ) -> ScaffoldResult:

@@ -123,7 +123,7 @@ async function generateWithGeminiConfig(
         },
     });
 
-    return { success: true, text: response.text };
+    return { success: true, text: response.text ?? "" };
 }
 
 /**

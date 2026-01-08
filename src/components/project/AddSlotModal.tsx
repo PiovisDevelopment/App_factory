@@ -172,6 +172,9 @@ const contractColors: Record<string, string> = {
   default: "border-neutral-200 bg-neutral-50 text-neutral-700",
 };
 
+const getContractIcon = (contractId?: string): React.FC<{ className?: string }> =>
+  ContractIcons[contractId ?? "default"] ?? ContractIcons["default"]!;
+
 /**
  * AddSlotModal component.
  *
@@ -279,11 +282,11 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
     const config: SlotConfig = {
       name,
       contract,
-      description: description || undefined,
       position,
       isRequired,
       isMultiple,
       priority,
+      ...(description.trim() ? { description: description.trim() } : {}),
     };
 
     onCreateSlot(config);
@@ -395,7 +398,7 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
                 </div>
               ) : (
                 contractTypes.map((ct) => {
-                  const Icon = ContractIcons[ct.id] || ContractIcons.default;
+                  const Icon = getContractIcon(ct.id);
                   const colors = contractColors[ct.id] || contractColors.default;
 
                   return (
@@ -458,7 +461,7 @@ export const AddSlotModal: React.FC<AddSlotModalProps> = ({
               {selectedContract && (
                 <div className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg">
                   {(() => {
-                    const Icon = ContractIcons[selectedContract.id] || ContractIcons.default;
+                    const Icon = getContractIcon(selectedContract.id);
                     return <Icon className="h-5 w-5 text-neutral-500" />;
                   })()}
                   <span className="text-sm font-medium text-neutral-700">

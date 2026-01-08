@@ -6,10 +6,9 @@
 
 import os
 import shlex
-from typing import List
 
 
-def _split_cmd(value: str) -> List[str]:
+def _split_cmd(value: str) -> list[str]:
     """Split an override command string into argv safely."""
     try:
         return shlex.split(value)
@@ -24,7 +23,7 @@ DEPENDENCY_CONFIG = {
     # -------------------------------------------------------------------------
     # Command to install Python packages
     'pip_install_cmd': ['pip', 'install'],
-    
+
     # Command to list installed Python packages (for auditing)
     'pip_check_cmd': ['pip', 'freeze'],
 
@@ -35,10 +34,10 @@ DEPENDENCY_CONFIG = {
     # -------------------------------------------------------------------------
     # Node.js / NPM Configuration
     # -------------------------------------------------------------------------
-    # On Windows, npm is usually a batch file (npm.cmd). 
+    # On Windows, npm is usually a batch file (npm.cmd).
     # Using just 'npm' in subprocess often fails.
     'npm_install_cmd': ['npm.cmd', 'install'],
-    
+
     # Command to list installed NPM packages (depth=0 for top-level only)
     'npm_check_cmd': ['npm.cmd', 'list', '--depth=0', '--json'],
 
@@ -47,7 +46,7 @@ DEPENDENCY_CONFIG = {
     # -------------------------------------------------------------------------
     # The Windows equivalent of 'which'. Returns exit code 0 if found.
     'system_check_cmd': 'where',
-    
+
     # Timeout for checks (in seconds) to prevent hanging
     'command_timeout': 30
 }

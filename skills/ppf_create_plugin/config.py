@@ -52,7 +52,7 @@ from abc import ABC, abstractmethod
 # Abstract Base Class (Verbs)
 # -----------------------------------------------------------------------------
 class {class_name}Contract(ABC):
-    
+
     @abstractmethod
     async def initialize(self, config: Dict[str, Any]) -> bool:
         pass

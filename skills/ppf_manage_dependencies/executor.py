@@ -4,14 +4,14 @@ PPF Dependency Manager Executor (Windows Native)
 Strict Mode: Python 3.11 + venv required.
 """
 
-import sys
-import os
-import subprocess
 import json
 import logging
+import os
+import subprocess
+import sys
 
-from env_preflight import run_preflight_env_check
 from env_detection import detect_windows_native_environment
+from env_preflight import run_preflight_env_check
 
 # Add current directory to sys.path to ensure config can be imported
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +25,7 @@ except ImportError:
     sys.exit(1)
 
 from config import DEPENDENCY_CONFIG
-from manifest_schema import validate_manifest, ManifestValidationError
+from manifest_schema import validate_manifest
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -76,7 +76,7 @@ def validate_environment():
     major, minor = sys.version_info[:2]
     if major != 3 or minor != 11:
         return {
-            "valid": False, 
+            "valid": False,
             "error": f"STRICT REQUIREMENT: Python 3.11 is required. You are running {major}.{minor}."
         }
 
@@ -85,7 +85,7 @@ def validate_environment():
     is_venv = (sys.prefix != sys.base_prefix) or hasattr(sys, 'real_prefix')
     if not is_venv:
         return {
-            "valid": False, 
+            "valid": False,
             "error": "STRICT REQUIREMENT: You must be inside a 'venv' virtual environment. Please run 'python -m venv venv' and activate it."
         }
 
@@ -97,9 +97,9 @@ def load_manifest(plugin_path):
     if not os.path.exists(manifest_path):
         logger.error(f"Manifest not found at: {manifest_path}")
         return None
-    
+
     try:
-        with open(manifest_path, 'r') as f:
+        with open(manifest_path) as f:
             raw = yaml.safe_load(f)
         result = validate_manifest(raw, source=manifest_path)
         return result.manifest
@@ -204,7 +204,7 @@ def load_plugin_requirements(plugin_path):
         return requirements
 
     try:
-        with open(req_path, "r", encoding="utf-8") as f:
+        with open(req_path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith("#"):
@@ -308,7 +308,7 @@ def get_installed_npm_packages(plugin_path):
         )
         data = json.loads(result)
         dependencies = data.get('dependencies', {})
-        return set(name.lower() for name in dependencies.keys())
+        return {name.lower() for name in dependencies.keys()}
     except subprocess.CalledProcessError as e:
         output = e.output or ""
         logger.error(f"Failed to list npm packages (exit {e.returncode}): {output}")
@@ -439,10 +439,10 @@ def install_dependencies(plugin_path, audit_result):
         name = req['name']
         version = req.get('version', '')
         pkg_spec = f"{name}{version}"
-        
+
         logger.info(f"Installing Python package: {pkg_spec}")
         cmd = DEPENDENCY_CONFIG['pip_install_cmd'] + [pkg_spec]
-        
+
         try:
             subprocess.check_call(cmd)
         except subprocess.CalledProcessError:
@@ -459,10 +459,10 @@ def install_dependencies(plugin_path, audit_result):
             name = req['name']
             version = req.get('version', '')
             pkg_spec = f"{name}@{version}" if version else name
-            
+
             logger.info(f"Installing NPM package: {pkg_spec}")
             cmd = DEPENDENCY_CONFIG['npm_install_cmd'] + [pkg_spec]
-            
+
             try:
                 subprocess.check_call(cmd, cwd=plugin_path, shell=True)
             except subprocess.CalledProcessError:
@@ -482,17 +482,17 @@ def install_dependencies(plugin_path, audit_result):
 
     if errors:
         return {'success': False, 'error': "; ".join(errors)}
-    
+
     return {'success': True, 'message': 'All installable dependencies processed.'}
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python executor.py <path_to_plugin>")
         sys.exit(1)
-    
+
     path = sys.argv[1]
     print(f"Auditing: {path}")
-    
+
     audit = audit_dependencies(path)
     if audit['success']:
         import json

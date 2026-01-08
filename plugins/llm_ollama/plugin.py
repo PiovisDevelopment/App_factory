@@ -5,9 +5,11 @@ Description: Local LLM inference via Ollama with fallback mock mode.
 
 import json
 import time
-import urllib.request
 import urllib.error
+import urllib.request
+
 from plugins._host import PluginBase
+
 
 class Plugin(PluginBase):
     def initialize(self):

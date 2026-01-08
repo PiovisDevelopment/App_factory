@@ -13,8 +13,8 @@ export const useUniversalDispatch = () => {
   const [error, setError] = useState<string | null>(null);
 
   const dispatch = useCallback(async <T>(
-    pluginId: string, 
-    method: string, 
+    pluginId: string,
+    method: string,
     payload: Record<string, any> = {}
   ): Promise<T | null> => {
     setLoading(true);
@@ -48,7 +48,7 @@ import { useEffect, useRef } from 'react';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
 
 export const useUniversalEvent = <T>(
-  eventName: string, 
+  eventName: string,
   callback: (payload: T) => void
 ) => {
   const savedCallback = useRef(callback);
@@ -225,7 +225,7 @@ import { colors } from '@/styles/tokens';
 
 export const {AppName}: React.FC = () => {
   const { dispatch, loading } = useUniversalDispatch();
-  
+
   return (
     <DraggableWindow id="{app_id}" title="{AppName}" defaultWidth={900} defaultHeight={700}>
       <Box sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden', bgcolor: '#111' }}>

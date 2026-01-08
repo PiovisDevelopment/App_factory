@@ -13,7 +13,7 @@
  *   - Fully typed props with TypeScript
  */
 
-import React, { useState, useCallback, useMemo, type ReactNode } from "react";
+import React, { useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
 
 /**
  * Wizard step definition.
@@ -251,8 +251,21 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
   isLoading = false,
   className = "",
 }) => {
+  const effectiveSteps = steps?.length ? steps : WIZARD_STEPS;
+  const lastStepIndex = Math.max(effectiveSteps.length - 1, 0);
+
   // Current step index
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const clampedStepIndex = useMemo(
+    () => Math.min(currentStepIndex, lastStepIndex),
+    [currentStepIndex, lastStepIndex],
+  );
+
+  useEffect(() => {
+    if (currentStepIndex !== clampedStepIndex) {
+      setCurrentStepIndex(clampedStepIndex);
+    }
+  }, [clampedStepIndex, currentStepIndex]);
 
   // Manifest data being edited
   const [manifestData, setManifestData] = useState<PluginManifestData>({
@@ -264,9 +277,18 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
   const [stepErrors, setStepErrors] = useState<Record<string, string[]>>({});
 
   // Current step
-  const currentStep = steps[currentStepIndex];
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === steps.length - 1;
+  const currentStep = effectiveSteps[clampedStepIndex];
+  const currentStepId = currentStep?.id;
+  const isFirstStep = clampedStepIndex === 0;
+  const isLastStep = clampedStepIndex === lastStepIndex;
+
+  if (!currentStep || typeof currentStepId !== "string" || currentStepId.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center p-6 text-sm text-neutral-600 border border-neutral-200 rounded-lg bg-neutral-50">
+        No steps are configured for the plugin wizard.
+      </div>
+    );
+  }
 
   // Update manifest data
   const handleDataChange = useCallback((updates: Partial<PluginManifestData>) => {
@@ -315,50 +337,58 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
 
   // Go to next step
   const handleNext = useCallback(() => {
-    const errors = validateStep(currentStep.id);
+    if (typeof currentStepId !== "string" || currentStepId.length === 0) {
+      return;
+    }
+
+    const errors = validateStep(currentStepId);
 
     if (errors.length > 0) {
-      setStepErrors((prev) => ({ ...prev, [currentStep.id]: errors }));
+      setStepErrors((prev) => ({ ...prev, [currentStepId]: errors }));
       return;
     }
 
     // Clear errors for this step
-    setStepErrors((prev) => ({ ...prev, [currentStep.id]: [] }));
+    setStepErrors((prev) => ({ ...prev, [currentStepId]: [] }));
 
     if (isLastStep) {
       onComplete?.(manifestData);
     } else {
-      setCurrentStepIndex((prev) => prev + 1);
+      setCurrentStepIndex((prev) => Math.min(prev + 1, lastStepIndex));
     }
-  }, [currentStep.id, isLastStep, manifestData, onComplete, validateStep]);
+  }, [currentStepId, isLastStep, lastStepIndex, manifestData, onComplete, validateStep]);
 
   // Go to previous step
   const handlePrevious = useCallback(() => {
     if (!isFirstStep) {
-      setCurrentStepIndex((prev) => prev - 1);
+      setCurrentStepIndex((prev) => Math.max(prev - 1, 0));
     }
   }, [isFirstStep]);
 
   // Jump to specific step
   const handleStepClick = useCallback((index: number) => {
     // Only allow going to completed steps or next step
-    if (index <= currentStepIndex) {
+    if (index < 0 || index > lastStepIndex) {
+      return;
+    }
+
+    if (index <= clampedStepIndex) {
       setCurrentStepIndex(index);
     }
-  }, [currentStepIndex]);
+  }, [clampedStepIndex, lastStepIndex]);
 
   // Step completion status
   const stepCompletion = useMemo(() => {
-    return steps.map((step, index) => {
-      if (index < currentStepIndex) {
+    return effectiveSteps.map((step, index) => {
+      if (index < clampedStepIndex) {
         return "completed";
       }
-      if (index === currentStepIndex) {
+      if (index === clampedStepIndex) {
         return "current";
       }
       return "pending";
     });
-  }, [currentStepIndex, steps]);
+  }, [clampedStepIndex, effectiveSteps]);
 
   // Container styles
   const containerStyles = [
@@ -416,7 +446,7 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
     <div className={containerStyles}>
       {/* Step indicators */}
       <div className="flex items-center p-6 border-b border-neutral-200 bg-neutral-50">
-        {steps.map((step, index) => (
+        {effectiveSteps.map((step, index) => (
           <React.Fragment key={step.id}>
             {/* Step indicator */}
             <button
@@ -447,7 +477,7 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
             </button>
 
             {/* Connector */}
-            {index < steps.length - 1 && (
+            {index < effectiveSteps.length - 1 && (
               <div className={getConnectorStyles(stepCompletion[index])} />
             )}
           </React.Fragment>
@@ -469,10 +499,10 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
         </div>
 
         {/* Validation errors */}
-        {stepErrors[currentStep.id]?.length > 0 && (
+        {stepErrors[currentStepId]?.length > 0 && (
           <div className="mb-4 p-3 bg-error-50 border border-error-200 rounded-lg">
             <ul className="list-disc list-inside text-sm text-error-700">
-              {stepErrors[currentStep.id].map((error, index) => (
+              {stepErrors[currentStepId].map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
             </ul>
@@ -481,10 +511,10 @@ export const PluginWizard: React.FC<PluginWizardProps> = ({
 
         {/* Custom content or default placeholder */}
         {renderStep ? (
-          renderStep(currentStep.id, manifestData, handleDataChange)
+          renderStep(currentStepId, manifestData, handleDataChange)
         ) : (
           <DefaultStepContent
-            stepId={currentStep.id}
+            stepId={currentStepId}
             data={manifestData}
             onChange={handleDataChange}
           />

@@ -618,9 +618,9 @@ export const PluginTester: React.FC<PluginTesterProps> = ({
                           </p>
                         )}
 
-                        {result.response && (
+                        {result.response !== undefined && (
                           <pre className="mt-2 p-2 bg-white rounded text-xs font-mono overflow-x-auto">
-                            {JSON.stringify(result.response, null, 2)}
+                            {JSON.stringify(result.response, null, 2) ?? ""}
                           </pre>
                         )}
                       </div>

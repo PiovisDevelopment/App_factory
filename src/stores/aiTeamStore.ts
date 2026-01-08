@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Node, Edge, MarkerType } from 'reactflow';
+import { invoke } from '@tauri-apps/api/tauri';
 
 // ============================================
 // TYPE DEFINITIONS
@@ -41,18 +42,18 @@ export type WorkflowProfileId = 'fe' | 'be' | 'fullstack' | 'research' | 'debug'
 // DEFAULT CONFIGURATIONS
 // ============================================
 
-const DEFAULT_AGENT_TOOLS: Record<string, AgentToolConfig[]> = {
-    orchestrator: [],
+const DEFAULT_AGENT_TOOLS = {
+    orchestrator: [] as AgentToolConfig[],
     researcher: [
         { id: 'brave_search', name: 'Brave Search', enabled: true },
-    ],
-    designer: [],
+    ] as AgentToolConfig[],
+    designer: [] as AgentToolConfig[],
     developer: [
         { id: 'mcp_context7', name: 'MCP Context7', enabled: true },
-    ],
+    ] as AgentToolConfig[],
     qa: [
         { id: 'skills_loader', name: 'Skills Loader', enabled: true },
-    ],
+    ] as AgentToolConfig[],
 };
 
 const DEFAULT_AGENT_CONFIGS: AgentConfiguration[] = [
@@ -299,6 +300,11 @@ export interface AiTeamState {
     // Workflow execution state
     isWorkflowRunning: boolean;
 
+    // Workflow result (generated code from AI Team)
+    generatedCode: string | null;
+    qaReport: string | null;
+    workflowPrompt: string | null;
+
     // Actions - Visualization
     setNodes: (nodes: Node[]) => void;
     setEdges: (edges: Edge[]) => void;
@@ -322,8 +328,18 @@ export interface AiTeamState {
     // Actions - Workflow execution
     setWorkflowRunning: (running: boolean) => void;
 
+    // Actions - Workflow result
+    setGeneratedCode: (code: string | null) => void;
+    setQaReport: (report: string | null) => void;
+    setWorkflowPrompt: (prompt: string | null) => void;
+    clearWorkflowResult: () => void;
+
     // Actions - Reset
     resetSimulation: () => void;
+
+    // Actions - Config persistence
+    loadConfigFromDisk: () => Promise<void>;
+    saveConfigToDisk: () => Promise<void>;
 }
 
 // ============================================
@@ -339,6 +355,9 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
     workflowProfiles: DEFAULT_WORKFLOW_PROFILES,
     selectedProfileId: 'fullstack',
     isWorkflowRunning: false,
+    generatedCode: null,
+    qaReport: null,
+    workflowPrompt: null,
 
     // Visualization actions
     setNodes: (nodes) => set({ nodes }),
@@ -355,7 +374,7 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
     // Logging actions
     addLog: (message, type = 'info') => set((state) => ({
         logs: [...state.logs, {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             message,
             type,
             timestamp: Date.now()
@@ -370,7 +389,11 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
     updateAgentConfig: (agentId, config) => set((state) => ({
         agentConfigs: state.agentConfigs.map((agent) =>
             agent.id === agentId
-                ? { ...agent, ...config }
+                ? {
+                    ...agent,
+                    ...config,
+                    tools: config.tools ?? agent.tools ?? [],
+                }
                 : agent
         ),
     })),
@@ -396,7 +419,7 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
             agent.id === agentId
                 ? {
                     ...agent,
-                    tools: agent.tools.map((tool) =>
+                    tools: (agent.tools ?? []).map((tool) =>
                         tool.id === toolId
                             ? { ...tool, enabled }
                             : tool
@@ -447,6 +470,12 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
     // Workflow execution actions
     setWorkflowRunning: (running) => set({ isWorkflowRunning: running }),
 
+    // Workflow result actions
+    setGeneratedCode: (code) => set({ generatedCode: code }),
+    setQaReport: (report) => set({ qaReport: report }),
+    setWorkflowPrompt: (prompt) => set({ workflowPrompt: prompt }),
+    clearWorkflowResult: () => set({ generatedCode: null, qaReport: null, workflowPrompt: null }),
+
     // Reset
     resetSimulation: () => {
         const state = get();
@@ -457,5 +486,69 @@ export const useAiTeamStore = create<AiTeamState>((set, get) => ({
             overallProgress: 0,
             isWorkflowRunning: false,
         });
+    },
+
+    // Config persistence actions
+    loadConfigFromDisk: async () => {
+        try {
+            const config = await invoke<Record<string, {
+                provider: string;
+                model: string;
+                temperature: number;
+                system_prompt: string;  // snake_case from JSON
+                tools: { id: string; name: string; enabled: boolean }[];
+            }>>('load_agent_config');
+
+            // Convert snake_case to camelCase and merge with defaults
+            const updatedConfigs = get().agentConfigs.map(agent => {
+                const diskConfig = config[agent.id];
+                if (diskConfig) {
+                    return {
+                        ...agent,
+                        provider: diskConfig.provider,
+                        model: diskConfig.model,
+                        temperature: diskConfig.temperature,
+                        systemPrompt: diskConfig.system_prompt,  // Convert here
+                        tools: diskConfig.tools,
+                    };
+                }
+                return agent;
+            });
+
+            set({ agentConfigs: updatedConfigs });
+            console.log('[aiTeamStore] Loaded config from disk:', Object.keys(config));
+        } catch (error) {
+            console.error('[aiTeamStore] Failed to load config from disk:', error);
+        }
+    },
+
+    saveConfigToDisk: async () => {
+        try {
+            const { agentConfigs } = get();
+
+            // Convert camelCase to snake_case for disk storage
+            const diskConfig: Record<string, {
+                provider: string;
+                model: string;
+                temperature: number;
+                system_prompt: string;
+                tools: { id: string; name: string; enabled: boolean }[];
+            }> = {};
+
+            for (const agent of agentConfigs) {
+                diskConfig[agent.id] = {
+                    provider: agent.provider,
+                    model: agent.model,
+                    temperature: agent.temperature,
+                    system_prompt: agent.systemPrompt,  // Convert here
+                    tools: agent.tools,
+                };
+            }
+
+            await invoke('save_agent_config', { config: diskConfig });
+            console.log('[aiTeamStore] Saved config to disk');
+        } catch (error) {
+            console.error('[aiTeamStore] Failed to save config to disk:', error);
+        }
     },
 }));

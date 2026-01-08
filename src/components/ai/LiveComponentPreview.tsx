@@ -51,15 +51,15 @@ interface PreviewState {
 function extractComponentName(code: string): string | null {
     // Match: const ComponentName: React.FC = 
     const constMatch = code.match(/const\s+([A-Z][a-zA-Z0-9]*)\s*[:=]/);
-    if (constMatch) return constMatch[1];
+    if (constMatch?.[1]) return constMatch[1];
 
     // Match: function ComponentName(
     const funcMatch = code.match(/function\s+([A-Z][a-zA-Z0-9]*)\s*\(/);
-    if (funcMatch) return funcMatch[1];
+    if (funcMatch?.[1]) return funcMatch[1];
 
     // Match: export const ComponentName
     const exportMatch = code.match(/export\s+(?:const|function)\s+([A-Z][a-zA-Z0-9]*)/);
-    if (exportMatch) return exportMatch[1];
+    if (exportMatch?.[1]) return exportMatch[1];
 
     return null;
 }
@@ -99,7 +99,7 @@ function cleanFunctionParams(params: string): string {
 
             return trimmed;
         })
-        .filter((p: string) => p.length > 0)
+        .filter((p): p is string => typeof p === 'string' && p.length > 0)
         .join(', ');
 }
 

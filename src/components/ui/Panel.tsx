@@ -298,17 +298,19 @@ Panel.displayName = "Panel";
 /**
  * PanelHeader component for structured panel headers.
  */
-export interface PanelHeaderProps extends HTMLAttributes<HTMLDivElement> {
+export interface PanelHeaderProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   /** Title text or element */
   title?: ReactNode;
   /** Subtitle text or element */
   subtitle?: ReactNode;
   /** Actions to display on the right side */
   actions?: ReactNode;
+  /** Native title attribute (tooltip) */
+  htmlTitle?: string;
 }
 
 export const PanelHeader = forwardRef<HTMLDivElement, PanelHeaderProps>(
-  ({ title, subtitle, actions, className = "", children, ...props }, ref) => {
+  ({ title, subtitle, actions, className = "", children, htmlTitle, ...props }, ref) => {
     const headerClasses = [
       "flex",
       "items-start",
@@ -320,7 +322,12 @@ export const PanelHeader = forwardRef<HTMLDivElement, PanelHeaderProps>(
       .join(" ");
 
     return (
-      <div ref={ref} className={headerClasses} {...props}>
+      <div
+        ref={ref}
+        className={headerClasses}
+        {...(htmlTitle ? { title: htmlTitle } : {})}
+        {...props}
+      >
         {(title || subtitle) ? (
           <div className="flex-1 min-w-0">
             {title && (

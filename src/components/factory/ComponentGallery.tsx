@@ -250,17 +250,17 @@ export interface ComponentGalleryProps extends Omit<HTMLAttributes<HTMLDivElemen
   /** Array of components to display */
   components: ComponentInfo[];
   /** Currently selected component ID (single-select mode - deprecated, use selectedIds) */
-  selectedId?: string;
+  selectedId?: string | undefined;
   /** Currently selected component IDs (multi-select mode) */
-  selectedIds?: string[];
+  selectedIds?: string[] | undefined;
   /** Callback when a component is selected (single-select mode - deprecated) */
-  onSelect?: (component: ComponentInfo) => void;
+  onSelect?: ((component: ComponentInfo) => void) | undefined;
   /** Callback when a component selection changes (multi-select mode) */
-  onSelectionChange?: (component: ComponentInfo, selected: boolean) => void;
+  onSelectionChange?: ((component: ComponentInfo, selected: boolean) => void) | undefined;
   /** Callback when a component is added to canvas */
-  onAdd?: (component: ComponentInfo) => void;
+  onAdd?: ((component: ComponentInfo) => void) | undefined;
   /** Callback when component info is requested */
-  onInfo?: (component: ComponentInfo) => void;
+  onInfo?: ((component: ComponentInfo) => void) | undefined;
   /** Initial filters */
   initialFilters?: ComponentFilters;
   /** Initial sort settings */

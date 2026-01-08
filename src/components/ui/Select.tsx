@@ -13,7 +13,7 @@
  *   - Accessible by default (ARIA, keyboard navigation)
  */
 
-import React, {
+import {
   forwardRef,
   useId,
   type SelectHTMLAttributes,

@@ -14,6 +14,7 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+#![deny(unsafe_code)]
 
 mod commands;
 mod ipc;
@@ -105,12 +106,13 @@ fn main() {
 
             // Get the IPC state and start it
             let state = app.state::<IpcManagerState>();
+            let app_handle = app.handle();
 
-            // Start IPC in a background task
+            // Start IPC in a background task with app handle for event emission
             let state_clone = state.inner().clone();
             tauri::async_runtime::spawn(async move {
                 log::info!("Starting IPC Manager...");
-                match state_clone.start().await {
+                match state_clone.start(Some(app_handle)).await {
                     Ok(()) => log::info!("IPC Manager started successfully"),
                     Err(e) => log::error!("Failed to start IPC Manager: {}", e),
                 }

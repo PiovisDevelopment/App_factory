@@ -13,7 +13,7 @@
  *   - Accessible by default (ARIA, labels, error states)
  */
 
-import React, {
+import {
   forwardRef,
   useId,
   type InputHTMLAttributes,

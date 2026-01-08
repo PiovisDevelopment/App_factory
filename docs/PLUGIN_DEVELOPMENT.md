@@ -1,4 +1,4 @@
-# D087 - Plugin Development Guide
+# Plugin Development Guide
 
 > Complete guide for creating plugins for the App Factory framework.
 
@@ -95,7 +95,7 @@ class MyTTSPlugin(TTSContract):
 
 ## Contract Reference
 
-### PluginBase (D001)
+### PluginBase
 
 All plugins must extend from a contract, which extends `PluginBase`:
 
@@ -124,7 +124,7 @@ class PluginBase(ABC):
 
 ### Available Contracts
 
-#### TTS Contract (D002)
+#### TTS Contract
 
 ```python
 from contracts.tts_contract import TTSContract
@@ -143,7 +143,7 @@ class MyPlugin(TTSContract):
         ...
 ```
 
-#### STT Contract (D003)
+#### STT Contract
 
 ```python
 from contracts.stt_contract import STTContract
@@ -170,7 +170,7 @@ class MyPlugin(STTContract):
         ...
 ```
 
-#### LLM Contract (D004)
+#### LLM Contract
 
 ```python
 from contracts.llm_contract import LLMContract

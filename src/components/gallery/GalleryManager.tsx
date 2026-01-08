@@ -763,7 +763,7 @@ const ItemFormModal: React.FC<{
           <Button
             variant="primary"
             onClick={handleSave}
-            loading={isLoading}
+            loading={!!isLoading}
             disabled={!formData.name?.trim()}
           >
             {item ? "Save Changes" : "Create"}
@@ -1281,10 +1281,10 @@ export const GalleryManager: React.FC<GalleryManagerProps> = ({
             <ItemCard
               key={item.id}
               item={item}
-              onSelect={onSelect ? () => onSelect(item) : undefined}
-              onEdit={onUpdate ? () => handleEdit(item) : undefined}
-              onDelete={onDelete ? () => setDeleteConfirmItem(item) : undefined}
-              onInstall={onInstall ? () => onInstall(item) : undefined}
+              {...(onSelect ? { onSelect: () => onSelect(item) } : {})}
+              {...(onUpdate ? { onEdit: () => handleEdit(item) } : {})}
+              {...(onDelete ? { onDelete: () => setDeleteConfirmItem(item) } : {})}
+              {...(onInstall ? { onInstall: () => onInstall(item) } : {})}
               readOnly={readOnly}
               isSelected={selectedIds.has(item.id)}
               onToggleSelect={() => handleToggleSelect(item.id)}
@@ -1298,10 +1298,10 @@ export const GalleryManager: React.FC<GalleryManagerProps> = ({
             <ItemRow
               key={item.id}
               item={item}
-              onSelect={onSelect ? () => onSelect(item) : undefined}
-              onEdit={onUpdate ? () => handleEdit(item) : undefined}
-              onDelete={onDelete ? () => setDeleteConfirmItem(item) : undefined}
-              onInstall={onInstall ? () => onInstall(item) : undefined}
+              {...(onSelect ? { onSelect: () => onSelect(item) } : {})}
+              {...(onUpdate ? { onEdit: () => handleEdit(item) } : {})}
+              {...(onDelete ? { onDelete: () => setDeleteConfirmItem(item) } : {})}
+              {...(onInstall ? { onInstall: () => onInstall(item) } : {})}
               readOnly={readOnly}
               isSelected={selectedIds.has(item.id)}
               onToggleSelect={() => handleToggleSelect(item.id)}
@@ -1318,7 +1318,7 @@ export const GalleryManager: React.FC<GalleryManagerProps> = ({
           setIsFormOpen(false);
           setEditingItem(undefined);
         }}
-        item={editingItem}
+        {...(editingItem ? { item: editingItem } : {})}
         onSave={handleSave}
         categories={categories}
         isLoading={isLoading}

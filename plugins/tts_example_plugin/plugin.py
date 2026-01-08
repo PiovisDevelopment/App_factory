@@ -15,15 +15,15 @@ Dependencies:
 """
 
 import struct
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from contracts.base import PluginStatus, HealthStatus
+from contracts.base import HealthStatus, PluginStatus
 from contracts.tts_contract import (
+    AudioFormat,
+    SynthesisOptions,
+    SynthesisResult,
     TTSContract,
     Voice,
-    SynthesisResult,
-    SynthesisOptions,
-    AudioFormat,
 )
 
 
@@ -71,7 +71,7 @@ class ExampleTTSPlugin(TTSContract):
 
         self._current_voice_id = self._default_voice
 
-    async def initialize(self, config: Dict[str, Any]) -> bool:
+    async def initialize(self, config: dict[str, Any]) -> bool:
         """
         Initialize the plugin with configuration.
 
@@ -118,8 +118,8 @@ class ExampleTTSPlugin(TTSContract):
     async def synthesize(
         self,
         text: str,
-        voice_id: Optional[str] = None,
-        options: Optional[SynthesisOptions] = None
+        voice_id: str | None = None,
+        options: SynthesisOptions | None = None
     ) -> SynthesisResult:
         """
         Synthesize speech from text.
@@ -180,7 +180,7 @@ class ExampleTTSPlugin(TTSContract):
             }
         )
 
-    def get_voices(self) -> List[Voice]:
+    def get_voices(self) -> list[Voice]:
         """
         Get list of available voices.
 
@@ -209,7 +209,7 @@ class ExampleTTSPlugin(TTSContract):
         self._current_voice_id = voice_id
         return True
 
-    def _get_voice_by_id(self, voice_id: str) -> Optional[Voice]:
+    def _get_voice_by_id(self, voice_id: str) -> Voice | None:
         """Get voice object by ID."""
         for voice in self._voices:
             if voice.id == voice_id:

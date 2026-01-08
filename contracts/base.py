@@ -13,8 +13,7 @@ No forward references - this file has zero dependencies.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
-import json
+from typing import Any
 
 
 class PluginStatus(Enum):
@@ -35,7 +34,7 @@ class PluginStatus(Enum):
 class PluginManifest:
     """
     Plugin metadata structure matching config/manifest_schema.json (D008).
-    
+
     Attributes:
         name: Unique plugin identifier (must match folder name)
         version: Semantic version string (e.g., "1.0.0")
@@ -54,10 +53,10 @@ class PluginManifest:
     display_name: str = ""
     description: str = ""
     author: str = ""
-    dependencies: List[str] = field(default_factory=list)
-    config_schema: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    dependencies: list[str] = field(default_factory=list)
+    config_schema: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize manifest to dictionary for JSON-RPC responses."""
         return {
             "name": self.name,
@@ -70,9 +69,9 @@ class PluginManifest:
             "dependencies": self.dependencies,
             "config_schema": self.config_schema,
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PluginManifest":
+    def from_dict(cls, data: dict[str, Any]) -> "PluginManifest":
         """Deserialize manifest from dictionary (e.g., from manifest.json)."""
         return cls(
             name=data["name"],
@@ -91,7 +90,7 @@ class PluginManifest:
 class HealthStatus:
     """
     Health check response structure.
-    
+
     Attributes:
         status: Current plugin status from PluginStatus enum
         message: Human-readable status message
@@ -101,11 +100,11 @@ class HealthStatus:
     """
     status: PluginStatus
     message: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
-    latency_ms: Optional[float] = None
-    memory_mb: Optional[float] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    details: dict[str, Any] = field(default_factory=dict)
+    latency_ms: float | None = None
+    memory_mb: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         """Serialize health status for JSON-RPC responses."""
         result = {
             "status": self.status.value,
@@ -122,124 +121,124 @@ class HealthStatus:
 class PluginBase(ABC):
     """
     Abstract base class for all plugins.
-    
+
     All plugin contracts (TTS, STT, LLM, MCP, etc.) MUST extend this class.
     Provides the core lifecycle methods required by the Plugin Host.
-    
+
     Lifecycle:
         1. __init__() - Plugin instantiated by loader
         2. initialize(config) - Called once to set up resources
         3. health_check() - Called periodically to verify status
         4. [contract-specific methods] - Called as needed
         5. shutdown() - Called once to release resources
-    
+
     Example:
         class MyTTSPlugin(TTSContract):
             async def initialize(self, config):
                 self._engine = load_tts_engine(config["model_path"])
                 return True
-            
+
             async def shutdown(self):
                 self._engine.unload()
                 return True
-            
+
             def health_check(self):
                 return HealthStatus(
                     status=PluginStatus.READY,
                     message="TTS engine operational"
                 )
     """
-    
+
     def __init__(self):
         """
         Initialize plugin instance.
-        
+
         Note: Heavy initialization should be done in initialize(), not here.
         The constructor should only set up instance variables.
         """
         self._status: PluginStatus = PluginStatus.UNLOADED
-        self._manifest: Optional[PluginManifest] = None
-        self._config: Dict[str, Any] = {}
-    
+        self._manifest: PluginManifest | None = None
+        self._config: dict[str, Any] = {}
+
     @abstractmethod
-    async def initialize(self, config: Dict[str, Any]) -> bool:
+    async def initialize(self, config: dict[str, Any]) -> bool:
         """
         Initialize plugin with configuration.
-        
+
         Called once after plugin is loaded. Should set up any resources
         needed for operation (models, connections, file handles, etc.).
-        
+
         Args:
             config: Plugin-specific configuration dictionary.
                     Schema defined in manifest.config_schema.
-        
+
         Returns:
             True if initialization successful, False otherwise.
-        
+
         Raises:
             Exception: If initialization fails critically.
         """
         pass
-    
+
     @abstractmethod
     async def shutdown(self) -> bool:
         """
         Shutdown plugin and release resources.
-        
+
         Called once when plugin is being unloaded. Should cleanly
         release all resources acquired during initialize().
-        
+
         Returns:
             True if shutdown successful, False otherwise.
         """
         pass
-    
+
     @abstractmethod
     def health_check(self) -> HealthStatus:
         """
         Check plugin health status.
-        
+
         Called periodically by Plugin Host to verify plugin is operational.
         Should be fast and non-blocking.
-        
+
         Returns:
             HealthStatus with current plugin state and diagnostics.
         """
         pass
-    
-    def get_manifest(self) -> Optional[PluginManifest]:
+
+    def get_manifest(self) -> PluginManifest | None:
         """
         Get plugin manifest.
-        
+
         Returns:
             PluginManifest if set, None otherwise.
         """
         return self._manifest
-    
+
     def set_manifest(self, manifest: PluginManifest) -> None:
         """
         Set plugin manifest (called by loader).
-        
+
         Args:
             manifest: Parsed manifest from manifest.json
         """
         self._manifest = manifest
-    
+
     @property
     def status(self) -> PluginStatus:
         """Get current plugin status."""
         return self._status
-    
+
     @property
     def name(self) -> str:
         """Get plugin name from manifest."""
         return self._manifest.name if self._manifest else "unknown"
-    
+
     @property
     def version(self) -> str:
         """Get plugin version from manifest."""
         return self._manifest.version if self._manifest else "0.0.0"
-    
+
     @property
     def contract_type(self) -> str:
         """Get contract type from manifest."""

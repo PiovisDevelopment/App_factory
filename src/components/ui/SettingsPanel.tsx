@@ -1,14 +1,22 @@
 /**
  * SettingsPanel.tsx
  * =================
- * Slide-over panel for configuring LLM and application settings.
+ * Slide-over panel for application settings.
+ * 
+ * Hierarchical structure: Category → Provider → Configuration
+ * Uses SchemaForm for dynamic plugin configuration forms.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useSettingsStore, MODEL_OPTIONS, type LLMProvider } from '../../stores/settingsStore';
-import { testConnection } from '../../services/llmService';
-import { listLocalModels } from '../../services/ollamaService';
+import React, { useCallback, useEffect, useState } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 import { ApiKeyManager } from './ApiKeyManager';
+import { SchemaForm } from './SchemaForm';
+import { CategoryEditModal } from './CategoryEditModal';
+import { SchemaEditModal } from './SchemaEditModal';
+import {
+    useSettingsStore,
+} from '../../stores/settingsStore';
+import type { RJSFSchema } from '@rjsf/utils';
 
 interface SettingsPanelProps {
     isOpen: boolean;
@@ -16,151 +24,95 @@ interface SettingsPanelProps {
 }
 
 /**
- * Provider options for the dropdown.
+ * Check if running in Tauri environment.
  */
-const PROVIDER_OPTIONS: { id: LLMProvider; label: string }[] = [
-    { id: 'gemini', label: 'Google Gemini' },
-    { id: 'openai', label: 'OpenAI' },
-    { id: 'anthropic', label: 'Anthropic' },
-    { id: 'ollama', label: 'Ollama (Local)' },
-];
+function isTauriEnv(): boolean {
+    return typeof window !== 'undefined' &&
+        '__TAURI__' in window &&
+        typeof (window as unknown as { __TAURI_IPC__?: unknown }).__TAURI_IPC__ === 'function';
+}
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
-    // Settings store
-    const {
-        provider,
-        model,
-        temperature,
-        systemPrompt,
-        ollamaModels,
-        setProvider,
-        setModel,
-        setTemperature,
-        setSystemPrompt,
-        setOllamaModels,
-    } = useSettingsStore();
+    // Store state
+    const categories = useSettingsStore(s => s.categories);
+    const providersByCategory = useSettingsStore(s => s.providersByCategory);
+    const selectedCategory = useSettingsStore(s => s.selectedCategory);
+    const selectedProviderByCategory = useSettingsStore(s => s.selectedProviderByCategory);
+    const pluginConfigs = useSettingsStore(s => s.pluginConfigs);
+    const configSchemas = useSettingsStore(s => s.configSchemas);
+    const isLoadingSchema = useSettingsStore(s => s.isLoadingSchema);
 
-    // Local state for test connection
-    const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
-    const [testMessage, setTestMessage] = useState('');
-    const [isLoadingModels, setIsLoadingModels] = useState(false);
+    // Store actions
+    const setSelectedCategory = useSettingsStore(s => s.setSelectedCategory);
+    const setSelectedProvider = useSettingsStore(s => s.setSelectedProvider);
+    const setPluginConfig = useSettingsStore(s => s.setPluginConfig);
+    const setConfigSchema = useSettingsStore(s => s.setConfigSchema);
+    const setIsLoadingSchema = useSettingsStore(s => s.setIsLoadingSchema);
+    const getActivePluginId = useSettingsStore(s => s.getActivePluginId);
 
-    // Local state for system prompt editing
-    const [localSystemPrompt, setLocalSystemPrompt] = useState(systemPrompt);
-    const [promptSaved, setPromptSaved] = useState(true);
+    // Local State
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
 
-    // Default system prompt for Component Generator
-    const DEFAULT_SYSTEM_PROMPT = `You are a strict code compiler. Return ONLY valid React/Tailwind code.
+    // Get providers for current category
+    const currentProviders = providersByCategory[selectedCategory] || [];
+    const selectedProviderId = selectedProviderByCategory[selectedCategory] || '';
+    const activePluginId = getActivePluginId();
+    const currentSchema = activePluginId ? configSchemas[activePluginId] : null;
+    const currentConfig = activePluginId ? (pluginConfigs[activePluginId] ?? {}) : {};
 
-CRITICAL INSTRUCTIONS:
-1. OUTPUT FORMAT: Return ONLY the raw component code. NO markdown fences, NO explanations, NO imports, NO comments.
-2. ACCURACY: Implement EXACTLY what is requested. DO NOT hallucinate features.
-3. NEGATIVE CONSTRAINTS (DO NOT DO):
-   - DO NOT add background colors unless requested.
-   - DO NOT add filler text (Lorem Ipsum) unless requested.
-   - DO NOT add extra padding/margins unless necessary for layout.
-   - DO NOT wrap the component in a centered div (the previewer handles centering).
 
-ANIMATION RULES (Exact Implementation):
-- "jelly" / "bouncy" -> YOU MUST USE: transition-transform duration-300 ease-[cubic-bezier(0.68,-0.55,0.265,1.55)] hover:scale-110 active:scale-90
-- "spin" -> transition-transform duration-700 ease-in-out hover:rotate-[360deg]
-- "squishy" -> transition-all duration-200 hover:scale-x-125 hover:scale-y-75 active:scale-x-75 active:scale-y-125
+    // Fetch schema when plugin changes
+    const fetchSchema = useCallback(async (pluginId: string) => {
+        if (!isTauriEnv()) {
+            console.warn('[SettingsPanel] Tauri not available, cannot fetch schema');
+            return;
+        }
 
-STYLING:
-- Use Tailwind CSS for EVERYTHING.
-- For "modern" look: use 'ring-1 ring-white/10' for borders in dark mode if needed.
-- Interactive elements MUST have 'focus:ring-2 focus:outline-none'.
+        // Check if schema already exists
+        if (configSchemas[pluginId]) {
+            return;
+        }
 
-BROWNFIELD PATTERNS (MANDATORY overrides):
-- If user says "HEXAGON" -> className="aspect-square bg-primary-500 [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]"
-- If user says "SPARKLES" -> Use a wrapper div with 'relative'. Add absolute positioned spans for 'sparkles' with 'animate-ping' or 'animate-pulse'.
-- If user says "NEOMORPHIC" -> DO NOT use 'shadow-lg'. YOU MUST USE: shadow-[6px_6px_10px_0px_rgba(0,0,0,0.1),-6px_-6px_10px_0px_rgba(255,255,255,0.8)]
+        setIsLoadingSchema(true);
+        try {
+            const schema = await invoke<RJSFSchema>('ipc_call', {
+                method: 'plugin/get_config_schema',
+                params: { plugin_id: pluginId },
+            });
+            setConfigSchema(pluginId, schema as Record<string, unknown>);
+        } catch (err) {
+            console.error('[SettingsPanel] Failed to fetch schema:', err);
+        } finally {
+            setIsLoadingSchema(false);
+        }
+    }, [configSchemas, setConfigSchema, setIsLoadingSchema]);
 
-FINAL CHECK:
-- Did you add a background color? If user didn't ask, REMOVE IT.
-- Did you add text inside the button? If user didn't ask, make it empty.`;
-
-    // Fetch Ollama models when provider is ollama
+    // Fetch schema when active plugin changes
     useEffect(() => {
-        if (provider === 'ollama' && isOpen) {
-            const fetchModels = async () => {
-                setIsLoadingModels(true);
-                const models = await listLocalModels();
-                setOllamaModels(models);
-                setIsLoadingModels(false);
-
-                // Auto-select first model if current model is not valid
-                if (models.length > 0 && !models.includes(model)) {
-                    setModel(models[0]);
-                }
-            };
-
-            fetchModels();
+        if (activePluginId && isOpen) {
+            fetchSchema(activePluginId);
         }
-    }, [provider, isOpen, setOllamaModels, setModel, model]);
+    }, [activePluginId, isOpen, fetchSchema]);
 
-    // Get available models for current provider
-    const availableModels = provider === 'ollama'
-        ? ollamaModels.map(m => ({ id: m, label: m }))
-        : MODEL_OPTIONS[provider] || [];
+    // Handle category change
+    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const category = e.target.value;
+        setSelectedCategory(category);
+    };
 
-    // Handlers
-    const handleProviderChange = useCallback(
-        (e: React.ChangeEvent<HTMLSelectElement>) => {
-            setProvider(e.target.value as LLMProvider);
-        },
-        [setProvider]
-    );
+    // Handle provider change
+    const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const providerId = e.target.value;
+        setSelectedProvider(selectedCategory, providerId);
+    };
 
-    const handleModelChange = useCallback(
-        (e: React.ChangeEvent<HTMLSelectElement>) => {
-            setModel(e.target.value);
-        },
-        [setModel]
-    );
-
-    const handleTemperatureChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = parseFloat(e.target.value);
-            if (!isNaN(value)) {
-                setTemperature(value);
-            }
-        },
-        [setTemperature]
-    );
-
-    const handleTestConnection = useCallback(async () => {
-        setTestStatus('testing');
-        setTestMessage('');
-
-        const result = await testConnection();
-
-        if (result.success) {
-            setTestStatus('success');
-            setTestMessage(result.text || 'Connection successful!');
-        } else {
-            setTestStatus('error');
-            setTestMessage(result.error || 'Connection failed.');
+    // Handle config change
+    const handleConfigChange = (data: Record<string, unknown>) => {
+        if (activePluginId) {
+            setPluginConfig(activePluginId, data);
         }
-    }, []);
-
-    // Handle system prompt change (local only)
-    const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setLocalSystemPrompt(e.target.value);
-        setPromptSaved(false);
-    }, []);
-
-    // Save system prompt to store
-    const handleSavePrompt = useCallback(() => {
-        setSystemPrompt(localSystemPrompt);
-        setPromptSaved(true);
-    }, [localSystemPrompt, setSystemPrompt]);
-
-    // Load default system prompt
-    const handleLoadDefault = useCallback(() => {
-        setLocalSystemPrompt(DEFAULT_SYSTEM_PROMPT);
-        setPromptSaved(false);
-    }, [DEFAULT_SYSTEM_PROMPT]);
+    };
 
     if (!isOpen) return null;
 
@@ -191,168 +143,120 @@ FINAL CHECK:
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
-                    {/* LLM Provider */}
-                    <div>
-                        <label htmlFor="provider" className="block text-sm font-medium text-neutral-700 mb-1">
-                            LLM Provider
-                        </label>
-                        <select
-                            id="provider"
-                            value={provider}
-                            onChange={handleProviderChange}
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        >
-                            {PROVIDER_OPTIONS.map((opt) => (
-                                <option key={opt.id} value={opt.id}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* API Keys Manager (D079) */}
-                    <ApiKeyManager />
-
-                    {/* LLM Model */}
-                    <div>
-                        <label htmlFor="model" className="block text-sm font-medium text-neutral-700 mb-1">
-                            Model
-                            {isLoadingModels && <span className="ml-2 text-xs text-primary-500 font-normal">Loading available models...</span>}
-                        </label>
-                        <select
-                            id="model"
-                            value={model}
-                            onChange={handleModelChange}
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                        >
-                            {availableModels.length === 0 && provider === 'ollama' ? (
-                                <option value="" disabled>No models found or ensure Ollama is running</option>
-                            ) : (
-                                availableModels.map((opt) => (
-                                    <option key={opt.id} value={opt.id}>
-                                        {opt.label}
-                                    </option>
-                                ))
-                            )}
-                        </select>
-                        {provider === 'ollama' && availableModels.length === 0 && !isLoadingModels && (
-                            <p className="mt-1 text-xs text-red-500">
-                                Ensure Ollama is running at http://localhost:11434
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Temperature */}
-                    <div>
-                        <label htmlFor="temperature" className="block text-sm font-medium text-neutral-700 mb-1">
-                            Temperature
-                        </label>
-                        <div className="flex items-center gap-3">
-                            <input
-                                id="temperature"
-                                type="range"
-                                min="0"
-                                max="2"
-                                step="0.1"
-                                value={temperature}
-                                onChange={handleTemperatureChange}
-                                className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
-                            />
-                            <span className="w-12 text-center text-sm font-mono text-neutral-700">
-                                {temperature.toFixed(1)}
-                            </span>
-                        </div>
-                        <p className="mt-1 text-xs text-neutral-500">
-                            0.0 = deterministic, 2.0 = highly creative
-                        </p>
-                    </div>
-
-                    {/* System Prompt */}
-                    <div>
-                        <div className="flex items-center justify-between mb-1">
-                            <label htmlFor="systemPrompt" className="block text-sm font-medium text-neutral-700">
-                                System Prompt
-                            </label>
-                            <button
-                                type="button"
-                                onClick={handleLoadDefault}
-                                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
-                            >
-                                Load Default
-                            </button>
-                        </div>
-                        <textarea
-                            id="systemPrompt"
-                            value={localSystemPrompt}
-                            onChange={handlePromptChange}
-                            rows={6}
-                            placeholder="Enter system instructions for the AI..."
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors resize-none text-sm"
-                        />
-                        <div className="flex items-center justify-between mt-2">
-                            <span className={`text-xs ${promptSaved ? 'text-green-600' : 'text-amber-600'}`}>
-                                {promptSaved ? '✓ Saved' : '• Unsaved changes'}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={handleSavePrompt}
-                                disabled={promptSaved}
-                                className="px-3 py-1 text-sm font-medium text-white bg-primary-500 rounded-md hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                Save Prompt
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Test Connection */}
-                    <div className="pt-4 border-t border-neutral-200">
-                        <button
-                            type="button"
-                            onClick={handleTestConnection}
-                            disabled={testStatus === 'testing'}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            {testStatus === 'testing' ? (
-                                <>
-                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                                        <circle
-                                            className="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            strokeWidth="4"
-                                        />
-                                        <path
-                                            className="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        />
+                    {/* Category & Provider Row */}
+                    <div className="flex gap-3">
+                        {/* Category Selector */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                                <label htmlFor="category" className="block text-sm font-medium text-neutral-700">
+                                    Category
+                                </label>
+                                <button
+                                    onClick={() => setIsCategoryModalOpen(true)}
+                                    className="text-neutral-400 hover:text-primary-600 p-0.5 rounded transition-colors"
+                                    title="Edit Categories"
+                                >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                     </svg>
-                                    Testing...
-                                </>
-                            ) : (
-                                <>
-                                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                        <polyline points="22 4 12 14.01 9 11.01" />
-                                    </svg>
-                                    Test Connection
-                                </>
-                            )}
-                        </button>
-
-                        {testStatus !== 'idle' && testStatus !== 'testing' && (
-                            <div
-                                className={`mt-3 p-3 rounded-lg text-sm ${testStatus === 'success'
-                                    ? 'bg-green-50 text-green-800 border border-green-200'
-                                    : 'bg-red-50 text-red-800 border border-red-200'
-                                    }`}
-                            >
-                                {testMessage}
+                                </button>
                             </div>
-                        )}
+                            <select
+                                id="category"
+                                value={selectedCategory}
+                                onChange={handleCategoryChange}
+                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 truncate max-w-[15ch]"
+                            >
+                                {Object.entries(categories).map(([id, label]) => (
+                                    <option key={id} value={id}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Provider Selector */}
+                        <div className="flex-1">
+                            <label htmlFor="provider" className="block text-sm font-medium text-neutral-700 mb-1">
+                                Provider
+                            </label>
+                            <select
+                                id="provider"
+                                value={selectedProviderId}
+                                onChange={handleProviderChange}
+                                className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 truncate"
+                            >
+                                {currentProviders.map(provider => (
+                                    <option key={provider.id} value={provider.id}>
+                                        {provider.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
+
+                    {/* Configuration Form */}
+                    {activePluginId && (
+                        <div className="border-t border-neutral-200 pt-4">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-medium text-neutral-700">
+                                    Configuration
+                                </h3>
+                                <button
+                                    onClick={() => setIsSchemaModalOpen(true)}
+                                    className="text-neutral-400 hover:text-primary-600 p-0.5 rounded transition-colors"
+                                    title="Edit Configuration Schema"
+                                >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                </button>
+                            </div>
+                            {currentSchema ? (
+                                <SchemaForm
+                                    schema={currentSchema as RJSFSchema}
+                                    formData={currentConfig}
+                                    onChange={handleConfigChange}
+                                    isLoading={isLoadingSchema}
+                                />
+                            ) : isLoadingSchema ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <div className="flex items-center gap-2 text-neutral-500 text-sm">
+                                        <svg
+                                            className="animate-spin h-4 w-4"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            />
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                            />
+                                        </svg>
+                                        <span>Loading schema...</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-neutral-500 italic">
+                                    No configuration schema available for this provider.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* API Keys Manager */}
+                    <ApiKeyManager />
                 </div>
 
                 {/* Footer */}
@@ -366,6 +270,19 @@ FINAL CHECK:
                     </button>
                 </div>
             </div>
+
+            {/* Modals */}
+            <CategoryEditModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+            />
+            {activePluginId && (
+                <SchemaEditModal
+                    isOpen={isSchemaModalOpen}
+                    onClose={() => setIsSchemaModalOpen(false)}
+                    pluginId={activePluginId}
+                />
+            )}
         </>
     );
 };

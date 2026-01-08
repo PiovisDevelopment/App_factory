@@ -3,7 +3,6 @@
     "allow": [
       "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\testing\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\testing\")",
       "Bash(mkdir:*)",
-      "Bash(touch:*)",
       "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\project\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\project\")",
       "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\ai\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\ai\")",
       "Bash(if not exist \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\gallery\" mkdir \"c:\\\\Users\\\\anujd\\\\Documents\\\\01_AI\\\\173_piovisstudio\\\\app_factory\\\\src\\\\components\\\\gallery\")",
@@ -34,7 +33,13 @@
       "Bash(curl:*)",
       "Bash(git checkout:*)",
       "Bash(rm:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(ruff:*)",
+      "Bash(mypy:*)", 
+      "Bash(pip:*)",
+      "Bash(cargo clippy:*)",
+      "Bash(npm run ci:*)",
+      "Bash(npm run local:*)"
     ]
   }
 }

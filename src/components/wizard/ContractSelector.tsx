@@ -128,6 +128,14 @@ export interface ContractSelectorProps extends Omit<HTMLAttributes<HTMLDivElemen
 /**
  * Contract icon components.
  */
+const DebugIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+    <path d="m9 9 6 6" />
+    <path d="m15 9-6 6" />
+  </svg>
+);
+
 const ContractIcons: Record<string, React.FC<{ className?: string }>> = {
   tts: ({ className }) => (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -171,20 +179,15 @@ const ContractIcons: Record<string, React.FC<{ className?: string }>> = {
       <path d="M12 8v8" />
     </svg>
   ),
-  debug: ({ className }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-      <path d="m9 9 6 6" />
-      <path d="m15 9-6 6" />
-    </svg>
-  ),
+  debug: DebugIcon,
+  default: DebugIcon,
 };
 
 /**
  * Get icon for contract type.
  */
-const getContractIcon = (contractId: string): React.FC<{ className?: string }> => {
-  return ContractIcons[contractId] || ContractIcons.debug;
+const getContractIcon = (contractId?: string): React.FC<{ className?: string }> => {
+  return ContractIcons[contractId ?? "default"] ?? ContractIcons.default;
 };
 
 /**
@@ -235,8 +238,8 @@ const contractColors: Record<string, { bg: string; border: string; text: string;
   },
 };
 
-const getContractColors = (contractId: string) => {
-  return contractColors[contractId] || contractColors.debug;
+const getContractColors = (contractId: string): { bg: string; border: string; text: string; iconBg: string } => {
+  return contractColors[contractId] ?? contractColors.debug;
 };
 
 /**

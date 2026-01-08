@@ -171,6 +171,8 @@ export async function createBackup(
     // Mock implementation - simulate async operation
     await new Promise((resolve) => setTimeout(resolve, 100));
 
+    const normalizedDescription = description?.trim() || undefined;
+
     const metadata: BackupMetadata = {
       id: generateBackupId(),
       projectPath,
@@ -179,7 +181,7 @@ export async function createBackup(
       backupPath,
       sizeBytes: 0, // Would be actual file size
       version: BACKUP_VERSION,
-      description,
+      ...(normalizedDescription ? { description: normalizedDescription } : {}),
     };
 
     // Log backup action (would be actual file operation in Tauri)

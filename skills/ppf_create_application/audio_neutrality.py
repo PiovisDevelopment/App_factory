@@ -11,12 +11,11 @@ This module is read-only with respect to the filesystem: it never mutates files.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
 
-
-AudioIntentTokens = Dict[str, List[str]]
+AudioIntentTokens = dict[str, list[str]]
 
 
 # Tokens that strongly indicate explicit audio intent.
@@ -28,7 +27,7 @@ EXPLICIT_AUDIO_TOKENS: AudioIntentTokens = {
 }
 
 # Tokens that are ambiguous and should not, by themselves, flip audio_intent.
-AMBIGUOUS_TOKENS: List[str] = [
+AMBIGUOUS_TOKENS: list[str] = [
     "assistant",
     "respond",
     "reply",
@@ -42,7 +41,7 @@ AMBIGUOUS_TOKENS: List[str] = [
 class AudioIntentClassification:
     audio_intent: bool
     reason: str
-    matches: List[str]
+    matches: list[str]
 
 
 def classify_audio_intent(prompt: str) -> AudioIntentClassification:
@@ -55,9 +54,9 @@ def classify_audio_intent(prompt: str) -> AudioIntentClassification:
       do NOT set audio_intent to True on their own.
     """
     text = prompt.lower()
-    matches: List[str] = []
+    matches: list[str] = []
 
-    for category, tokens in EXPLICIT_AUDIO_TOKENS.items():
+    for _category, tokens in EXPLICIT_AUDIO_TOKENS.items():
         for token in tokens:
             if token in text:
                 matches.append(token)
@@ -87,11 +86,11 @@ class AudioUiViolation:
 @dataclass
 class AudioUiValidationResult:
     ok: bool
-    violations: List[AudioUiViolation]
+    violations: list[AudioUiViolation]
 
 
 # Simple blocklist for obvious audio-UI patterns in React/MUI code.
-BLOCKLIST_PATTERNS: List[str] = [
+BLOCKLIST_PATTERNS: list[str] = [
     # MUI icons commonly used for audio/microphone controls
     "MicIcon",
     "MicNoneIcon",
@@ -130,7 +129,7 @@ def validate_audio_ui_neutrality(
     if audio_intent:
         return AudioUiValidationResult(ok=True, violations=[])
 
-    violations: List[AudioUiViolation] = []
+    violations: list[AudioUiViolation] = []
 
     for file_path in files:
         path = Path(file_path)

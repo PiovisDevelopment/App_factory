@@ -217,7 +217,7 @@ const ChatMessageItem: React.FC<{
                 }
 
                 const language = match[1] || 'javascript';
-                const code = match[2];
+                const code = match[2] ?? '';
 
                 parts.push(
                     <div key={`code-${match.index}`} className="my-2 rounded-md overflow-hidden border border-neutral-200">
@@ -436,11 +436,12 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({
                     canvasContext = '\n\n--- CANVAS_CONTEXT ---\n';
                     canvasElements.forEach((el, idx) => {
                         const codeInfo = el.componentId ? getComponentCode(el.componentId) : null;
+                        const componentCode = typeof codeInfo?.code === 'string' ? codeInfo.code : '';
                         canvasContext += `### Element ${idx + 1}: ${el.name} (ID: ${el.id})\n`;
                         canvasContext += `- Type: ${el.type}\n`;
                         canvasContext += `- Position: (${el.bounds.x}, ${el.bounds.y}) Size: ${el.bounds.width}x${el.bounds.height}\n`;
-                        if (codeInfo?.code) {
-                            canvasContext += '```jsx\n' + codeInfo.code + '\n```\n\n';
+                        if (componentCode) {
+                            canvasContext += '```jsx\n' + componentCode + '\n```\n\n';
                         } else {
                             canvasContext += '(No code available)\n\n';
                         }
@@ -480,15 +481,16 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({
             const result = await generateWithConfig(config, finalPrompt, history, images);
             console.log('[AiAppChatPanel] Result:', result.success);
 
-            if (result.success && result.text) {
-                addMessage({ role: 'assistant', content: result.text });
+            if (result.success && typeof result.text === 'string') {
+                const assistantText = result.text;
+                addMessage({ role: 'assistant', content: assistantText });
 
                 // Try to parse JSON changes from AI response
                 if (onApplyCanvasChanges && mode === 'change') {
                     try {
                         // Extract JSON from code block if present
-                        const jsonMatch = result.text.match(/```json\s*([\s\S]*?)\s*```/);
-                        if (jsonMatch) {
+                        const jsonMatch = assistantText.match(/```json\s*([\s\S]*?)\s*```/);
+                        if (jsonMatch && jsonMatch[1]) {
                             const parsed = JSON.parse(jsonMatch[1]);
                             if (parsed.changes && Array.isArray(parsed.changes)) {
                                 console.log('[AiAppChatPanel] Parsed', parsed.changes.length, 'changes from AI response');
@@ -606,8 +608,8 @@ export const AiAppChatPanel: React.FC<AiAppChatPanelProps> = ({
                                 key={msg.id}
                                 message={msg}
                                 showTimestamp
-                                onApplyCode={onApplyCode}
-                                onApplyCanvasChanges={onApplyCanvasChanges}
+                                {...(onApplyCode ? { onApplyCode } : {})}
+                                {...(onApplyCanvasChanges ? { onApplyCanvasChanges } : {})}
                             />
                         ))}
                         {isGenerating && (

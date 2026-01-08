@@ -21,7 +21,7 @@ import React, {
 } from "react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import { Panel } from "../ui/Panel";
+import { Panel, PanelHeader } from "../ui/Panel";
 
 /**
  * Message role types for chat messages.
@@ -301,6 +301,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const canClear = onClear && messages.length > 0 && !isLoading && !disabled;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -358,24 +359,29 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     "bg-white",
   ].join(" ");
 
-  const headerActions = onClear ? (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onClear}
-      leftIcon={<ClearIcon />}
-      disabled={messages.length === 0 || isLoading}
-    >
-      Clear
-    </Button>
-  ) : undefined;
-
   return (
     <Panel
       variant="default"
       padding="none"
       radius="lg"
-      header={title}
+      header={(
+        <PanelHeader
+          title={title}
+          actions={onClear ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              iconOnly
+              aria-label="Clear chat"
+              onClick={onClear}
+              disabled={!canClear}
+            >
+              <ClearIcon />
+            </Button>
+          ) : undefined}
+        />
+      )}
       showHeaderDivider
       className={containerStyles}
       style={{ maxHeight }}

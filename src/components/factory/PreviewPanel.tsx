@@ -13,6 +13,7 @@
  */
 
 import React, { forwardRef, useState, useCallback, type HTMLAttributes, type ReactNode } from "react";
+import { Panel } from "../ui/Panel";
 
 /**
  * Preview device types.
@@ -355,7 +356,15 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
 
     // Use custom presets if provided, otherwise use built-in
     const presets = customPresets || devicePresets;
-    const currentDevice = presets[currentDeviceIndex] || presets[0];
+    const fallbackDevice = presets[0] ?? devicePresets[0];
+    const currentDevice = presets[currentDeviceIndex] ?? fallbackDevice;
+    if (!currentDevice) {
+      return (
+        <Panel ref={ref} className={className} padding="none" {...props}>
+          <div className="p-4 text-sm text-neutral-500">No device presets available</div>
+        </Panel>
+      );
+    }
 
     // Calculate effective dimensions based on orientation
     const effectiveWidth =
@@ -388,8 +397,10 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
     // Device change
     const handleDeviceChange = useCallback(
       (index: number) => {
+        const nextPreset = presets[index] ?? presets[0] ?? devicePresets[0];
+        if (!nextPreset) return;
         setCurrentDeviceIndex(index);
-        onDeviceChange?.(presets[index]);
+        onDeviceChange?.(nextPreset);
       },
       [presets, onDeviceChange]
     );
@@ -692,7 +703,7 @@ export const PreviewPanel = forwardRef<HTMLDivElement, PreviewPanelProps>(
                 }}
                 applyBackground
               >
-                {children ? children : <LivePreview screenId={screenId} />}
+                {children ? children : <LivePreview {...(screenId ? { screenId } : {})} />}
               </ThemedCanvasWrapper>
             </div>
           )}

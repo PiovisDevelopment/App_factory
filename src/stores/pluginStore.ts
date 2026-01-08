@@ -586,7 +586,7 @@ export const useFilteredPlugins = () =>
  */
 export const useSelectedPlugin = () =>
   usePluginStore((state) =>
-    state.selectedPluginId ? state.plugins[state.selectedPluginId] : null
+    state.selectedPluginId ? (state.plugins[state.selectedPluginId] ?? null) : null
   );
 
 /**

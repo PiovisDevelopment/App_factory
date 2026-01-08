@@ -1,4 +1,4 @@
-# D086 - App Factory Architecture
+# App Factory Architecture
 
 > Comprehensive architecture documentation for the App Factory plugin framework.
 
@@ -20,17 +20,17 @@ App Factory implements **Plugin Option C**: a hybrid desktop architecture combin
 │ │ React + TypeScript          │    │ Rust Backend                         │ │
 │ │ ┌─────────────────────────┐ │    │ ┌──────────────────────────────────┐ │ │
 │ │ │ Factory Components      │ │    │ │ IPC Manager (D030-D036)          │ │ │
-│ │ │ - PluginGallery (D040)  │ │    │ │ - spawn.rs: Python subprocess    │ │ │
-│ │ │ - CanvasEditor (D045)   │◄────►│ │ - request.rs: JSON-RPC builder   │ │ │
-│ │ │ - PluginWizard (D050)   │invoke│ │ - response.rs: Response parser   │ │ │
-│ │ │ - ProjectLoader (D063)  │ │    │ │ - health.rs: Health monitoring   │ │ │
-│ │ │ - ChatInterface (D069)  │ │    │ │ - manager.rs: IpcManager struct  │ │ │
+│ │ │ - PluginGallery         │ │    │ │ - spawn.rs: Python subprocess    │ │ │
+│ │ │ - CanvasEditor          │◄────►│ │ - request.rs: JSON-RPC builder   │ │ │
+│ │ │ - PluginWizard          │invoke│ │ - response.rs: Response parser   │ │ │
+│ │ │ - ProjectLoader         │ │    │ │ - health.rs: Health monitoring   │ │ │
+│ │ │ - ChatInterface         │ │    │ │ - manager.rs: IpcManager struct  │ │ │
 │ │ └─────────────────────────┘ │    │ └──────────────┬───────────────────┘ │ │
 │ │ ┌─────────────────────────┐ │    │                │                      │ │
 │ │ │ Zustand Stores          │ │    │ ┌──────────────▼───────────────────┐ │ │
-│ │ │ - factoryStore (D075)   │ │    │ │ Tauri Commands (D036)            │ │ │
-│ │ │ - pluginStore (D076)    │ │    │ │ - plugin_list, plugin_load       │ │ │
-│ │ │ - projectStore (D077)   │ │    │ │ - plugin_call, plugin_health     │ │ │
+│ │ │ - factoryStore          │ │    │ │ Tauri Commands                   │ │ │
+│ │ │ - pluginStore           │ │    │ │ - plugin_list, plugin_load       │ │ │
+│ │ │ - projectStore          │ │    │ │ - plugin_call, plugin_health     │ │ │
 │ │ └─────────────────────────┘ │    │ └──────────────────────────────────┘ │ │
 │ └─────────────────────────────┘    └──────────────────────────────────────┘ │
 └────────────────────────────────────────────────┬────────────────────────────┘
@@ -41,7 +41,7 @@ App Factory implements **Plugin Option C**: a hybrid desktop architecture combin
 ┌────────────────────────────────────────────────┼────────────────────────────┐
 │ PYTHON SUBPROCESS                              │                            │
 │ ┌──────────────────────────────────────────────▼──────────────────────────┐ │
-│ │ Plugin Host (__main__.py - D025)                                        │ │
+│ │ Plugin Host (__main__.py)                                           │ │
 │ │ ┌────────────────────────────────────────────────────────────────────┐  │ │
 │ │ │ JSON-RPC Read Loop                                                  │  │ │
 │ │ │ - Unbuffered stdout (CRITICAL for Windows IPC)                      │  │ │
@@ -49,10 +49,10 @@ App Factory implements **Plugin Option C**: a hybrid desktop architecture combin
 │ │ │ - Response serialization                                            │  │ │
 │ │ └────────────────────────────────────────────────────────────────────┘  │ │
 │ │ ┌─────────────────────────┐  ┌─────────────────────────────────────┐   │ │
-│ │ │ JsonRpcRouter (D026)    │  │ PluginManager (D024)                 │   │ │
-│ │ │ - Method dispatch       │  │ - HybridDiscovery (D020)             │   │ │
-│ │ │ - Error handling        │  │ - PluginValidator (D022)             │   │ │
-│ │ │ - Timeout management    │  │ - PluginLoader (D023)                │   │ │
+│ │ │ JsonRpcRouter           │  │ PluginManager                        │   │ │
+│ │ │ - Method dispatch       │  │ - HybridDiscovery                    │   │ │
+│ │ │ - Error handling        │  │ - PluginValidator                    │   │ │
+│ │ │ - Timeout management    │  │ - PluginLoader                       │   │ │
 │ │ └─────────────────────────┘  │ - Hot-swap with rollback             │   │ │
 │ │                               └─────────────────────────────────────┘   │ │
 │ └─────────────────────────────────────────────────────────────────────────┘ │
@@ -77,19 +77,19 @@ The frontend provides the user interface for the App Factory, built with:
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | React | ^18.3.1 | UI framework |
-| TypeScript | ^5.4.5 | Type safety |
+| TypeScript | ~5.9.3 | Type safety |
 | Vite | ^5.2.0 | Build tool |
 | Tailwind CSS | ^3.4.3 | Styling |
 | Zustand | ^4.x | State management |
 
 **Key Components**:
 
-- **UI Atoms** (D010-D019): Reusable UI primitives (Button, Input, Modal, etc.)
-- **Factory Components** (D040-D049): Main factory interface
-- **Wizard Components** (D050-D054): Plugin creation workflow
-- **Testing Components** (D057-D060): Plugin testing harness
-- **Project Components** (D063-D068): Project management
-- **AI Components** (D069-D073): AI-assisted features
+- **UI Atoms**: Reusable UI primitives (Button, Input, Modal, etc.)
+- **Factory Components**: Main factory interface
+- **Wizard Components**: Plugin creation workflow
+- **Testing Components**: Plugin testing harness
+- **Project Components**: Project management
+- **AI Components**: AI-assisted features
 
 **State Management**:
 
@@ -108,12 +108,12 @@ The Rust layer bridges React and Python:
 
 | Module | File | Responsibility |
 |--------|------|----------------|
-| spawn | D033 | Python subprocess lifecycle |
-| request | D031 | JSON-RPC request building |
-| response | D032 | Response parsing |
-| health | D034 | Health monitoring |
-| manager | D035 | IpcManager orchestration |
-| commands | D036 | Tauri command handlers |
+| spawn | Python subprocess lifecycle |
+| request | JSON-RPC request building |
+| response | Response parsing |
+| health | Health monitoring |
+| manager | IpcManager orchestration |
+| commands | Tauri command handlers |
 
 **Key Patterns**:
 
@@ -144,14 +144,14 @@ The Plugin Host is the Python subprocess that manages plugins:
 
 | Module | File | Responsibility |
 |--------|------|----------------|
-| __main__ | D025 | Entry point, JSON-RPC loop |
-| protocol | D026 | JSON-RPC router |
-| discovery | D020 | Plugin discovery |
-| validator | D022 | Manifest validation |
-| loader | D023 | Plugin loading |
-| manager | D024 | Plugin lifecycle |
-| isolation | D028 | Execution isolation |
-| shutdown | D027 | Graceful shutdown |
+| __main__ | Entry point, JSON-RPC loop |
+| protocol | JSON-RPC router |
+| discovery | Plugin discovery |
+| validator | Manifest validation |
+| loader | Plugin loading |
+| manager | Plugin lifecycle |
+| isolation | Execution isolation |
+| shutdown | Graceful shutdown |
 
 ### 4. Plugin Layer
 
@@ -161,10 +161,10 @@ Individual plugins implementing contracts:
 
 | Contract | Location | Purpose |
 |----------|----------|---------|
-| base | D001 | PluginBase ABC |
-| tts | D002 | Text-to-Speech |
-| stt | D003 | Speech-to-Text |
-| llm | D004 | Language Models |
+| base | `contracts/` | PluginBase ABC |
+| tts | `contracts/` | Text-to-Speech |
+| stt | `contracts/` | Speech-to-Text |
+| llm | `contracts/` | Language Models |
 
 ## Communication Protocol
 
@@ -238,11 +238,11 @@ The JSON-RPC router dispatches methods:
 
 ### Plugin Discovery
 
-HybridDiscovery (D020) scans for plugins:
+HybridDiscovery scans for plugins:
 
 1. **Folder Scan**: Enumerate `plugins/` directory
 2. **Manifest Check**: Look for `manifest.json`
-3. **Validation**: Verify against schema (D008)
+3. **Validation**: Verify against schema
 4. **Contract Match**: Ensure contract exists
 
 ### Plugin Lifecycle
@@ -292,7 +292,7 @@ Plugins can be replaced at runtime:
 
 ## Design Tokens System
 
-### CSS Custom Properties (D006)
+### CSS Custom Properties
 
 All visual styling flows from `config/design_tokens.css`:
 
@@ -315,7 +315,7 @@ All visual styling flows from `config/design_tokens.css`:
 }
 ```
 
-### Tailwind Integration (D007)
+### Tailwind Integration
 
 `tailwind.config.js` references CSS variables:
 
@@ -345,7 +345,7 @@ theme: {
 
 ## Error Handling
 
-### Error Code Hierarchy (D009)
+### Error Code Hierarchy
 
 | Range | Category | Example |
 |-------|----------|---------|
@@ -414,28 +414,30 @@ sys.stdout = io.TextIOWrapper(
 
 ## File Manifest Reference
 
-### Phase 0: Foundations (D001-D009)
+## File Manifest Reference
+
+### Phase 0: Foundations
 - Contracts, config files, error codes
 
-### Phase 1: Atomic UI (D010-D019)
+### Phase 1: Atomic UI
 - Button, Input, Select, Modal, Theme components
 
-### Phase 2: Plugin Infrastructure (D020-D029)
+### Phase 2: Plugin Infrastructure
 - Discovery, validation, loading, management
 
-### Phase 3: Rust IPC (D030-D036)
+### Phase 3: Rust IPC
 - IPC modules, Tauri commands
 
-### Phase 4: Frontend Integration (D040-D049)
+### Phase 4: Frontend Integration
 - Gallery, Canvas, Inspector, Layout
 
-### Phase 5: Plugin Creation (D050-D062)
+### Phase 5: Plugin Creation
 - Wizard, Scaffold, Testing
 
-### Phase 6: App Management (D063-D079)
+### Phase 6: App Management
 - Project loader, AI features, Stores
 
-### Phase 7: Production Export (D080-D090)
+### Phase 7: Production Export
 - Exporter, Templates, Documentation
 
 ---

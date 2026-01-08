@@ -792,7 +792,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               theme: state.theme,
               buildConfig: state.buildConfig,
               canvasElements: state.canvasElements,
-              windowConfig: state.windowConfig ?? undefined,
+              ...(state.windowConfig ? { windowConfig: state.windowConfig } : {}),
               activeScreenId: state.activeScreenId,
               activeComponentId: state.activeComponentId,
             };
@@ -882,7 +882,7 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               theme: state.theme,
               buildConfig: state.buildConfig,
               canvasElements: state.canvasElements,
-              windowConfig: state.windowConfig ?? undefined,
+              ...(state.windowConfig ? { windowConfig: state.windowConfig } : {}),
               activeScreenId: state.activeScreenId,
               activeComponentId: state.activeComponentId,
             };
@@ -1238,13 +1238,17 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               // Remove from parent's children
               const components = { ...state.components };
               const component = components[componentId];
-              if (component?.parentId && components[component.parentId]) {
-                components[component.parentId] = {
-                  ...components[component.parentId],
-                  children: components[component.parentId].children.filter(
-                    (id) => id !== componentId
-                  ),
-                };
+              const parentId = component?.parentId;
+              if (parentId) {
+                const parent = components[parentId];
+                if (parent) {
+                  components[parentId] = {
+                    ...parent,
+                    children: parent.children.filter(
+                      (id) => id !== componentId
+                    ),
+                  };
+                }
               }
 
               // Remove all collected components
@@ -1274,27 +1278,34 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               const components = { ...state.components };
 
               // Remove from old parent
-              if (component.parentId && components[component.parentId]) {
-                components[component.parentId] = {
-                  ...components[component.parentId],
-                  children: components[component.parentId].children.filter(
-                    (id) => id !== componentId
-                  ),
-                };
+              const oldParentId = component.parentId;
+              if (oldParentId) {
+                const oldParent = components[oldParentId];
+                if (oldParent) {
+                  components[oldParentId] = {
+                    ...oldParent,
+                    children: oldParent.children.filter(
+                      (id) => id !== componentId
+                    ),
+                  };
+                }
               }
 
               // Add to new parent
-              if (newParentId && components[newParentId]) {
-                const children = [...components[newParentId].children];
-                if (index !== undefined && index >= 0) {
-                  children.splice(index, 0, componentId);
-                } else {
-                  children.push(componentId);
+              if (newParentId) {
+                const newParent = components[newParentId];
+                if (newParent) {
+                  const children = [...newParent.children];
+                  if (index !== undefined && index >= 0) {
+                    children.splice(index, 0, componentId);
+                  } else {
+                    children.push(componentId);
+                  }
+                  components[newParentId] = {
+                    ...newParent,
+                    children,
+                  };
                 }
-                components[newParentId] = {
-                  ...components[newParentId],
-                  children,
-                };
               }
 
               // Update component's parentId
@@ -1328,12 +1339,15 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
               const components = { ...s.components, [newComponent.id]: newComponent };
 
               // Add to parent's children if has parent
-              if (newComponent.parentId && components[newComponent.parentId]) {
-                const parent = components[newComponent.parentId];
-                const insertIndex = parent.children.indexOf(componentId) + 1;
-                const children = [...parent.children];
-                children.splice(insertIndex, 0, newComponent.id);
-                components[newComponent.parentId] = { ...parent, children };
+              const parentId = newComponent.parentId;
+              if (parentId) {
+                const parent = components[parentId];
+                if (parent) {
+                  const insertIndex = parent.children.indexOf(componentId) + 1;
+                  const children = [...parent.children];
+                  children.splice(insertIndex, 0, newComponent.id);
+                  components[parentId] = { ...parent, children };
+                }
               }
 
               return {

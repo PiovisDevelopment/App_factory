@@ -1,16 +1,17 @@
 import os
-import httpx
-from typing import List, Dict, Any, Optional
-from pydantic_ai import RunContext
+from typing import Any
 
-async def search_web(query: str, site_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+import httpx
+
+
+async def search_web(query: str, site_filter: str | None = None) -> list[dict[str, Any]]:
     """
     Performs a web search using Brave Search API.
-    
+
     Args:
         query: The search query string.
         site_filter: Optional domain to restrict search (e.g., 'reddit.com').
-        
+
     Returns:
         List of search results with title, description, and url.
     """
@@ -19,7 +20,7 @@ async def search_web(query: str, site_filter: Optional[str] = None) -> List[Dict
         return [{"error": "BRAVE_API_KEY not found in environment variables."}]
 
     final_query = f"site:{site_filter} {query}" if site_filter else query
-    
+
     headers = {"X-Subscription-Token": api_key, "Accept": "application/json"}
     url = "https://api.search.brave.com/res/v1/web/search"
     params = {"q": final_query, "count": 5}
@@ -29,7 +30,7 @@ async def search_web(query: str, site_filter: Optional[str] = None) -> List[Dict
             resp = await client.get(url, headers=headers, params=params)
             resp.raise_for_status()
             data = resp.json()
-            
+
             results = []
             if "web" in data and "results" in data["web"]:
                 for item in data["web"]["results"]:

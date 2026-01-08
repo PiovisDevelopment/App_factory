@@ -18,21 +18,20 @@ Dependencies:
 """
 
 import asyncio
-import io
-import tempfile
 import os
-from typing import Any, Dict, List, Optional, Callable
+import tempfile
+from collections.abc import Callable
+from typing import Any
 
-from contracts.base import PluginStatus, HealthStatus
+from contracts.base import HealthStatus, PluginStatus
 from contracts.stt_contract import (
+    StreamingConfig,
     STTContract,
+    TranscriptionOptions,
     TranscriptionResult,
     TranscriptionSegment,
-    TranscriptionOptions,
     TranscriptionStatus,
-    StreamingConfig,
 )
-
 
 # Whisper supported languages (subset of most common)
 SUPPORTED_LANGUAGES = [
@@ -52,10 +51,10 @@ SUPPORTED_LANGUAGES = [
 class WhisperSTTPlugin(STTContract):
     """
     Faster Whisper STT Plugin - High-performance speech-to-text.
-    
+
     Uses CTranslate2 inference engine for 4x speedup over original Whisper.
     Optimized for NVIDIA RTX 4080 with FP16 computation.
-    
+
     Features:
         - 4x faster than openai-whisper
         - Lower VRAM usage (can run large-v3 on 10GB)
@@ -72,41 +71,49 @@ class WhisperSTTPlugin(STTContract):
         self._model_size: str = "large-v3"
         self._device: str = "cpu"
         self._compute_type: str = "float16"
-        self._default_language: Optional[str] = None
+        self._default_language: str | None = None
         self._beam_size: int = 5
         self._vad_filter: bool = True
         self._initialized: bool = False
 
-    async def initialize(self, config: Dict[str, Any]) -> bool:
+    async def initialize(self, config: dict[str, Any]) -> bool:
         """
         Initialize the Whisper STT plugin.
-        
+
         Lazy-loads the model to avoid blocking. The actual model
         download happens on first transcription.
-        
+
         Args:
             config: Configuration from manifest or user overrides.
-                - model_size: str (e.g., "large-v3", "turbo")
-                - device: str ("cuda", "cpu", or "auto")
-                - compute_type: str ("float16", "int8_float16", etc.)
-                - language: str (default language or null for auto)
-                - beam_size: int (1-10)
-                - vad_filter: bool
-        
+                Validated against WhisperConfig Pydantic model.
+
         Returns:
             True if initialization succeeded.
+
+        Raises:
+            RuntimeError: If config validation fails.
         """
         try:
-            # Apply configuration
-            self._model_size = config.get("model_size", "large-v3")
-            self._default_language = config.get("language")
-            self._beam_size = config.get("beam_size", 5)
-            self._vad_filter = config.get("vad_filter", True)
-            self._compute_type = config.get("compute_type", "float16")
-            
+            # Import and validate config using Pydantic model
+            from pydantic import ValidationError
+
+            from plugins._host.config_models import WhisperConfig
+
+            try:
+                validated = WhisperConfig(**config)
+            except ValidationError as ve:
+                # Return structured validation error
+                raise RuntimeError(f"Configuration validation failed: {ve}")
+
+            # Apply validated configuration
+            self._model_size = validated.model_size
+            self._default_language = validated.language
+            self._beam_size = validated.beam_size
+            self._vad_filter = validated.vad_filter
+            self._compute_type = validated.compute_type
+
             # Determine device
-            device_config = config.get("device", "auto")
-            if device_config == "auto":
+            if validated.device == "auto":
                 # Check for CUDA availability via CTranslate2
                 try:
                     import ctranslate2
@@ -116,14 +123,14 @@ class WhisperSTTPlugin(STTContract):
                     cuda_available = False
                 self._device = "cuda" if cuda_available else "cpu"
             else:
-                self._device = device_config
-            
+                self._device = validated.device
+
             # Defer model loading to first use (lazy loading)
             self._initialized = True
             self._status = PluginStatus.READY
-            
+
             return True
-            
+
         except Exception as e:
             self._status = PluginStatus.ERROR
             raise RuntimeError(f"Whisper STT initialization failed: {e}")
@@ -137,7 +144,7 @@ class WhisperSTTPlugin(STTContract):
     async def health_check(self) -> HealthStatus:
         """
         Check plugin health.
-        
+
         Returns:
             HealthStatus with current state and diagnostics.
         """
@@ -150,7 +157,7 @@ class WhisperSTTPlugin(STTContract):
             "vad_enabled": self._vad_filter,
             "default_language": self._default_language,
         }
-        
+
         return HealthStatus(
             status=self._status,
             message="Whisper STT operational" if self._initialized else "Not initialized",
@@ -160,58 +167,58 @@ class WhisperSTTPlugin(STTContract):
     async def _ensure_model(self) -> None:
         """
         Lazy-load the Whisper model.
-        
+
         The model is created on first use to avoid blocking during
         plugin initialization. Models are auto-downloaded from HuggingFace.
         """
         if self._model is not None:
             return
-        
+
         from faster_whisper import WhisperModel
-        
+
         def load_model():
             return WhisperModel(
                 self._model_size,
                 device=self._device,
                 compute_type=self._compute_type
             )
-        
+
         # Run in thread to avoid blocking async event loop
         self._model = await asyncio.to_thread(load_model)
 
     async def transcribe(
         self,
         audio_data: bytes,
-        options: Optional[TranscriptionOptions] = None
+        options: TranscriptionOptions | None = None
     ) -> TranscriptionResult:
         """
         Transcribe audio data to text.
-        
+
         Args:
             audio_data: Raw audio bytes (WAV, MP3, or raw PCM).
             options: Transcription options.
-        
+
         Returns:
             TranscriptionResult containing text and segments.
-        
+
         Raises:
             ValueError: If audio data is invalid or empty.
             RuntimeError: If transcription fails.
         """
         if not audio_data or len(audio_data) == 0:
             raise ValueError("Audio data cannot be empty")
-        
+
         # Ensure model is loaded
         await self._ensure_model()
-        
+
         opts = options or TranscriptionOptions()
-        
+
         try:
             # Write audio to temp file (faster-whisper accepts file paths)
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
                 tmp.write(audio_data)
                 tmp_path = tmp.name
-            
+
             try:
                 def do_transcribe():
                     segments, info = self._model.transcribe(
@@ -224,21 +231,21 @@ class WhisperSTTPlugin(STTContract):
                         temperature=opts.temperature if opts.temperature > 0 else 0.0,
                         initial_prompt=opts.initial_prompt,
                     )
-                    
+
                     # Collect all segments (generator)
                     segment_list = list(segments)
                     return segment_list, info
-                
+
                 segments, info = await asyncio.to_thread(do_transcribe)
-                
+
             finally:
                 # Clean up temp file
                 os.unlink(tmp_path)
-            
+
             # Convert to our segment format
             result_segments = []
             full_text_parts = []
-            
+
             for seg in segments:
                 result_segments.append(TranscriptionSegment(
                     text=seg.text.strip(),
@@ -257,10 +264,10 @@ class WhisperSTTPlugin(STTContract):
                     ] if opts.word_timestamps else []
                 ))
                 full_text_parts.append(seg.text.strip())
-            
+
             full_text = " ".join(full_text_parts)
             duration_ms = info.duration * 1000 if hasattr(info, 'duration') else 0
-            
+
             return TranscriptionResult(
                 text=full_text,
                 segments=result_segments,
@@ -275,18 +282,18 @@ class WhisperSTTPlugin(STTContract):
                     "task": opts.task,
                 }
             )
-            
+
         except Exception as e:
             raise RuntimeError(f"Whisper transcription failed: {e}")
 
     async def start_streaming(
         self,
         config: StreamingConfig,
-        callback: Optional[Callable[[TranscriptionSegment], None]] = None
+        callback: Callable[[TranscriptionSegment], None] | None = None
     ) -> bool:
         """
         Start streaming transcription session.
-        
+
         Note: faster-whisper does not natively support streaming.
         This is a stub that raises NotImplementedError.
         For real-time STT, consider using a dedicated streaming model.
@@ -296,7 +303,7 @@ class WhisperSTTPlugin(STTContract):
             "Use batch transcription or a streaming-capable model."
         )
 
-    async def feed_audio(self, chunk: bytes) -> Optional[TranscriptionSegment]:
+    async def feed_audio(self, chunk: bytes) -> TranscriptionSegment | None:
         """Feed audio chunk to streaming session (not supported)."""
         raise NotImplementedError("Streaming is not supported by faster-whisper.")
 
@@ -304,10 +311,10 @@ class WhisperSTTPlugin(STTContract):
         """Stop streaming session (not supported)."""
         raise NotImplementedError("Streaming is not supported by faster-whisper.")
 
-    def get_supported_languages(self) -> List[str]:
+    def get_supported_languages(self) -> list[str]:
         """
         Get list of supported language codes.
-        
+
         Returns:
             List of ISO 639-1 language codes.
         """
@@ -325,10 +332,10 @@ class WhisperSTTPlugin(STTContract):
         """Check if plugin supports translation to English (Yes)."""
         return True
 
-    def get_available_models(self) -> List[Dict[str, Any]]:
+    def get_available_models(self) -> list[dict[str, Any]]:
         """
         Get list of available Whisper models.
-        
+
         Returns:
             List of model info dictionaries.
         """

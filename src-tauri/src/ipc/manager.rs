@@ -41,6 +41,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, oneshot, RwLock};
+use tauri::AppHandle;
 
 use super::health::{HealthMonitor, HealthStatus, SubprocessState};
 use super::request::{JsonRpcRequest, RequestBuilder};
@@ -298,6 +299,9 @@ pub struct IpcManagerState {
 
     /// Stderr thread handle
     stderr_handle: Arc<Mutex<Option<JoinHandle<()>>>>,
+
+    /// Tauri app handle for event emission
+    app_handle: Arc<RwLock<Option<AppHandle>>>,
 }
 
 impl Clone for IpcManagerState {
@@ -318,6 +322,7 @@ impl Clone for IpcManagerState {
             reader_handle: Arc::clone(&self.reader_handle),
             writer_handle: Arc::clone(&self.writer_handle),
             stderr_handle: Arc::clone(&self.stderr_handle),
+            app_handle: Arc::clone(&self.app_handle),
         }
     }
 }
@@ -343,6 +348,7 @@ impl IpcManagerState {
             reader_handle: Arc::new(Mutex::new(None)),
             writer_handle: Arc::new(Mutex::new(None)),
             stderr_handle: Arc::new(Mutex::new(None)),
+            app_handle: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -382,7 +388,13 @@ impl IpcManagerState {
     /// Start the IPC Manager.
     ///
     /// Spawns the Python subprocess and starts reader/writer threads.
-    pub async fn start(&self) -> Result<(), IpcError> {
+    ///
+    /// # Arguments
+    /// * `app_handle` - Optional Tauri app handle for emitting events
+    pub async fn start(&self, app_handle: Option<AppHandle>) -> Result<(), IpcError> {
+        // Store app handle for event emission
+        *self.app_handle.write().await = app_handle.clone();
+
         let current = self.lifecycle_state().await;
         if current != LifecycleState::Uninitialized && current != LifecycleState::Stopped {
             log::warn!("Cannot start from state: {}", current);
@@ -435,11 +447,12 @@ impl IpcManagerState {
             })
             .map_err(|e| IpcError::SpawnError(e.to_string()))?;
 
-        // Start stderr thread
+        // Start stderr thread with optional app handle for event emission
+        let app_handle_for_stderr = app_handle.clone();
         let stderr_handle = std::thread::Builder::new()
             .name("ipc-stderr".to_string())
             .spawn(move || {
-                Self::stderr_task(stderr);
+                Self::stderr_task(stderr, app_handle_for_stderr);
             })
             .map_err(|e| IpcError::SpawnError(e.to_string()))?;
 
@@ -539,8 +552,10 @@ impl IpcManagerState {
         log::debug!("Reader task exited");
     }
 
-    /// Stderr task - logs stderr output.
-    fn stderr_task(stderr: std::process::ChildStderr) {
+    /// Stderr task - logs stderr output and emits events for AI Team logs.
+    fn stderr_task(stderr: std::process::ChildStderr, app_handle: Option<AppHandle>) {
+        use tauri::Manager;
+
         log::debug!("Stderr task started");
 
         let reader = BufReader::new(stderr);
@@ -548,6 +563,19 @@ impl IpcManagerState {
         for line in reader.lines() {
             match line {
                 Ok(text) => {
+                    // Try to parse as JSON for AI Team structured logs
+                    if let Ok(log_entry) = serde_json::from_str::<serde_json::Value>(&text) {
+                        if log_entry.get("type").and_then(|t| t.as_str()) == Some("ai_team_log") {
+                            // Emit Tauri event for AI Team logs
+                            if let Some(ref handle) = app_handle {
+                                let _ = handle.emit_all("ai_team::log", &log_entry);
+                                log::debug!("Emitted ai_team::log event: {}", text);
+                            }
+                            continue; // Don't double-log
+                        }
+                    }
+
+                    // Standard stderr logging for non-JSON output
                     if text.contains("ERROR") {
                         log::error!("[Python] {}", text);
                     } else if text.contains("WARNING") {

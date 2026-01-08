@@ -1,10 +1,8 @@
-import os
 from pathlib import Path
-from typing import List, Dict, Optional
 
 _SKILLS_DIR = Path(__file__).parent.parent.parent.parent / "skills"
 
-def list_skills() -> List[str]:
+def list_skills() -> list[str]:
     """Lists all available skills by scanning the skills directory."""
     skills = []
     if _SKILLS_DIR.exists():

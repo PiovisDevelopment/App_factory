@@ -23,6 +23,7 @@ ruff==0.14.9
 mypy>=1.9,<2.0
 
 # AI Team Dependencies
+pydantic-settings>=2.0
 pydantic-ai
 pydantic-graph
 python-dotenv

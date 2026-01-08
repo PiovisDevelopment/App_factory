@@ -315,12 +315,26 @@ export const LogViewer: React.FC<LogViewerProps> = ({
   // Notify filter change
   useEffect(() => {
     if (onFilterChange) {
-      onFilterChange({
-        levels: selectedLevels.size < ALL_LEVELS.length ? Array.from(selectedLevels) : undefined,
-        sources: selectedSources.size > 0 ? Array.from(selectedSources) : undefined,
-        pluginIds: selectedPlugins.size > 0 ? Array.from(selectedPlugins) : undefined,
-        search: searchQuery.trim() || undefined,
-      });
+      const filter: LogFilter = {};
+
+      if (selectedLevels.size < ALL_LEVELS.length) {
+        filter.levels = Array.from(selectedLevels);
+      }
+
+      if (selectedSources.size > 0) {
+        filter.sources = Array.from(selectedSources);
+      }
+
+      if (selectedPlugins.size > 0) {
+        filter.pluginIds = Array.from(selectedPlugins);
+      }
+
+      const trimmedSearch = searchQuery.trim();
+      if (trimmedSearch) {
+        filter.search = trimmedSearch;
+      }
+
+      onFilterChange(filter);
     }
   }, [selectedLevels, selectedSources, selectedPlugins, searchQuery, onFilterChange]);
 

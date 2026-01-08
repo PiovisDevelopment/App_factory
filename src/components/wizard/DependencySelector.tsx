@@ -171,7 +171,9 @@ const XIcon: React.FC<{ className?: string }> = ({ className }) => (
 const parseDependency = (dep: string): { name: string; version: string } => {
   const match = dep.match(/^([a-zA-Z0-9_-]+)(.*)$/);
   if (match) {
-    return { name: match[1], version: match[2] || "" };
+    const name = match[1] ?? "";
+    const version = match[2] ?? "";
+    return { name, version };
   }
   return { name: dep, version: "" };
 };

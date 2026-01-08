@@ -51,6 +51,7 @@ const AgentConfigAccordion: React.FC<AgentConfigAccordionProps> = ({
         toggleAgent,
         toggleAgentTool,
         isWorkflowRunning,
+        saveConfigToDisk,
     } = useAiTeamStore();
 
     // Validate current config
@@ -67,35 +68,43 @@ const AgentConfigAccordion: React.FC<AgentConfigAccordionProps> = ({
         return models || [];
     }, [agent.provider]);
 
-    // Handlers
+    // Handlers - each saves after update
     const handleToggleEnabled = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (!isDisabled) {
             toggleAgent(agent.id, e.target.checked);
+            saveConfigToDisk();
         }
-    }, [agent.id, toggleAgent, isDisabled]);
+    }, [agent.id, toggleAgent, isDisabled, saveConfigToDisk]);
 
     const handleProviderChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         updateAgentConfig(agent.id, { provider: e.target.value });
-    }, [agent.id, updateAgentConfig]);
+        saveConfigToDisk();
+    }, [agent.id, updateAgentConfig, saveConfigToDisk]);
 
     const handleModelChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         updateAgentConfig(agent.id, { model: e.target.value });
-    }, [agent.id, updateAgentConfig]);
+        saveConfigToDisk();
+    }, [agent.id, updateAgentConfig, saveConfigToDisk]);
 
     const handleTemperatureChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseFloat(e.target.value);
         if (!isNaN(value)) {
             updateAgentConfig(agent.id, { temperature: value });
+            // Note: Not saving on every slider move to avoid excessive writes
+            // Could add debouncing or save on mouse up for production
         }
     }, [agent.id, updateAgentConfig]);
 
     const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         updateAgentConfig(agent.id, { systemPrompt: e.target.value });
+        // Note: Not saving on every keystroke to avoid excessive writes
+        // Could add debouncing or save on blur for production
     }, [agent.id, updateAgentConfig]);
 
     const handleToolToggle = useCallback((toolId: string, enabled: boolean) => {
         toggleAgentTool(agent.id, toolId, enabled);
-    }, [agent.id, toggleAgentTool]);
+        saveConfigToDisk();
+    }, [agent.id, toggleAgentTool, saveConfigToDisk]);
 
     return (
         <div className={`

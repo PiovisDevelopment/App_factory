@@ -266,7 +266,7 @@ interface TreeNodeRowProps {
   onVisibilityChange?: (id: string, visible: boolean) => void;
   onLockChange?: (id: string, locked: boolean) => void;
   onMove?: (nodeId: string, targetId: string, position: "before" | "after" | "inside") => void;
-  searchQuery?: string;
+  searchQuery?: string | undefined;
 }
 
 const TreeNodeRow: React.FC<TreeNodeRowProps> = ({
@@ -510,9 +510,9 @@ const TreeNodeRow: React.FC<TreeNodeRowProps> = ({
               showLock={showLock}
               onSelect={onSelect}
               onToggle={onToggle}
-              onVisibilityChange={onVisibilityChange}
-              onLockChange={onLockChange}
-              onMove={onMove}
+              {...(onVisibilityChange ? { onVisibilityChange } : {})}
+              {...(onLockChange ? { onLockChange } : {})}
+              {...(onMove ? { onMove } : {})}
               searchQuery={searchQuery}
             />
           ))}
@@ -670,9 +670,9 @@ export const ScreenTree = forwardRef<HTMLDivElement, ScreenTreeProps>(
               showLock={showLock}
               onSelect={handleSelect}
               onToggle={handleToggle}
-              onVisibilityChange={onVisibilityChange}
-              onLockChange={onLockChange}
-              onMove={onMove}
+              {...(onVisibilityChange ? { onVisibilityChange } : {})}
+              {...(onLockChange ? { onLockChange } : {})}
+              {...(onMove ? { onMove } : {})}
               searchQuery={searchQuery}
             />
           ))}

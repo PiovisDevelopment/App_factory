@@ -146,7 +146,8 @@ pub type CommandResult<T> = Result<T, CommandError>;
 #[tauri::command]
 pub async fn ipc_start(state: State<'_, IpcManagerState>) -> CommandResult<()> {
     log::info!("Command: ipc_start");
-    state.start().await.map_err(CommandError::from)
+    // Pass None for app_handle - event emission is configured during main.rs startup
+    state.start(None).await.map_err(CommandError::from)
 }
 
 /// Stop the IPC Manager and Python subprocess.
@@ -592,11 +593,150 @@ macro_rules! generate_command_handler {
             $crate::commands::secrets::get_configured_services,
             // Compiler command
             $crate::commands::compiler::compile_tsx,
+            // Agent config commands
+            $crate::commands::load_agent_config,
+            $crate::commands::save_agent_config,
         ]
     };
 }
 
 pub use generate_command_handler;
+
+// ============================================
+// AGENT CONFIG COMMANDS
+// ============================================
+
+use std::collections::HashMap;
+
+/// Configuration structure for an agent's tool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentToolConfig {
+    pub id: String,
+    pub name: String,
+    pub enabled: bool,
+}
+
+/// Configuration structure for a single agent (matches JSON schema).
+/// Uses snake_case for JSON serialization to match config file format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentConfig {
+    pub provider: String,
+    pub model: String,
+    pub temperature: f64,
+    pub system_prompt: String,
+    pub tools: Vec<AgentToolConfig>,
+}
+
+/// Get the path to the agents config file.
+fn get_agents_config_path() -> Result<std::path::PathBuf, CommandError> {
+    // Use the current working directory or parent to find config/
+    let cwd = std::env::current_dir().unwrap_or_default();
+    
+    // Try current directory first
+    let config_path = cwd.join("config").join("agents_config.json");
+    if config_path.exists() {
+        return Ok(config_path);
+    }
+    
+    // Try parent (when running from src-tauri)
+    if let Some(parent) = cwd.parent() {
+        let config_path = parent.join("config").join("agents_config.json");
+        if config_path.exists() {
+            return Ok(config_path);
+        }
+    }
+    
+    // Walk up looking for config directory
+    let mut current = Some(cwd.clone());
+    for _ in 0..5 {
+        if let Some(ref dir) = current {
+            let config_path = dir.join("config").join("agents_config.json");
+            if config_path.exists() {
+                return Ok(config_path);
+            }
+            current = dir.parent().map(|p| p.to_path_buf());
+        } else {
+            break;
+        }
+    }
+    
+    Err(CommandError {
+        code: "CONFIG_NOT_FOUND".to_string(),
+        message: format!("agents_config.json not found. Searched from: {:?}", cwd),
+        details: None,
+    })
+}
+
+/// Load agent configuration from disk.
+///
+/// # Returns
+///
+/// HashMap of agent configurations keyed by agent ID.
+///
+/// # Example (TypeScript)
+///
+/// ```typescript
+/// const config = await invoke('load_agent_config');
+/// console.log(config.orchestrator.model);
+/// ```
+#[tauri::command]
+pub fn load_agent_config() -> CommandResult<HashMap<String, AgentConfig>> {
+    log::info!("Command: load_agent_config");
+    let config_path = get_agents_config_path()?;
+    log::debug!("Loading agent config from: {:?}", config_path);
+    
+    let contents = std::fs::read_to_string(&config_path)
+        .map_err(|e| CommandError {
+            code: "READ_ERROR".to_string(),
+            message: format!("Failed to read config: {}", e),
+            details: None,
+        })?;
+    
+    let config: HashMap<String, AgentConfig> = serde_json::from_str(&contents)
+        .map_err(|e| CommandError {
+            code: "PARSE_ERROR".to_string(),
+            message: format!("Failed to parse config: {}", e),
+            details: None,
+        })?;
+    
+    log::info!("Loaded {} agent configurations", config.len());
+    Ok(config)
+}
+
+/// Save agent configuration to disk.
+///
+/// # Arguments
+///
+/// * `config` - HashMap of agent configurations to save
+///
+/// # Example (TypeScript)
+///
+/// ```typescript
+/// await invoke('save_agent_config', { config: updatedConfig });
+/// ```
+#[tauri::command]
+pub fn save_agent_config(config: HashMap<String, AgentConfig>) -> CommandResult<()> {
+    log::info!("Command: save_agent_config");
+    let config_path = get_agents_config_path()?;
+    log::debug!("Saving agent config to: {:?}", config_path);
+    
+    let contents = serde_json::to_string_pretty(&config)
+        .map_err(|e| CommandError {
+            code: "SERIALIZE_ERROR".to_string(),
+            message: format!("Failed to serialize config: {}", e),
+            details: None,
+        })?;
+    
+    std::fs::write(&config_path, contents)
+        .map_err(|e| CommandError {
+            code: "WRITE_ERROR".to_string(),
+            message: format!("Failed to write config: {}", e),
+            details: None,
+        })?;
+    
+    log::info!("Saved agent configuration successfully");
+    Ok(())
+}
 
 // ============================================
 // TESTS

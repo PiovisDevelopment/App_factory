@@ -12,7 +12,7 @@
  *   - Fully typed props with TypeScript
  */
 
-import React, { forwardRef, useState, useCallback, type HTMLAttributes } from "react";
+import React, { forwardRef, useState, useCallback, type CSSProperties } from "react";
 
 /**
  * Property types.
@@ -94,7 +94,7 @@ export interface SelectedElementInfo {
 /**
  * PropertyInspector component props.
  */
-export interface PropertyInspectorProps extends HTMLAttributes<HTMLDivElement> {
+export interface PropertyInspectorProps {
   /** Selected element info */
   selectedElement?: SelectedElementInfo;
   /** Property definitions or groups */
@@ -111,6 +111,10 @@ export interface PropertyInspectorProps extends HTMLAttributes<HTMLDivElement> {
   editable?: boolean;
   /** Show search */
   showSearch?: boolean;
+  /** Custom className */
+  className?: string;
+  /** Custom styles */
+  style?: CSSProperties;
 }
 
 /**
@@ -497,17 +501,17 @@ const PropertyGroupComponent: React.FC<PropertyGroupComponentProps> = ({
 
       {/* Group content */}
       {!isCollapsed && (
-        <div className="px-3 py-1 bg-white">
-          {filteredProperties.map((prop) => (
-            <PropertyRow
-              key={prop.key}
-              property={prop}
-              onChange={onChange}
-              onReset={onReset}
-              editable={editable}
-            />
-          ))}
-        </div>
+          <div className="px-3 py-1 bg-white">
+            {filteredProperties.map((prop) => (
+              <PropertyRow
+                key={prop.key}
+                property={prop}
+                onChange={onChange}
+                {...(onReset ? { onReset } : {})}
+                editable={editable}
+              />
+            ))}
+          </div>
       )}
     </div>
   );
@@ -567,16 +571,19 @@ export const PropertyInspector = forwardRef<HTMLDivElement, PropertyInspectorPro
     );
 
     // Check if properties are grouped
-    const isGrouped = grouped || (properties.length > 0 && "properties" in properties[0]);
+    const firstProperty = properties[0];
+    const isGrouped = grouped || (properties.length > 0 && firstProperty !== undefined && "properties" in firstProperty);
+
+    const normalizedSearch = searchQuery ? searchQuery.toLowerCase() : "";
 
     // Filter flat properties by search
     const filteredFlatProperties =
-      !isGrouped && searchQuery
+      !isGrouped && normalizedSearch
         ? (properties as PropertyDefinition[]).filter(
             (p) =>
-              p.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+              (p.label ?? "").toLowerCase().includes(normalizedSearch) ||
+              (p.key ?? "").toLowerCase().includes(normalizedSearch) ||
+              (p.description ?? "").toLowerCase().includes(normalizedSearch)
           )
         : (properties as PropertyDefinition[]);
 

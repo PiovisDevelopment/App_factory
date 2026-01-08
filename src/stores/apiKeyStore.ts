@@ -7,6 +7,7 @@
  * D079 - API Key Management (EUR-1.2.6)
  */
 
+import { useCallback } from 'react';
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/tauri';
 
@@ -323,3 +324,52 @@ export const API_KEY_SERVICE_LABELS: Record<ApiKeyService, string> = {
     vision: 'Vision',
     embedding: 'Embedding',
 };
+
+// ============================================
+// API KEY INFO HOOK (for ConfigValidator)
+// ============================================
+
+/**
+ * API key info format used by ConfigValidator.
+ */
+export interface ApiKeyInfo {
+    service: string;
+    hasKey: boolean;
+}
+
+/**
+ * LLM provider services that need API key validation.
+ */
+const LLM_SERVICES: ApiKeyService[] = ['gemini', 'openai', 'anthropic', 'ollama'];
+
+/**
+ * Hook to get API key availability info for all LLM providers.
+ * Returns data in the format expected by ConfigValidator.
+ *
+ * Usage:
+ * ```tsx
+ * const apiKeyInfo = useApiKeyInfo();
+ * // Returns: [{ service: 'gemini', hasKey: true }, { service: 'openai', hasKey: false }, ...]
+ * ```
+ */
+export function useApiKeyInfo(): ApiKeyInfo[] {
+    const keys = useApiKeyStore((state) => state.keys);
+
+    return LLM_SERVICES.map((service) => ({
+        service: API_KEY_SERVICE_LABELS[service],
+        hasKey: (keys[service]?.length ?? 0) > 0,
+    }));
+}
+
+/**
+ * Hook to fetch all LLM provider keys on mount.
+ * Call this once at app startup or when entering agent config.
+ * Uses useCallback to provide a stable function reference.
+ */
+export function useFetchAllLlmKeys(): () => Promise<void> {
+    const fetchKeys = useApiKeyStore((state) => state.fetchKeys);
+
+    return useCallback(async () => {
+        await Promise.all(LLM_SERVICES.map((service) => fetchKeys(service)));
+    }, [fetchKeys]);
+}

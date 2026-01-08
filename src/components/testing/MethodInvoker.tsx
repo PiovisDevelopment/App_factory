@@ -157,13 +157,6 @@ const ResetIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 /**
- * Generate a unique ID.
- */
-const generateId = (): string => {
-  return `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-/**
  * Parse value based on type.
  */
 const parseValue = (value: string, type: InvokerParam["type"]): unknown => {
@@ -260,7 +253,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
 
     method.params.forEach((param) => {
       const value = paramValues[param.name];
-      const parsed = parseValue(value, param.type);
+      const parsed = parseValue(value ?? "", param.type);
 
       if (param.required && (value === "" || value === undefined)) {
         newErrors[param.name] = "This field is required";
@@ -285,7 +278,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
     const params: Record<string, unknown> = {};
     method.params.forEach((param) => {
       const value = paramValues[param.name];
-      const parsed = parseValue(value, param.type);
+      const parsed = parseValue(value ?? "", param.type);
       if (parsed !== undefined) {
         params[param.name] = parsed;
       }
@@ -609,7 +602,7 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
           <div className="p-3">
             {lastResult.success ? (
               <pre className="text-xs font-mono text-neutral-800 whitespace-pre-wrap overflow-x-auto">
-                {JSON.stringify(lastResult.result, null, 2)}
+                {JSON.stringify(lastResult.result, null, 2) ?? ""}
               </pre>
             ) : (
               <div>
@@ -621,9 +614,9 @@ export const MethodInvoker: React.FC<MethodInvokerProps> = ({
                     Error code: {lastResult.error.code}
                   </p>
                 )}
-                {lastResult.error?.data && (
+                {lastResult.error?.data !== undefined && (
                   <pre className="mt-2 text-xs font-mono text-error-600 whitespace-pre-wrap overflow-x-auto">
-                    {JSON.stringify(lastResult.error.data, null, 2)}
+                    {JSON.stringify(lastResult.error.data, null, 2) ?? ""}
                   </pre>
                 )}
               </div>

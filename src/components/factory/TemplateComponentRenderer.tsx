@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import { resolveColor, resolveBorder } from "../../utils/tokenMap";
+import { resolveColor } from "../../utils/tokenMap";
 import { getComponent, isComponentRegistered } from "../../utils/ComponentRegistry";
 import type { CanvasElementType } from "./canvasTypes";
 
@@ -42,11 +42,23 @@ export const TemplateComponentRenderer: React.FC<TemplateComponentRendererProps>
 }) => {
     const baseClasses = demoMode ? "" : "pointer-events-none";
 
-    // Extract common props
-    const label = (props.label as string) || "";
-    const placeholder = (props.placeholder as string) || "";
-    const variant = (props.variant as string) || "default";
-    const backgroundColor = (props.backgroundColor as string) || "";
+    // Extract common props with safe narrowing
+    const label = typeof props.label === "string" ? props.label : "";
+    const placeholder = typeof props.placeholder === "string" ? props.placeholder : "";
+    const variant = typeof props.variant === "string" ? props.variant : "default";
+    const backgroundColor = typeof props.backgroundColor === "string" ? props.backgroundColor : "";
+    const icon = typeof props.icon === "string" ? props.icon : undefined;
+    const sender = typeof props.sender === "string" ? props.sender : undefined;
+    const message = typeof props.message === "string"
+        ? props.message
+        : props.message != null
+            ? String(props.message)
+            : "Message text";
+    const timestamp = typeof props.timestamp === "string"
+        ? props.timestamp
+        : props.timestamp != null
+            ? String(props.timestamp)
+            : undefined;
 
     // Resolve hex colors to design tokens
     const resolvedBg = resolveColor(backgroundColor, "");
@@ -72,17 +84,17 @@ export const TemplateComponentRenderer: React.FC<TemplateComponentRendererProps>
                     className={`w-full h-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg text-sm transition-colors ${baseClasses}`}
                     style={{ backgroundColor: variant === "ghost" ? "transparent" : undefined }}
                 >
-                    {props.icon === "send" && (
+                    {icon === "send" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
                         </svg>
                     )}
-                    {props.icon === "settings" && (
+                    {icon === "settings" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                         </svg>
                     )}
-                    {label || (props.icon ? "" : "+ New Chat")}
+                    {label || (icon ? "" : "+ New Chat")}
                 </button>
             );
 
@@ -91,7 +103,7 @@ export const TemplateComponentRenderer: React.FC<TemplateComponentRendererProps>
                 <button
                     className={`w-full h-full flex items-center justify-center gap-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-lg text-sm border border-neutral-300 transition-colors ${baseClasses}`}
                 >
-                    {props.icon === "refresh" && (
+                    {icon === "refresh" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                         </svg>
@@ -316,17 +328,17 @@ export const TemplateComponentRenderer: React.FC<TemplateComponentRendererProps>
                         : "text-neutral-500 hover:bg-neutral-100"
                         } ${baseClasses}`}
                 >
-                    {props.icon === "send" && (
+                    {icon === "send" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
                         </svg>
                     )}
-                    {props.icon === "minimize" && (
+                    {icon === "minimize" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="5" y1="12" x2="19" y2="12" />
                         </svg>
                     )}
-                    {props.icon === "x" && (
+                    {icon === "x" && (
                         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                         </svg>
@@ -337,13 +349,13 @@ export const TemplateComponentRenderer: React.FC<TemplateComponentRendererProps>
         // Chat Bubble
         case "chat_bubble":
             return (
-                <div className={`w-full h-full p-3 rounded-lg ${props.sender === "assistant"
+                <div className={`w-full h-full p-3 rounded-lg ${sender === "assistant"
                     ? "bg-neutral-100 text-neutral-800"
                     : "bg-primary-500 text-white"
                     } ${baseClasses}`}>
-                    <p className="text-sm">{props.message as string || "Message text"}</p>
-                    {props.timestamp && (
-                        <span className="text-[10px] opacity-70 mt-1 block">{props.timestamp as string}</span>
+                    <p className="text-sm">{message}</p>
+                    {timestamp && (
+                        <span className="text-[10px] opacity-70 mt-1 block">{timestamp}</span>
                     )}
                 </div>
             );

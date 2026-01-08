@@ -24,7 +24,6 @@ import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Select, type SelectOption } from "../ui/Select";
 import { Panel } from "../ui/Panel";
-import { Modal } from "../ui/Modal";
 import { type ContractMethod, type ContractParameter } from "./ContractWizard";
 
 /**
@@ -351,7 +350,7 @@ const MethodEditor: React.FC<{
               >
                 <div className="col-span-3">
                   <Input
-                    label={index === 0 ? "Name" : undefined}
+                    {...(index === 0 ? { label: "Name" } : {})}
                     value={param.name}
                     onChange={(e) =>
                       updateParameter(index, { ...param, name: e.target.value })
@@ -363,7 +362,7 @@ const MethodEditor: React.FC<{
                 </div>
                 <div className="col-span-3">
                   <Select
-                    label={index === 0 ? "Type" : undefined}
+                    {...(index === 0 ? { label: "Type" } : {})}
                     options={pythonTypes}
                     value={param.type}
                     onChange={(e) =>
@@ -375,7 +374,7 @@ const MethodEditor: React.FC<{
                 </div>
                 <div className="col-span-4">
                   <Input
-                    label={index === 0 ? "Description" : undefined}
+                    {...(index === 0 ? { label: "Description" } : {})}
                     value={param.description}
                     onChange={(e) =>
                       updateParameter(index, { ...param, description: e.target.value })
@@ -602,6 +601,7 @@ ${methodDefs}
   // Navigation
   const goNext = useCallback(() => {
     const stepIndex = steps.findIndex((s) => s.key === currentStep);
+    if (stepIndex === -1) return;
     if (currentStep === "prefix" && !validatePrefix()) return;
     if (currentStep === "methods" && !validateMethods()) return;
 
@@ -617,15 +617,20 @@ ${methodDefs}
     }
 
     if (stepIndex < steps.length - 1) {
-      setCurrentStep(steps[stepIndex + 1].key);
+      const nextStep = steps[stepIndex + 1];
+      if (!nextStep) return;
+      setCurrentStep(nextStep.key);
       setError(null);
     }
   }, [currentStep, steps, validatePrefix, validateMethods, smokeTestParamsJson]);
 
   const goBack = useCallback(() => {
     const stepIndex = steps.findIndex((s) => s.key === currentStep);
+    if (stepIndex === -1) return;
     if (stepIndex > 0) {
-      setCurrentStep(steps[stepIndex - 1].key);
+      const prevStep = steps[stepIndex - 1];
+      if (!prevStep) return;
+      setCurrentStep(prevStep.key);
       setError(null);
     }
   }, [currentStep, steps]);
@@ -665,7 +670,7 @@ ${methodDefs}
       contractName: derivedContractName,
       description,
       requiredMethods: validMethods,
-      smokeTest: smokeTest.method ? smokeTest : undefined,
+      ...(smokeTest.method ? { smokeTest } : {}),
     };
 
     try {

@@ -19,6 +19,7 @@ import { Select, type SelectOption } from "../ui/Select";
 import { LiveComponentPreview } from "./LiveComponentPreview";
 import { generateText } from "../../services/llmService";
 import { DESIGN_TOKEN_REFERENCE } from "../../hooks/useComponentGenerator";
+import { GeneratorSettingsModal } from "../factory/GeneratorSettingsModal";
 
 /**
  * Component type options for generation.
@@ -216,6 +217,26 @@ const ClearIcon: React.FC = () => (
 );
 
 /**
+ * Settings/Cog icon.
+ */
+const SettingsIcon: React.FC = () => (
+  <svg
+    className="h-4 w-4"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+  </svg>
+);
+
+/**
  * Code preview component with syntax highlighting placeholder.
  */
 const CodePreview: React.FC<{
@@ -306,6 +327,9 @@ export const ComponentGenerator: React.FC<ComponentGeneratorProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isRefining, setIsRefining] = useState(false);
   const [copyFeedback, setCopyFeedback] = useState(false);
+
+  // Settings modal state
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Refs
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -527,14 +551,24 @@ OUTPUT THE REFINED CODE ONLY:`;
             <WandIcon />
             <span className="font-semibold text-sm text-neutral-800">AI Component Generator</span>
           </div>
-          <button
-            type="button"
-            onClick={handleClear}
-            className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
-            title="Clear conversation"
-          >
-            <ClearIcon />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+              title="Generator settings"
+            >
+              <SettingsIcon />
+            </button>
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
+              title="Clear conversation"
+            >
+              <ClearIcon />
+            </button>
+          </div>
         </div>
 
         {/* Configuration Options */}
@@ -774,6 +808,12 @@ OUTPUT THE REFINED CODE ONLY:`;
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      <GeneratorSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };

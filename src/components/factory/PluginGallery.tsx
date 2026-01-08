@@ -116,13 +116,13 @@ export interface PluginGalleryProps extends Omit<HTMLAttributes<HTMLDivElement>,
   /** Array of plugins to display */
   plugins: PluginInfo[];
   /** Currently selected plugin ID */
-  selectedId?: string;
+  selectedId?: string | undefined;
   /** Callback when a plugin is selected */
-  onSelect?: (plugin: PluginInfo) => void;
+  onSelect?: ((plugin: PluginInfo) => void) | undefined;
   /** Callback when load is requested */
-  onLoad?: (plugin: PluginInfo) => void;
+  onLoad?: ((plugin: PluginInfo) => void) | undefined;
   /** Callback when unload is requested */
-  onUnload?: (plugin: PluginInfo) => void;
+  onUnload?: ((plugin: PluginInfo) => void) | undefined;
   /** Initial filters */
   initialFilters?: GalleryFilters;
   /** Initial sort settings */

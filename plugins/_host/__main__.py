@@ -22,10 +22,10 @@ Dependencies:
 
 Usage:
     python -m plugins._host [--plugins-dir ./plugins] [--config-dir ./config] [--log-level INFO]
-    
+
 The host reads JSON-RPC requests line-by-line from stdin:
     {"jsonrpc": "2.0", "method": "plugin/list", "params": {}, "id": 1}
-    
+
 And writes JSON-RPC responses to stdout:
     {"jsonrpc": "2.0", "result": [...], "id": 1}
 
@@ -77,46 +77,34 @@ except Exception:
 import argparse
 import asyncio
 import json
-import logging
-import signal
-import time
-import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 # ============================================
 # LOCAL IMPORTS
 # ============================================
-
 # Import package initialization (configures logging infrastructure)
 from . import (
     __version__,
     configure_host_logging,
     get_logger,
-    log_startup_info,
     log_shutdown_info,
-    LOGGER_PREFIX,
+    log_startup_info,
 )
 
 # Import core components
-from .discovery import HybridDiscovery
-from .isolation import IsolatedExecutor, get_executor, set_executor
-from .loader import PluginLoader
-from .manager import PluginManager, get_manager, set_manager
+from .isolation import IsolatedExecutor, set_executor
+from .manager import PluginManager, set_manager
 from .protocol import (
     ErrorCodes,
-    JsonRpcRequest,
-    JsonRpcResponse,
     JsonRpcRouter,
 )
 from .shutdown import (
     ShutdownHandler,
     ShutdownReason,
     create_shutdown_handler,
-    get_shutdown_handler,
 )
-from .validator import PluginValidator
 
 # ============================================
 # MODULE LOGGER
@@ -129,13 +117,13 @@ logger = get_logger("main")
 # JSON-RPC I/O FUNCTIONS
 # ============================================
 
-def send_response(response: Dict[str, Any]) -> None:
+def send_response(response: dict[str, Any]) -> None:
     """
     Send a JSON-RPC response to stdout.
-    
+
     Args:
         response: JSON-RPC response dictionary
-        
+
     Note:
         Uses compact JSON (no whitespace) and explicit flush
         for reliable IPC communication.
@@ -150,14 +138,14 @@ def send_response(response: Dict[str, Any]) -> None:
 
 
 def send_error(
-    request_id: Optional[Union[str, int]],
+    request_id: str | int | None,
     code: int,
     message: str,
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 ) -> None:
     """
     Send a JSON-RPC error response.
-    
+
     Args:
         request_id: Request ID (None for parse errors)
         code: JSON-RPC error code
@@ -167,7 +155,7 @@ def send_error(
     error_obj = {"code": code, "message": message}
     if data is not None:
         error_obj["data"] = data
-    
+
     response = {
         "jsonrpc": "2.0",
         "id": request_id,
@@ -177,12 +165,12 @@ def send_error(
 
 
 def send_result(
-    request_id: Optional[Union[str, int]],
+    request_id: str | int | None,
     result: Any
 ) -> None:
     """
     Send a JSON-RPC success response.
-    
+
     Args:
         request_id: Request ID
         result: Result value
@@ -200,27 +188,27 @@ def send_result(
 # ============================================
 
 async def handle_shutdown_method(
-    params: Optional[Dict[str, Any]],
-    request_id: Optional[Union[str, int]],
+    params: dict[str, Any] | None,
+    request_id: str | int | None,
     shutdown_handler: ShutdownHandler
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Handle the 'shutdown' JSON-RPC method.
-    
+
     Args:
         params: Method parameters (optional reason)
         request_id: Request ID
         shutdown_handler: ShutdownHandler instance
-        
+
     Returns:
         Acknowledgment response
     """
     reason = params.get("reason", "requested") if params else "requested"
     logger.info(f"Shutdown method called: reason={reason}")
-    
+
     # Signal shutdown (will be picked up by main loop)
     shutdown_handler._initiate_shutdown(ShutdownReason.REQUESTED)
-    
+
     return {
         "status": "shutting_down",
         "reason": reason,
@@ -238,33 +226,33 @@ async def run_read_loop(
 ) -> None:
     """
     Main JSON-RPC read loop.
-    
+
     Reads JSON-RPC requests from stdin line-by-line and processes them.
     Continues until shutdown is requested or stdin is closed.
-    
+
     Args:
         router: JsonRpcRouter for request handling
         shutdown_handler: ShutdownHandler for graceful shutdown
     """
     logger.info("Starting JSON-RPC read loop")
-    
+
     loop = asyncio.get_event_loop()
-    
+
     # Create a reader for stdin
     reader = asyncio.StreamReader()
     protocol = asyncio.StreamReaderProtocol(reader)
-    
+
     try:
         await loop.connect_read_pipe(lambda: protocol, sys.stdin)
     except Exception as e:
         logger.error(f"Failed to connect stdin pipe: {e}")
         send_error(None, ErrorCodes.INTERNAL_ERROR, f"Stdin connection failed: {e}")
         return
-    
+
     logger.info("JSON-RPC read loop ready, waiting for requests...")
-    
+
     request_count = 0
-    
+
     while not shutdown_handler.is_shutdown_requested():
         try:
             # Read a line from stdin with timeout
@@ -273,49 +261,49 @@ async def run_read_loop(
                     reader.readline(),
                     timeout=1.0  # Check shutdown flag every second
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
-            
+
             # Check for EOF (stdin closed)
             if not line_bytes:
                 logger.info("EOF on stdin, initiating shutdown")
                 shutdown_handler._initiate_shutdown(ShutdownReason.EOF)
                 break
-            
+
             # Decode and strip
             line = line_bytes.decode('utf-8', errors='replace').strip()
-            
+
             # Skip empty lines
             if not line:
                 continue
-            
+
             request_count += 1
             logger.debug(f"Received request #{request_count}: {line[:100]}...")
-            
+
             # Parse JSON
             try:
-                data = json.loads(line)
+                json.loads(line)
             except json.JSONDecodeError as e:
                 logger.warning(f"JSON parse error: {e}")
                 send_error(None, ErrorCodes.PARSE_ERROR, f"Parse error: {e}")
                 continue
-            
+
             # Parse as JSON-RPC request
             request, error_response = router.parse_request(line)
-            
+
             if error_response:
                 send_response(error_response.to_dict())
                 continue
-            
+
             if not request:
                 logger.warning("Failed to parse request")
                 send_error(None, ErrorCodes.INVALID_REQUEST, "Invalid request")
                 continue
-            
+
             # Track in-flight request
             if request.id is not None:
                 shutdown_handler.request_started(request.id)
-            
+
             try:
                 # Check for shutdown method (handle specially)
                 if request.method == "shutdown":
@@ -327,14 +315,14 @@ async def run_read_loop(
                     if not request.is_notification:
                         send_result(request.id, result)
                     break  # Exit loop after shutdown
-                
+
                 # Route to handler
                 response = await router.handle_request(request)
-                
+
                 # Send response (skip for notifications)
                 if response and not request.is_notification:
                     send_response(response.to_dict())
-                    
+
             except Exception as e:
                 logger.exception(f"Error handling request: {e}")
                 if not request.is_notification:
@@ -347,15 +335,15 @@ async def run_read_loop(
                 # Complete request tracking
                 if request.id is not None:
                     shutdown_handler.request_completed(request.id)
-                    
+
         except asyncio.CancelledError:
             logger.info("Read loop cancelled")
             break
-            
+
         except Exception as e:
             logger.exception(f"Unexpected error in read loop: {e}")
             send_error(None, ErrorCodes.INTERNAL_ERROR, f"Read loop error: {e}")
-    
+
     logger.info(f"Read loop ended after {request_count} requests")
 
 
@@ -366,7 +354,7 @@ async def run_read_loop(
 def run_sync_read_loop(
     router: JsonRpcRouter,
     shutdown_handler: ShutdownHandler,
-    event_loop: Optional[asyncio.AbstractEventLoop] = None
+    event_loop: asyncio.AbstractEventLoop | None = None
 ) -> None:
     """
     Synchronous read loop for Windows and environments without async stdin.
@@ -415,7 +403,7 @@ def run_sync_read_loop(
 
             # Parse JSON
             try:
-                data = json.loads(line)
+                json.loads(line)
             except json.JSONDecodeError as e:
                 logger.warning(f"JSON parse error: {e}")
                 send_error(None, ErrorCodes.PARSE_ERROR, f"Parse error: {e}")
@@ -507,37 +495,37 @@ def run_sync_read_loop(
 async def async_main(args: argparse.Namespace) -> int:
     """
     Async main function.
-    
+
     Args:
         args: Parsed command-line arguments
-        
+
     Returns:
         Exit code
     """
     # Configure logging
     configure_host_logging(level=args.log_level)
     log_startup_info(logger)
-    
+
     logger.info(f"Plugins directory: {args.plugins_dir}")
     logger.info(f"Config directory: {args.config_dir}")
-    
+
     # Resolve paths
     plugins_dir = Path(args.plugins_dir).resolve()
     config_dir = Path(args.config_dir).resolve()
-    
+
     # Validate directories exist
     if not plugins_dir.exists():
         logger.error(f"Plugins directory not found: {plugins_dir}")
         send_error(None, ErrorCodes.INTERNAL_ERROR, f"Plugins directory not found: {plugins_dir}")
         return 1
-    
+
     if not config_dir.exists():
         logger.warning(f"Config directory not found: {config_dir}, creating...")
         config_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Initialize components
     logger.info("Initializing plugin infrastructure...")
-    
+
     # Create isolated executor
     executor = IsolatedExecutor(
         default_timeout=30.0,
@@ -545,7 +533,7 @@ async def async_main(args: argparse.Namespace) -> int:
         crash_rate_limit=5
     )
     set_executor(executor)
-    
+
     # Create plugin manager
     manager = PluginManager(
         plugins_dir=plugins_dir,
@@ -553,10 +541,10 @@ async def async_main(args: argparse.Namespace) -> int:
         auto_install_deps=args.auto_install_deps
     )
     set_manager(manager)
-    
+
     # Start plugin manager (performs initial discovery)
     await manager.start()
-    
+
     # Create shutdown handler
     loop = asyncio.get_event_loop()
     shutdown_handler = create_shutdown_handler(
@@ -564,16 +552,77 @@ async def async_main(args: argparse.Namespace) -> int:
         install_signals=True,
         loop=loop
     )
-    
+
     # Create JSON-RPC router
     router = JsonRpcRouter(
         manager=manager,
         executor=executor,
         default_timeout=30.0
     )
-    
+
+    # ============================================
+    # AI TEAM WORKFLOW HANDLER
+    # ============================================
+
+    async def handle_ai_team_run(params: dict[str, Any] | None, request_id: str | int | None) -> dict[str, Any]:
+        """
+        Handle ai_team/run JSON-RPC method.
+
+        Args:
+            params: Workflow parameters (must include 'prompt')
+            request_id: Request ID
+
+        Returns:
+            Workflow execution results
+        """
+        logger.info(f"AI Team Workflow triggered (id={request_id})")
+
+        # dynamic import to avoid circular dependencies or loading issues at startup
+        try:
+            # Note: app_factory must be in PYTHONPATH
+            from services.ai_team.orchestrator import run_workflow_api
+        except ImportError:
+            # Fallback for dev environment path issues
+            import sys
+            sys.path.append(str(Path(__file__).parents[2]))
+            from services.ai_team.orchestrator import run_workflow_api
+
+        if not params:
+            raise ValueError("Missing parameters")
+
+        user_prompt = params.get("prompt", "")
+        if not user_prompt:
+            raise ValueError("Parameter 'prompt' is required")
+
+        logger.info(f"Starting workflow for prompt: {user_prompt[:50]}...")
+
+        try:
+            # Execute workflow
+            result = await run_workflow_api(user_prompt)
+
+            logger.info("Workflow completed successfully")
+
+            return {
+                "success": True,
+                "generated_code": result.generated_code,
+                "qa_report": result.qa_report,
+                "history": result.history,
+            }
+        except Exception as e:
+            logger.exception("Workflow failed")
+            raise RuntimeError(f"Workflow execution failed: {str(e)}")
+
+    # Register the handler
+    router.register_method(
+        name="ai_team/run",
+        handler=handle_ai_team_run,
+        description="Run AI Team workflow",
+        timeout=300.0  # Allow 5 minutes for workflow
+    )
+
+
     logger.info("Plugin Host initialized successfully")
-    
+
     # Auto-load plugins if requested
     if args.auto_load:
         logger.info("Auto-loading plugins...")
@@ -584,10 +633,10 @@ async def async_main(args: argparse.Namespace) -> int:
                 logger.info(f"Loaded: {plugin.name}")
             except Exception as e:
                 logger.warning(f"Failed to auto-load {plugin.name}: {e}")
-    
+
     # Run read loop
     exit_code = 0
-    
+
     try:
         if args.sync_mode:
             # Run synchronous read loop
@@ -595,13 +644,13 @@ async def async_main(args: argparse.Namespace) -> int:
         else:
             # Run async read loop
             await run_read_loop(router, shutdown_handler)
-            
+
     except asyncio.CancelledError:
         logger.info("Main task cancelled")
     except Exception as e:
         logger.exception(f"Fatal error: {e}")
         exit_code = 1
-    
+
     # Perform graceful shutdown
     if shutdown_handler.is_shutdown_requested():
         exit_code = await shutdown_handler.shutdown(
@@ -609,9 +658,9 @@ async def async_main(args: argparse.Namespace) -> int:
         )
     else:
         exit_code = await shutdown_handler.shutdown(ShutdownReason.NORMAL)
-    
+
     log_shutdown_info(logger, reason=str(shutdown_handler.get_state().reason))
-    
+
     return exit_code
 
 
@@ -700,6 +749,49 @@ def sync_main(args: argparse.Namespace) -> int:
             executor=executor,
             default_timeout=30.0
         )
+
+        # ============================================
+        # AI TEAM WORKFLOW HANDLER (SYNC MODE)
+        # ============================================
+
+        async def handle_ai_team_run(params: dict[str, Any] | None, request_id: str | int | None) -> dict[str, Any]:
+            """Handle ai_team/run JSON-RPC method (Sync Mode)."""
+            logger.info(f"AI Team Workflow triggered (id={request_id})")
+
+            try:
+                from services.ai_team.orchestrator import run_workflow_api
+            except ImportError:
+                import sys
+                sys.path.append(str(Path(__file__).parents[2]))
+                from services.ai_team.orchestrator import run_workflow_api
+
+            if not params or not params.get("prompt"):
+                raise ValueError("Parameter 'prompt' is required")
+
+            user_prompt = params.get("prompt", "")
+            logger.info(f"Starting workflow for prompt: {user_prompt[:50]}...")
+
+            try:
+                result = await run_workflow_api(user_prompt)
+                logger.info("Workflow completed successfully")
+                return {
+                    "success": True,
+                    "generated_code": result.generated_code,
+                    "qa_report": result.qa_report,
+                    "history": result.history,
+                }
+            except Exception as e:
+                logger.exception("Workflow failed")
+                raise RuntimeError(f"Workflow execution failed: {str(e)}")
+
+        # Register the handler
+        router.register_method(
+            name="ai_team/run",
+            handler=handle_ai_team_run,
+            description="Run AI Team workflow",
+            timeout=300.0
+        )
+
 
         logger.info("Plugin Host initialized successfully")
 

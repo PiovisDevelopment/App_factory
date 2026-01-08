@@ -23,8 +23,7 @@ import React, {
 } from "react";
 import { LiveComponentPreview } from "../ai/LiveComponentPreview";
 import { generateThemeCSSProperties } from "../../hooks/useThemedStyles";
-import { resolveColor, resolveBorder } from "../../utils/tokenMap";
-import { getComponent, isComponentRegistered, getRegistry } from "../../utils/ComponentRegistry";
+import { getRegistry } from "../../utils/ComponentRegistry";
 import type { ThemeConfig } from "../../context/ThemeProvider";
 import * as LucideIcons from "lucide-react";
 
@@ -690,14 +689,14 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
                   ...getRegistry(), // Inject all registered UI components
                   ...LucideIcons,   // Inject all Lucide icons
                 }}
-                props={element.props}
+                props={element.props ?? {}}
               />
             ) : element.componentId ? (
               // Template/built-in component: use TemplateComponentRenderer
               // This has rich visual previews for all template component types
               <TemplateComponentRenderer
                 componentId={element.componentId}
-                props={element.props}
+                {...(element.props ? { props: element.props } : {})}
                 bounds={{ width: element.bounds.width, height: element.bounds.height }}
                 demoMode={isDemoMode}
               />
@@ -836,7 +835,8 @@ export const CanvasEditor = forwardRef<HTMLDivElement, CanvasEditorProps>(
             onChange={(e) => {
               const idx = Number(e.target.value);
               setCurrentDevice(idx);
-              const device = devicePresets[idx];
+              const device = devicePresets[idx] ?? devicePresets[0];
+              if (!device) return;
               setEffectiveWidth(device.width);
               setEffectiveHeight(device.height);
               onCanvasSizeChange?.(device.width, device.height);

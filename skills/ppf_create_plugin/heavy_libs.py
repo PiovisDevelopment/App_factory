@@ -8,7 +8,8 @@ libraries that are large or commonly conflict-prone in shared environments.
 
 from __future__ import annotations
 
-from typing import Any, Iterable, List, Mapping, Union
+from collections.abc import Iterable, Mapping
+from typing import Any
 
 # Conservative catalog of heavy / conflict-prone libraries.
 HEAVY_PYTHON_LIBRARIES = {
@@ -30,8 +31,8 @@ def _normalize_name(name: str) -> str:
 
 
 def detect_heavy_libraries(
-    python_dependencies: Iterable[Union[str, Mapping[str, Any]]]
-) -> List[str]:
+    python_dependencies: Iterable[str | Mapping[str, Any]]
+) -> list[str]:
     """
     Given a list of python dependency entries, return a sorted list of
     those considered heavy.
@@ -40,7 +41,7 @@ def detect_heavy_libraries(
       - a string package name, or
       - a mapping with a 'name' key.
     """
-    heavy: List[str] = []
+    heavy: list[str] = []
 
     for entry in python_dependencies:
         if isinstance(entry, str):
@@ -56,7 +57,7 @@ def detect_heavy_libraries(
 
     # Deduplicate while preserving case-insensitive order.
     seen = set()
-    result: List[str] = []
+    result: list[str] = []
     for name in sorted(heavy, key=lambda n: n.lower()):
         key = name.lower()
         if key not in seen:

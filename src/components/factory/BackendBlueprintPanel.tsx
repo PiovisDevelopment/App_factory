@@ -83,13 +83,16 @@ function buildRequiredSlots(required: string[], registry?: PluginSlot[]): Plugin
     const existing = registry?.find(s => s.contract.toUpperCase() === contract.toUpperCase());
     const meta = pluginMetadata[contract] || { name: contract };
     if (existing) return existing;
-    return {
+    const slot: PluginSlot = {
       id: contract.toLowerCase(),
       contract,
       name: meta.name,
-      pluginName: meta.defaultPlugin,
       status: meta.defaultPlugin ? 'healthy' : 'empty',
     };
+    if (meta.defaultPlugin) {
+      slot.pluginName = meta.defaultPlugin;
+    }
+    return slot;
   });
 }
 
@@ -144,9 +147,9 @@ export const BackendBlueprintPanel: React.FC<BackendBlueprintPanelProps> = ({
   canvasElements = [],
   pluginRegistry,
   manualSlots = [],
-  onAddSlot,
-  onRemoveSlot,
-  onSlotClick
+  onAddSlot: _onAddSlot,
+  onRemoveSlot: _onRemoveSlot,
+  onSlotClick: _onSlotClick
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [activeStep, setActiveStep] = useState<number | null>(null);
@@ -191,7 +194,12 @@ export const BackendBlueprintPanel: React.FC<BackendBlueprintPanelProps> = ({
       // Strictly highlight a random FE component ONLY when FE is the SOURCE of the action
       if (flow?.from === 'fe' && feComponents.length > 0) {
         const randomIdx = Math.floor(Math.random() * feComponents.length);
-        setActiveFeComponent(feComponents[randomIdx].id);
+        const targetComponent = feComponents[randomIdx];
+        if (targetComponent) {
+          setActiveFeComponent(targetComponent.id);
+        } else {
+          setActiveFeComponent(null);
+        }
       } else {
         setActiveFeComponent(null);
       }
@@ -403,7 +411,7 @@ export const BackendBlueprintPanel: React.FC<BackendBlueprintPanelProps> = ({
             {showAddMenu && (
               <div className="absolute right-2 top-10 w-32 bg-white rounded-lg shadow-xl border border-slate-100 z-50 py-1 animate-in fade-in zoom-in-95 duration-200">
                 {PLUGIN_CATEGORIES.map(cat => (
-                  <button key={cat} onClick={() => { onAddSlot?.(cat); setShowAddMenu(false); }} className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-slate-50 text-slate-600">
+                  <button key={cat} onClick={() => { _onAddSlot?.(cat); setShowAddMenu(false); }} className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-slate-50 text-slate-600">
                     {cat}
                   </button>
                 ))}

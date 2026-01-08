@@ -8,7 +8,7 @@ These services provide simple, one-liner APIs for common AI tasks:
 - LLMService: Language model completions and chat
 """
 
-from .voice import VoiceService
 from .llm import LLMService
+from .voice import VoiceService
 
 __all__ = ["VoiceService", "LLMService"]

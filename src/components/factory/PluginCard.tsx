@@ -13,7 +13,7 @@
  *   - Reusable standalone card component
  */
 
-import React, { forwardRef, type HTMLAttributes } from "react";
+import React, { forwardRef, type CSSProperties } from "react";
 
 /**
  * Plugin status enumeration.
@@ -152,7 +152,7 @@ const sizeConfigs: Record<CardSize, { padding: string; iconSize: string; titleSi
 /**
  * PluginCard component props.
  */
-export interface PluginCardProps extends Omit<HTMLAttributes<HTMLDivElement>, "onSelect"> {
+export interface PluginCardProps {
   /** Plugin information */
   plugin: PluginInfo;
   /** Whether card is selected */
@@ -175,66 +175,12 @@ export interface PluginCardProps extends Omit<HTMLAttributes<HTMLDivElement>, "o
   onConfigure?: (plugin: PluginInfo) => void;
   /** Callback when info is requested */
   onInfo?: (plugin: PluginInfo) => void;
+  /** Custom className */
+  className?: string;
+  /** Custom inline styles */
+  style?: CSSProperties;
 }
 
-/**
- * More actions icon.
- */
-const MoreIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="19" cy="12" r="1" />
-    <circle cx="5" cy="12" r="1" />
-  </svg>
-);
-
-/**
- * Settings icon.
- */
-const SettingsIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="3" />
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-  </svg>
-);
-
-/**
- * Info icon.
- */
-const InfoIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="16" x2="12" y2="12" />
-    <line x1="12" y1="8" x2="12.01" y2="8" />
-  </svg>
-);
 
 /**
  * Load/Download icon.
@@ -357,18 +303,6 @@ export const PluginCard = forwardRef<HTMLDivElement, PluginCardProps>(
       } else if (plugin.status === "unloaded") {
         onLoad?.(plugin);
       }
-    };
-
-    // Handle configure
-    const handleConfigure = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onConfigure?.(plugin);
-    };
-
-    // Handle info
-    const handleInfo = (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onInfo?.(plugin);
     };
 
     return (

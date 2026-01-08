@@ -82,6 +82,7 @@ See [Architecture Documentation](docs/ARCHITECTURE.md) for details.
 | [Architecture](docs/ARCHITECTURE.md) | System architecture and design |
 | [Plugin Development](docs/PLUGIN_DEVELOPMENT.md) | How to create plugins |
 | [API Reference](docs/API_REFERENCE.md) | JSON-RPC API documentation |
+| [Analysis Enforcement](docs/ANALYSIS_ENFORCEMENT.md) | **Strict enforcement policy (Linting, Types, Tests)** |
 | [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues and solutions |
 | [Changelog](docs/CHANGELOG.md) | Version history |
 
@@ -103,6 +104,23 @@ App Factory supports three plugin contracts:
 | `npm run build` | Build frontend for production |
 | `npm run tauri dev` | Run Tauri in development mode |
 | `npm run tauri build` | Build Tauri application |
+
+## Testing & Validation
+
+**Policy:** All contributions MUST adhere to [ANALYSIS_ENFORCEMENT.md](docs/ANALYSIS_ENFORCEMENT.md).
+
+### Unit Tests
+
+- **Frontend**: Use vanilla TypeScript (no test framework currently)
+- **Python**: Use `pytest` with type hints
+- **Rust**: Use `#[test]` and `#[tokio::test]`
+
+### Running Validation
+
+```bash
+npm run ci:all    # Full validation pipeline (what CI runs)
+npm run local:all # Fast local checks (use during development)
+```
 
 ## Environment Variables
 
