@@ -3,6 +3,12 @@
 # Git ignore rules for App Factory
 
 # ===================
+# Archive: Contain old, obsoltete read-only files and folders
+# ===================
+00_archive/
+
+
+# ===================
 # Dependencies
 # ===================
 node_modules/
